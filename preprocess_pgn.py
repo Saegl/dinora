@@ -25,7 +25,7 @@ def load_games(filename_pgn: str):
     i = 0
     while game:
         game = chess.pgn.read_game(pgn)
-        if not game or game.headers["Variant"] != "Standard":
+        if not game or game.headers.get("Variant", "Standard") != "Standard":
             game = chess.pgn.read_game(pgn)
             continue
         i += 1
@@ -71,6 +71,6 @@ def main(filename_pgn: str, filename_buffer: str):
 
 
 if __name__ == '__main__':
-    filename_pgn = "pgn/All_My_Games.pgn"
+    filename_pgn = "pgn/lichess_elite_2021-06.pgn"
     filename_buffer = "feed/games.json"
     main(filename_pgn, filename_buffer)
