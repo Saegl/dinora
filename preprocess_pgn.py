@@ -19,7 +19,7 @@ def num_result(game):
     return result
 
 
-def load_games(filename_pgn: str):
+def load_games(filename_pgn: str, max_games: int = 100000):
     pgn = open(filename_pgn)
     game = True
     i = 0
@@ -29,6 +29,8 @@ def load_games(filename_pgn: str):
             game = chess.pgn.read_game(pgn)
             continue
         i += 1
+        if i > max_games:
+            break
         if i % 250 == 0:
             logging.info(f'{i} games loaded')
         yield game
@@ -37,7 +39,10 @@ def load_games(filename_pgn: str):
 def preprocess_games(games):
     buffer = []
     for game in games:
-        result = num_result(game)
+        try:
+            result = num_result(game)
+        except ValueError:
+            continue
         board = game.board()
 
         for move in game.mainline_moves():
