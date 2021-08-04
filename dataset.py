@@ -17,6 +17,9 @@ def gen_planes(buffer):
 
 def gen_results(buffer):
     for pos in buffer:
+        res = pos['result']
+        if is_black_turn(pos['fen']):
+            res = 1.0 - res
         yield pos['result']
 
 
