@@ -9,18 +9,18 @@ logging.basicConfig(level=logging.DEBUG)
 def num_result(game):
     result = game.headers['Result']
     if result == '0-1':
-        result = 0.0
+        result = -1.0
     elif result == '1-0':
         result = 1.0
     elif result == '1/2-1/2':
-        result = 0.5
+        result = 0.0
     else:
         raise ValueError(f"Illegal game result: {result}")
     return result
 
 
 def load_games(filename_pgn: str, max_games: int = 100000):
-    pgn = open(filename_pgn)
+    pgn = open(filename_pgn, 'r', encoding='utf8')
     game = True
     i = 0
     while game:
