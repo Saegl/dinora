@@ -20,7 +20,7 @@ def gen_results(buffer):
     for pos in buffer:
         res = pos['result']
         if is_black_turn(pos['fen']):
-            res = 1.0 - res
+            res = -res
         yield pos['result']
 
 
