@@ -69,14 +69,18 @@ class GamesDataset(RawBufferDataset):
 
 
 class LazyBuffer:
-    def __init__(self, iter_):
+    def __init__(self, iter_, maxlen):
         self.iter = iter_
         self.data = []
+        self.maxlen = maxlen
     
     def __getitem__(self, index):
         while len(self.data) < index.stop:
             self.data.append(next(self.iter))
         return self.data[index]
+    
+    def __len__(self):
+        return self.maxlen
 
 class PGNDataset(RawBufferDataset):
     """
@@ -87,5 +91,5 @@ class PGNDataset(RawBufferDataset):
     def __init__(self, pgn_filename, batch_size: int, max_games: int):
         games = load_games(pgn_filename, max_games)
         pos_iter = positions(games)
-        buffer = LazyBuffer(pos_iter)
+        buffer = LazyBuffer(pos_iter, max_games * 25)
         super().__init__(buffer, batch_size)
