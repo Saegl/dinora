@@ -33,7 +33,7 @@ def load_games(filename_pgn: str, max_games: int = 100000):
         if i > max_games:
             break
         if i % 150 == 0:
-            logging.info(f'{i}/{max_games}')
+            print(f'{i}/{max_games}')
         yield game
 
 
