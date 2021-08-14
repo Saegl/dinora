@@ -1,7 +1,8 @@
+import json
 import logging
+
 import chess
 import chess.pgn
-import json
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -20,7 +21,7 @@ def num_result(game):
 
 
 def load_games(filename_pgn: str, max_games: int = 100000):
-    pgn = open(filename_pgn, 'r', encoding='utf8')
+    pgn = open(filename_pgn, 'r', encoding='utf8', errors='ignore')
     game = True
     i = 0
     while game:
@@ -31,13 +32,12 @@ def load_games(filename_pgn: str, max_games: int = 100000):
         i += 1
         if i > max_games:
             break
-        if i % 250 == 0:
-            logging.info(f'{i} games loaded')
+        if i % 150 == 0:
+            logging.info(f'{i}/{max_games}')
         yield game
 
 
-def preprocess_games(games):
-    buffer = []
+def positions(games):
     for game in games:
         try:
             result = num_result(game)
@@ -47,18 +47,22 @@ def preprocess_games(games):
 
         for move in game.mainline_moves():
             fen = board.fen()
-            buffer.append({
+            yield {
                 'fen': fen,
                 'result': result,
                 'move': move.uci(),
-            })
+            }
 
             try:
                 board.push(move)
             except AssertionError:
                 logging.warning("Broken game found,"
-                    f"can't make a move {move}."
-                    "Skipping")
+                                f"can't make a move {move}."
+                                "Skipping")
+
+
+def preprocess_games(games):
+    buffer = list(positions(games))
     return buffer
 
 

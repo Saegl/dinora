@@ -7,7 +7,7 @@ from tensorflow import keras
 
 from policy import policy_from_move, flip_policy
 from board_utils import canon_input_planes, is_black_turn
-from preprocess_pgn import load_games, preprocess_games
+from preprocess_pgn import load_games, preprocess_games, positions
 
 
 def gen_planes(buffer):
@@ -68,6 +68,16 @@ class GamesDataset(RawBufferDataset):
         super().__init__(buffer, batch_size)
 
 
+class LazyBuffer:
+    def __init__(self, iter_):
+        self.iter = iter_
+        self.data = []
+    
+    def __getitem__(self, index):
+        while len(self.data) < index.stop:
+            self.data.append(next(self.iter))
+        return self.data[index]
+
 class PGNDataset(RawBufferDataset):
     """
     Direct chess games loading from pgn file,
@@ -76,5 +86,6 @@ class PGNDataset(RawBufferDataset):
 
     def __init__(self, pgn_filename, batch_size: int, max_games: int):
         games = load_games(pgn_filename, max_games)
-        buffer = preprocess_games(games)
+        pos_iter = positions(games)
+        buffer = LazyBuffer(pos_iter)
         super().__init__(buffer, batch_size)
