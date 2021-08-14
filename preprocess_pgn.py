@@ -69,8 +69,8 @@ def dump_games(filename_buffer: str, buffer):
     logging.debug("Dump success")
 
 
-def main(filename_pgn: str, filename_buffer: str):
-    games = load_games(filename_pgn)
+def main(filename_pgn: str, filename_buffer: str, max_games: int = 100000):
+    games = load_games(filename_pgn, max_games)
     buffer = preprocess_games(games)
     dump_games(filename_buffer, buffer)
 
