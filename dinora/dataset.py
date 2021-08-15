@@ -5,9 +5,9 @@ import chess
 import numpy as np
 from tensorflow import keras
 
-from policy import policy_from_move, flip_policy
-from board_utils import canon_input_planes, is_black_turn
-from preprocess_pgn import load_games, preprocess_games, positions
+from .policy import policy_from_move, flip_policy
+from .board_utils import canon_input_planes, is_black_turn
+from .preprocess_pgn import load_games, preprocess_games, positions
 
 
 def gen_planes(buffer):
