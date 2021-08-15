@@ -2,8 +2,8 @@ import chess
 from tensorflow import keras
 import numpy as np
 
-from board_utils import canon_input_planes
-from policy import move_lookup, flipped_move_lookup
+from .board_utils import canon_input_planes
+from .policy import move_lookup, flipped_move_lookup
 
 
 class ChessModel:

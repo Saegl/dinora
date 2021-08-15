@@ -4,7 +4,7 @@ from tensorflow.keras.regularizers import L2
 from tensorflow.keras.utils import plot_model
 
 
-from dataset import GamesDataset
+from .dataset import GamesDataset
 
 
 
