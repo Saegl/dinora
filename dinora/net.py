@@ -1,6 +1,7 @@
 from os.path import dirname, realpath, join
 
 import chess
+import pylru
 from tensorflow import keras
 import numpy as np
 
@@ -17,7 +18,7 @@ class ChessModel:
         self.model: keras.Model = keras.models.load_model(model_path)
 
     def model_out(self, board: chess.Board):
-        flip = board.turn
+        flip = not board.turn
         plane = canon_input_planes(board.fen(), flip)
         plane = np.array([plane])
         model_output = self.model(plane, training=False)
@@ -28,7 +29,6 @@ class ChessModel:
         # unwrap tensor
         policy = policy[0]
         value = float(value[0])
-        value = value if board.turn else -value
 
         # take only legal moves from policy
         moves = []
@@ -58,3 +58,30 @@ class ChessModel:
                 # and we are checkmated because it's our turn to move
                 return dict(), -1.0
         return self.raw_eval(board)
+
+
+class ChessModelWithCache:
+    def __init__(self, size=200000, model_path=BEST_MODEL):
+        self.cache = pylru.lrucache(size)
+        self.net = ChessModel(model_path=model_path)
+
+    def evaluate(self, board: chess.Board):
+        epd = board.epd()
+        if epd in self.cache:
+            policy, value = self.cache[epd]
+            return policy, value
+        else:
+            policy, value = self.net.evaluate(board)
+            self.cache[epd] = [policy, value]
+            return policy, value
+
+if __name__ == '__main__':
+    fen = input('fen>')
+    board = chess.Board(fen)
+    net = ChessModel()
+
+    print(net.evaluate(board))
+
+    import badgyal
+    bad = badgyal.BGNet(False)
+    print(bad.eval(board))
