@@ -1,11 +1,4 @@
-import json
-import math
-
-import chess
-import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-
 
 from .preprocess_pgn import load_chess_games, chess_positions
 
