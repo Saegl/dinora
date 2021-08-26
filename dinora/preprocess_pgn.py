@@ -1,8 +1,10 @@
-import json
 import logging
 
 import chess
 import chess.pgn
+
+from .policy import policy_from_move, flip_policy
+from .board_utils import canon_input_planes
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -19,8 +21,24 @@ def num_result(game):
         raise ValueError(f"Illegal game result: {result}")
     return result
 
+def planes_input(fen: str, flip: bool):
+    plane = canon_input_planes(fen, flip)
+    return plane
 
-def load_games(filename_pgn: str, max_games: int = 100000):
+
+def result_output(result: float, flip: bool):
+    return -result if flip else result
+
+
+def policy_output(move: chess.Move, flip: bool):
+    policy = policy_from_move(move)
+    if flip:
+        policy = flip_policy(policy)
+    return policy
+
+
+
+def load_chess_games(filename_pgn: str, max_games: int = 100000):
     pgn = open(filename_pgn, 'r', encoding='utf8', errors='ignore')
     game = True
     i = 0
@@ -32,12 +50,12 @@ def load_games(filename_pgn: str, max_games: int = 100000):
         i += 1
         if i > max_games:
             break
-        if i % 150 == 0:
-            print(f'{i}/{max_games}')
+        if i % 1000 == 0:
+            print(i)
         yield game
 
 
-def positions(games):
+def chess_positions(games):
     for game in games:
         try:
             result = num_result(game)
@@ -47,11 +65,11 @@ def positions(games):
 
         for move in game.mainline_moves():
             fen = board.fen()
-            yield {
-                'fen': fen,
-                'result': result,
-                'move': move.uci(),
-            }
+            flip = not board.turn
+            yield (
+                planes_input(fen, flip),
+                (policy_output(move, flip), result_output(result, flip))
+            )
 
             try:
                 board.push(move)
@@ -59,27 +77,3 @@ def positions(games):
                 logging.warning("Broken game found,"
                                 f"can't make a move {move}."
                                 "Skipping")
-
-
-def preprocess_games(games):
-    buffer = list(positions(games))
-    return buffer
-
-
-def dump_games(filename_buffer: str, buffer):
-    logging.debug("Games dumping started")
-    with open(filename_buffer, 'w', encoding='utf8') as f:
-        json.dump(buffer, f)
-    logging.debug("Dump success")
-
-
-def main(filename_pgn: str, filename_buffer: str, max_games: int = 100000):
-    games = load_games(filename_pgn, max_games)
-    buffer = preprocess_games(games)
-    dump_games(filename_buffer, buffer)
-
-
-if __name__ == '__main__':
-    filename_pgn = "pgn/lichess_elite_2021-06.pgn"
-    filename_buffer = "feed/games.json"
-    main(filename_pgn, filename_buffer)

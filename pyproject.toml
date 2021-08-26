@@ -1,9 +1,10 @@
 [tool.poetry]
 name = "Dinora"
-version = "0.1.1"
+version = "0.1.2"
 description = "Chess Engine"
 authors = ["Saegl <saegl@protonmail.com>"]
 license = "GPL v3"
+include = ['models/best_model.h5']
 
 [tool.poetry.dependencies]
 python = "^3.7"

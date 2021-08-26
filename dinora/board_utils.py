@@ -4,12 +4,12 @@ pieces_order = 'KQRBNPkqrbnp'  # 12x8x8
 ind = {pieces_order[i]: i for i in range(12)}
 
 
-def canon_input_planes(fen):
+def canon_input_planes(fen, flip: bool):
     """
     :param fen:
     :return : (18, 8, 8) representation of the game state
     """
-    fen = maybe_flip_fen(fen, is_black_turn(fen))
+    fen = maybe_flip_fen(fen, flip)
     return all_input_planes(fen)
 
 

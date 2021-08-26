@@ -1,11 +1,6 @@
 from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.regularizers import L2
-from tensorflow.keras.utils import plot_model
-
-
-from .dataset import GamesDataset
-
 
 
 def build_model() -> keras.Model:
@@ -72,21 +67,3 @@ def build_value_output(inputs):
     x = layers.Dense(1, kernel_regularizer=L2(1e-4),
                             activation="tanh", name="value_out")(x)
     return x
-
-def main():
-    from datetime import datetime
-    
-    dataset = GamesDataset('feed/games.json', 256)
-    model = build_model()
-
-    model.summary()
-    plot_model(model, to_file='assets/model.png', show_shapes=True)
-
-    now = datetime.utcnow()
-    model_filename = now.strftime(r"%Y-%m-%d--%H:%M")
-
-    model.fit(dataset, epochs=15, batch_size=320, shuffle=True)
-    model.save('models/' + model_filename)
-
-if __name__ == '__main__':
-    main()
