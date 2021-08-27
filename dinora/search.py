@@ -129,4 +129,7 @@ if __name__ == '__main__':
     board = chess.Board(fen)
     net = ChessModelWithCache()
 
+    # from dinora.train import build_model, LightConfig, ModelConfig
+    # net.net.model = build_model(LightConfig)
+
     uct(board, nodes, net, c, send=print)
