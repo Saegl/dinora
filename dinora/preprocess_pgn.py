@@ -10,16 +10,17 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 def num_result(game):
-    result = game.headers['Result']
-    if result == '0-1':
+    result = game.headers["Result"]
+    if result == "0-1":
         result = -1.0
-    elif result == '1-0':
+    elif result == "1-0":
         result = 1.0
-    elif result == '1/2-1/2':
+    elif result == "1/2-1/2":
         result = 0.0
     else:
         raise ValueError(f"Illegal game result: {result}")
     return result
+
 
 def planes_input(fen: str, flip: bool):
     plane = canon_input_planes(fen, flip)
@@ -37,9 +38,8 @@ def policy_output(move: chess.Move, flip: bool):
     return policy
 
 
-
 def load_chess_games(filename_pgn: str, max_games: int = 100000):
-    pgn = open(filename_pgn, 'r', encoding='utf8', errors='ignore')
+    pgn = open(filename_pgn, "r", encoding="utf8", errors="ignore")
     game = True
     i = 0
     while game:
@@ -68,12 +68,12 @@ def chess_positions(games):
             flip = not board.turn
             yield (
                 planes_input(fen, flip),
-                (policy_output(move, flip), result_output(result, flip))
+                (policy_output(move, flip), result_output(result, flip)),
             )
 
             try:
                 board.push(move)
             except AssertionError:
-                logging.warning("Broken game found,"
-                                f"can't make a move {move}."
-                                "Skipping")
+                logging.warning(
+                    "Broken game found," f"can't make a move {move}." "Skipping"
+                )

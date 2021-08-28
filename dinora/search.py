@@ -9,10 +9,10 @@ FPU_ROOT = 0.0
 
 
 def cp(Q):
-    return int(295 * Q / (1 - 0.976953125 * Q**14))
+    return int(295 * Q / (1 - 0.976953125 * Q ** 14))
 
 
-class UCTNode():
+class UCTNode:
     def __init__(self, board=None, parent=None, move=None, prior=0):
         self.board = board
         self.move = move
@@ -30,12 +30,12 @@ class UCTNode():
         return self.total_value / (1 + self.number_visits)
 
     def U(self):  # returns float
-        return (math.sqrt(self.parent.number_visits)
-                * self.prior / (1 + self.number_visits))
+        return (
+            math.sqrt(self.parent.number_visits) * self.prior / (1 + self.number_visits)
+        )
 
     def best_child(self, C):
-        return max(self.children.values(),
-                   key=lambda node: node.Q() + C*node.U())
+        return max(self.children.values(), key=lambda node: node.Q() + C * node.U())
 
     def select_leaf(self, C):
         current = self
@@ -60,24 +60,27 @@ class UCTNode():
         turnfactor = -1
         while current.parent is not None:
             current.number_visits += 1
-            current.total_value += (value_estimate *
-                                    turnfactor)
+            current.total_value += value_estimate * turnfactor
             current = current.parent
             turnfactor *= -1
         current.number_visits += 1
 
 
 def get_best_move(root):
-    bestmove, node = max(root.children.items(), key=lambda item: (
-        item[1].number_visits, item[1].Q()))
+    bestmove, node = max(
+        root.children.items(), key=lambda item: (item[1].number_visits, item[1].Q())
+    )
     score = int(round(cp(node.Q()), 0))
     return bestmove, node, score
 
 
 def send_info(send, bestmove, count, delta, score):
     if send != None:
-        send("info depth 1 seldepth 1 score cp {} nodes {} nps {} pv {}".format(
-            score, count, int(round(count/delta, 0)), bestmove))
+        send(
+            "info depth 1 seldepth 1 score cp {} nodes {} nps {} pv {}".format(
+                score, count, int(round(count / delta, 0)), bestmove
+            )
+        )
 
 
 def uct(board, num_reads, net=None, C=1.0, max_time=None, send=None):
@@ -99,7 +102,7 @@ def uct(board, num_reads, net=None, C=1.0, max_time=None, send=None):
         leaf.backup(value_estimate)
         now = time()
         delta = now - start
-        if (delta - delta_last > 5):
+        if delta - delta_last > 5:
             delta_last = delta
             bestmove, node, score = get_best_move(root)
             send_info(send, bestmove, count, delta, score)
@@ -110,24 +113,33 @@ def uct(board, num_reads, net=None, C=1.0, max_time=None, send=None):
     bestmove, node, score = get_best_move(root)
     if send != None:
         for nd in sorted(root.children.items(), key=lambda item: item[1].number_visits):
-            send("info string {} {} \t(P: {}%) \t(Q: {})".format(
-                nd[1].move, nd[1].number_visits, round(nd[1].prior*100, 2), round(nd[1].Q(), 5)))
-        send("info depth 1 seldepth 1 score cp {} nodes {} nps {} pv {}".format(
-            score, count, int(round(count/delta, 0)), bestmove))
+            send(
+                "info string {} {} \t(P: {}%) \t(Q: {})".format(
+                    nd[1].move,
+                    nd[1].number_visits,
+                    round(nd[1].prior * 100, 2),
+                    round(nd[1].Q(), 5),
+                )
+            )
+        send(
+            "info depth 1 seldepth 1 score cp {} nodes {} nps {} pv {}".format(
+                score, count, int(round(count / delta, 0)), bestmove
+            )
+        )
 
     # if we have a bad score, go for a draw
     return bestmove, score
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from dinora.net import ChessModel, ChessModelWithCache
 
-    fen = input('fen> ')
-    nodes = int(input('nodes> '))
-    c = float(input('c> '))
+    fen = input("fen> ")
+    nodes = int(input("nodes> "))
+    c = float(input("c> "))
 
     board = chess.Board(fen)
-    net = ChessModelWithCache()
+    net = ChessModel()
 
     # from dinora.train import build_model, LightConfig, ModelConfig
     # net.net.model = build_model(LightConfig)
