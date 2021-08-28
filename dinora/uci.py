@@ -9,15 +9,6 @@ from math import cos
 
 
 EXTRA_TIME = 0.5
-logfile = open("dinora.log", "w")
-LOG = True
-
-
-def log(msg):
-    if LOG:
-        logfile.write(str(msg))
-        logfile.write("\n")
-        logfile.flush()
 
 
 def send(s: str):
@@ -46,13 +37,13 @@ def uci_command(cmd: str, board: chess.Board, net):
     elif tokens[0] == "position":
         if tokens[1] == "startpos":
             board = chess.Board()
-        if tokens[1] == 'fen':
+        if tokens[1] == "fen":
             fen = " ".join(tokens[2:8])
             board = chess.Board(fen)
-        
-        if 'moves' in tokens:
-            index = tokens.index('moves')
-            moves = tokens[index + 1:]
+
+        if "moves" in tokens:
+            index = tokens.index("moves")
+            moves = tokens[index + 1 :]
             for move in moves:
                 board.push_uci(move)
     elif tokens[0] == "go":
@@ -86,7 +77,7 @@ def uci_command(cmd: str, board: chess.Board, net):
 
 def start_uci():
     board = chess.Board()
-    net = dinora.net.ChessModel()
+    net = dinora.net.ChessModelWithCache()
     while True:
         board, net = uci_command(input(), board, net)
 
@@ -95,7 +86,9 @@ if __name__ == "__main__":
     try:
         start_uci()
     except:
+        logfile = open("dinora.log", "w")
         exc_type, exc_value, exc_tb = sys.exc_info()
-        log(traceback.format_exception(exc_type, exc_value, exc_tb))
-    finally:
+        logfile.write(traceback.format_exception(exc_type, exc_value, exc_tb))
+        logfile.write("\n")
+        logfile.flush()
         logfile.close()
