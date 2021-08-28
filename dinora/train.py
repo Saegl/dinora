@@ -19,7 +19,6 @@ class LightConfig(ModelConfig):
     l2_reg = 1e-4
 
 
-
 def build_model(mc: ModelConfig) -> keras.Model:
     base_inputs, base_outputs = build_base_block(mc)
     res_outputs = build_residual_blocks(base_outputs, mc)
@@ -68,7 +67,7 @@ def build_residual_block(inputs, index, mc: ModelConfig):
         data_format="channels_first",
         use_bias=False,
         kernel_regularizer=L2(mc.l2_reg),
-        name=f'{res_name}_conv2-{mc.cnn_filter_size}-{mc.cnn_filter_num}'
+        name=f"{res_name}_conv2-{mc.cnn_filter_size}-{mc.cnn_filter_num}",
     )(inputs)
     x = layers.BatchNormalization(axis=1, name=f"{res_name}_batchnorm1")(x)
     x = layers.Activation("relu", name=f"{res_name}_relu1")(x)
@@ -126,7 +125,7 @@ def build_value_output(inputs, mc: ModelConfig):
     return x
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     model = build_model(ModelConfig)
     model.summary()
 

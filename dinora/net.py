@@ -9,8 +9,8 @@ from .board_utils import canon_input_planes
 from .policy import move_lookup, flipped_move_lookup
 
 
-MODELS_DIR = join(dirname(realpath(__file__)), '..', 'models')
-BEST_MODEL = join(MODELS_DIR, 'best_model.h5')
+MODELS_DIR = join(dirname(realpath(__file__)), "..", "models")
+BEST_MODEL = join(MODELS_DIR, "best_model.h5")
 
 
 class ChessModel:
@@ -75,13 +75,15 @@ class ChessModelWithCache:
             self.cache[epd] = [policy, value]
             return policy, value
 
-if __name__ == '__main__':
-    fen = input('fen>')
+
+if __name__ == "__main__":
+    fen = input("fen>")
     board = chess.Board(fen)
     net = ChessModel()
 
     print(net.evaluate(board))
 
     import badgyal
+
     bad = badgyal.BGNet(False)
     print(bad.eval(board))

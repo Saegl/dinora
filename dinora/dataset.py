@@ -12,7 +12,7 @@ def create_dataset_from_pgn(pgn_path: str, max_games: int) -> tf.data.Dataset:
             (
                 tf.TensorSpec(shape=(1968,), dtype=tf.float32, name=None),
                 tf.TensorSpec(shape=(), dtype=tf.float32, name=None),
-            )
-        )
+            ),
+        ),
     )
     return tfdataset
