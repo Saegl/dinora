@@ -8,7 +8,7 @@ from dinora import search
 from math import cos
 
 
-EXTRA_TIME = 0.05
+EXTRA_TIME = 0.5
 logfile = open("dinora.log", "w")
 LOG = True
 
