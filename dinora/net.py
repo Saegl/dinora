@@ -1,3 +1,4 @@
+import math
 from os.path import dirname, realpath, join
 
 import chess
@@ -24,24 +25,25 @@ class ChessModel:
         model_output = self.model(plane, training=False)
         return model_output
 
-    def raw_eval(self, board: chess.Board):
+    def raw_eval(self, board: chess.Board, softmax_temp = 1.61):
         policy, value = self.model_out(board)
         # unwrap tensor
         policy = policy[0]
         value = float(value[0])
 
         # take only legal moves from policy
+        t = softmax_temp
         moves = []
         policies = []
         lookup = move_lookup if board.turn else flipped_move_lookup
         for move in board.legal_moves:
             i = lookup[move]
             moves.append(move.uci())
-            policies.append(float(policy[i]))
+            policies.append(math.exp(float(policy[i]) / t))
 
         # map to sum(policies) == 1
         s = sum(policies)
-        policies = map(lambda e: e / s, policies)
+        policies = map(lambda e: math.exp(e / t) / s, policies)
 
         return dict(zip(moves, policies)), value
 
@@ -77,13 +79,23 @@ class ChessModelWithCache:
 
 
 if __name__ == "__main__":
+    def print_policy(p):
+        items = list(p.items())
+        items.sort(key=lambda x: x[1])
+        for item in items:
+            print(item)
+
     fen = input("fen>")
     board = chess.Board(fen)
     net = ChessModel()
 
-    print(net.evaluate(board))
+    policy, score = net.evaluate(board)
+    print_policy(policy)
+    print(score)
 
     import badgyal
 
     bad = badgyal.BGNet(False)
-    print(bad.eval(board))
+    policy, score = bad.eval(board)
+    print_policy(policy)
+    print(score)
