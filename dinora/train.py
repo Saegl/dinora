@@ -13,9 +13,9 @@ class ModelConfig:
 
 class LightConfig(ModelConfig):
     cnn_filter_num = 128
-    cnn_filter_size = 5
+    cnn_first_filter_size = 3
     cnn_filter_size = 3
-    res_layer_num = 3
+    res_layer_num = 10
     l2_reg = 1e-4
 
 
