@@ -83,34 +83,7 @@ def send_info(send, bestmove, count, delta, score):
         )
 
 
-def uct(board, num_reads, net=None, C=1.0, max_time=None, send=None):
-    if max_time == None:
-        # search for a maximum of an hour
-        max_time = 3600.0
-    max_time = max_time - 0.05
-
-    start = time()
-    count = 0
-    delta_last = 0
-
-    root = UCTNode(board)
-    for i in range(num_reads):
-        count += 1
-        leaf = root.select_leaf(C)
-        child_priors, value_estimate = net.evaluate(leaf.board)
-        leaf.expand(child_priors)
-        leaf.backup(value_estimate)
-        now = time()
-        delta = now - start
-        if delta - delta_last > 5:
-            delta_last = delta
-            bestmove, node, score = get_best_move(root)
-            send_info(send, bestmove, count, delta, score)
-
-        if (time != None) and (delta > max_time):
-            break
-
-    bestmove, node, score = get_best_move(root)
+def send_tree_info(send, root):
     if send != None:
         for nd in sorted(root.children.items(), key=lambda item: item[1].number_visits):
             send(
@@ -121,11 +94,71 @@ def uct(board, num_reads, net=None, C=1.0, max_time=None, send=None):
                     round(nd[1].Q(), 5),
                 )
             )
-        send(
-            "info depth 1 seldepth 1 score cp {} nodes {} nps {} pv {}".format(
-                score, count, int(round(count / delta, 0)), bestmove
-            )
-        )
+
+
+def uct_nodes(board, nodes, net=None, C=1.0, send=None):
+    start = time()
+    count = 0
+    delta_last = 0
+
+    root = UCTNode(board)
+    for _ in range(nodes):
+        count += 1
+        leaf = root.select_leaf(C)
+        child_priors, value_estimate = net.evaluate(leaf.board)
+        leaf.expand(child_priors)
+        leaf.backup(value_estimate)
+        now = time()
+        delta = now - start
+        if delta - delta_last > 5:  # Send info every 5 sec
+            delta_last = delta
+            bestmove, _, score = get_best_move(root)
+            send_info(send, bestmove, count, delta, score)
+
+    bestmove, _, score = get_best_move(root)
+    
+    send_tree_info(send, root)
+    send_info(send, bestmove, count, delta, score)
+
+    # if we have a bad score, go for a draw
+    return bestmove, score
+
+
+def uct_time(board, net, C, move_time, send):
+    count = 0
+    delta_last = 0
+
+    root = UCTNode(board)
+    start = time()
+
+    for _ in range(2):  # Calculate min 2 nodes
+        count += 1
+        leaf = root.select_leaf(C)
+        child_priors, value_estimate = net.evaluate(leaf.board)
+        leaf.expand(child_priors)
+        leaf.backup(value_estimate)
+
+    while True:
+        count += 1
+        leaf = root.select_leaf(C)
+        child_priors, value_estimate = net.evaluate(leaf.board)
+        leaf.expand(child_priors)
+        leaf.backup(value_estimate)
+
+        now = time()
+        delta = now - start
+        if delta - delta_last > 5:
+            delta_last = delta
+            bestmove, _, score = get_best_move(root)
+            send_info(send, bestmove, count, delta, score)
+
+        if delta > move_time:
+            break
+
+    bestmove, _, score = get_best_move(root)
+
+    send_tree_info(send, root)
+    send_info(send, bestmove, count, delta, score)
 
     # if we have a bad score, go for a draw
     return bestmove, score
@@ -144,4 +177,4 @@ if __name__ == "__main__":
     # from dinora.train import build_model, LightConfig, ModelConfig
     # net.net.model = build_model(LightConfig)
 
-    uct(board, nodes, net, c, send=print)
+    uct_nodes(board, nodes, net, c, send=print)
