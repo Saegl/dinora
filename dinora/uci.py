@@ -43,21 +43,18 @@ def uci_command(cmd: str, board: chess.Board, net):
         send("readyok")
     elif tokens[0] == "ucinewgame":
         pass
-    elif cmd.startswith("position fen"):
-        moves = []
-        if "moves" in cmd:
-            cmd, moves = cmd.split("moves")
-            moves = moves.split(" ")[1:]
-        fen = cmd.split(" ")[2:]
-        fen = " ".join(fen)
-        board = chess.Board(fen)
-        for move in moves:
-            board.push(chess.Move.from_uci(move))
-    elif cmd.startswith("position startpos moves"):
-        moves = cmd.split(" ")[3:]
-        board = chess.Board()
-        for move in moves:
-            board.push(chess.Move.from_uci(move))
+    elif tokens[0] == "position":
+        if tokens[1] == "startpos":
+            board = chess.Board()
+        if tokens[1] == 'fen':
+            fen = " ".join(tokens[2:8])
+            board = chess.Board(fen)
+        
+        if 'moves' in tokens:
+            index = tokens.index('moves')
+            moves = tokens[index + 1:]
+            for move in moves:
+                board.push_uci(move)
     elif tokens[0] == "go":
         # go wtime <wtime> btime <btime>
         if len(tokens) == 5 and tokens[1] == "wtime":
