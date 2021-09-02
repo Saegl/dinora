@@ -64,6 +64,9 @@ class UCTNode:
             current = current.parent
             turnfactor *= -1
         current.number_visits += 1
+    
+    def __str__(self) -> str:
+        return f"UCTNode <{self.board}, {self.children}>"
 
 
 def get_best_move(root):
@@ -165,16 +168,23 @@ def uct_time(board, net, C, move_time, send):
 
 
 if __name__ == "__main__":
+    from badgyal import BGNet
     from dinora.net import ChessModel, ChessModelWithCache
 
-    fen = input("fen> ")
-    nodes = int(input("nodes> "))
-    c = float(input("c> "))
+    fen = input("fen> ") or chess.STARTING_FEN
+    nodes = int(input("nodes> ") or 2000)
+    c = float(input("c> ") or 3.0)
 
     board = chess.Board(fen)
-    net = ChessModel()
+    net = ChessModel('models/best_light_model.h5')
+    # net = ChessModelWithCache(200000, 'models/best_light_model.h5')
 
-    # from dinora.train import build_model, LightConfig, ModelConfig
-    # net.net.model = build_model(LightConfig)
+    # class Bad:
+    #     net_ = BGNet(False)
+    #     def evaluate(self, b): return Bad.net_.eval(b)
+    
+    # net = Bad()
 
+    start = time()
     uct_nodes(board, nodes, net, c, send=print)
+    print("Elapsed time: ", time() - start)
