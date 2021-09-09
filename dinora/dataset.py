@@ -4,12 +4,10 @@ from .preprocess_pgn import load_chess_games, chess_positions
 from .selfplay import gen_game
 
 default_dinora_signature = (
+    tf.TensorSpec(shape=(18, 8, 8), dtype=tf.float32, name=None),  # Board
     (
-        tf.TensorSpec(shape=(18, 8, 8), dtype=tf.float32, name=None),  # Board
-        (
-            tf.TensorSpec(shape=(1968,), dtype=tf.float32, name=None),  # Policy
-            tf.TensorSpec(shape=(), dtype=tf.float32, name=None),  # Game result
-        ),
+        tf.TensorSpec(shape=(1968,), dtype=tf.float32, name=None),  # Policy
+        tf.TensorSpec(shape=(), dtype=tf.float32, name=None),  # Game result
     ),
 )
 
