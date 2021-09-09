@@ -53,7 +53,7 @@ def uci_command(cmd: str, board: chess.Board, net):
             btime = int(tokens[4])
             engine_time = wtime if board.turn else btime
             move_time = time_manager(board.fullmove_number, engine_time)
-            move, _ = search.uct_time(board, net, 4.0, move_time, send)
+            move, _ = search.uct_time(board, net, 3.0, move_time, send)
         # go wtime <wtime> btime <btime> winc <winc> binc <binc>
         elif len(tokens) == 9 and tokens[1] == "wtime":
             wtime = int(tokens[2])
@@ -63,9 +63,9 @@ def uci_command(cmd: str, board: chess.Board, net):
             engine_time = wtime if board.turn else btime
             engine_inc = winc if board.turn else binc
             move_time = time_manager(board.fullmove_number, engine_time, engine_inc)
-            move, _ = search.uct_time(board, net, 4.0, move_time, send)
+            move, _ = search.uct_time(board, net, 3.0, move_time, send)
         else:
-            move, _ = search.uct_nodes(board, 300, net, 4.0, send=send)
+            move, _ = search.uct_nodes(board, 300, net, 3.0, send=send)
         send(f"bestmove {move}")
     elif cmd == "quit":
         exit()
@@ -77,7 +77,7 @@ def uci_command(cmd: str, board: chess.Board, net):
 
 def start_uci():
     board = chess.Board()
-    net = dinora.net.ChessModelWithCache()
+    net = dinora.net.ChessModel('models/best_light_model.h5')
     while True:
         board, net = uci_command(input(), board, net)
 
