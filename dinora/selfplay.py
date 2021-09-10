@@ -12,8 +12,8 @@ def gen_game(nodes: int, net, c):
         move, _ = uct_nodes(node.board(), nodes, net, c)
         move = chess.Move.from_uci(move)
         node = node.add_variation(move)
-        print('.', end='', flush=True)
-    print()
+        print(move, end=' ', flush=True)
+    print(node.board().result(claim_draw=True))
 
     result = node.board().result(claim_draw=True)
     game.headers['Result'] = result
