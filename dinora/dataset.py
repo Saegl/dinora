@@ -14,14 +14,15 @@ default_dinora_signature = (
 
 def create_dataset_from_pgn(pgn_path: str, max_games: int) -> tf.data.Dataset:
     games = load_chess_games(pgn_path, max_games)
-    tfdataset = tf.data.Dataset.from_generator(
-        lambda: chess_positions(games), output_signature=default_dinora_signature
-    )
-    return tfdataset
+    return create_dataset_from_games(games)
 
 
 def create_dataset_from_selfplay(nodes, net, c) -> tf.data.Dataset:
     games = [gen_game(nodes, net, c)]
+    return create_dataset_from_games(games)
+
+
+def create_dataset_from_games(games) -> tf.data.Dataset:
     tfdataset = tf.data.Dataset.from_generator(
         lambda: chess_positions(games), output_signature=default_dinora_signature
     )
