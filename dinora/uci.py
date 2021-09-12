@@ -8,7 +8,11 @@ from dinora import search
 from math import cos
 
 
-EXTRA_TIME = 0.5
+extra_time = 0.5
+c_puct = 2.0
+softmax_temp = 1.6
+dirichlet_alpha = 0.3
+noise_eps = 0.00
 
 
 def send(s: str):
@@ -20,7 +24,7 @@ def send(s: str):
 def time_manager(moves_number: int, time_left: int, inc: int = 0) -> float:
     moves_left = (23 * cos(moves_number / 25) + 26) / (0.01 * moves_number + 1)
     remaining_time = time_left / 1000 + moves_left * inc / 1000
-    move_time = remaining_time / moves_left - EXTRA_TIME
+    move_time = remaining_time / moves_left - extra_time
     return move_time
 
 
@@ -53,7 +57,9 @@ def uci_command(cmd: str, board: chess.Board, net):
             btime = int(tokens[4])
             engine_time = wtime if board.turn else btime
             move_time = time_manager(board.fullmove_number, engine_time)
-            move, _ = search.uct_time(board, net, 3.0, move_time, send)
+            move, _ = search.uct_time(
+                board, net, c_puct, move_time, send, dirichlet_alpha, noise_eps, softmax_temp
+            )
         # go wtime <wtime> btime <btime> winc <winc> binc <binc>
         elif len(tokens) == 9 and tokens[1] == "wtime":
             wtime = int(tokens[2])
@@ -63,9 +69,13 @@ def uci_command(cmd: str, board: chess.Board, net):
             engine_time = wtime if board.turn else btime
             engine_inc = winc if board.turn else binc
             move_time = time_manager(board.fullmove_number, engine_time, engine_inc)
-            move, _ = search.uct_time(board, net, 3.0, move_time, send)
+            move, _ = search.uct_time(
+                board, net, c_puct, move_time, send, dirichlet_alpha, noise_eps, softmax_temp
+            )
         else:
-            move, _ = search.uct_nodes(board, 300, net, 3.0, send=send)
+            move, _ = search.uct_nodes(
+                board, 300, net, c_puct, send, dirichlet_alpha, noise_eps, softmax_temp
+            )
         send(f"bestmove {move}")
     elif cmd == "quit":
         exit()
@@ -77,7 +87,7 @@ def uci_command(cmd: str, board: chess.Board, net):
 
 def start_uci():
     board = chess.Board()
-    net = dinora.net.ChessModel('models/best_light_model.h5')
+    net = dinora.net.ChessModel("models/best_light_model.h5")
     while True:
         board, net = uci_command(input(), board, net)
 
