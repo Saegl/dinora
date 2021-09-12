@@ -25,7 +25,7 @@ class ChessModel:
         model_output = self.model(plane, training=False)
         return model_output
 
-    def raw_eval(self, board: chess.Board, softmax_temp = 1.61):
+    def raw_eval(self, board: chess.Board, softmax_temp):
         policy, value = self.model_out(board)
         # unwrap tensor
         policy = policy[0]
@@ -47,7 +47,7 @@ class ChessModel:
 
         return dict(zip(moves, policies)), value
 
-    def evaluate(self, board: chess.Board):
+    def evaluate(self, board: chess.Board, softmax_temp):
         result = None
         if board.is_game_over(claim_draw=True):
             result = board.result(claim_draw=True)
@@ -59,7 +59,7 @@ class ChessModel:
                 # Always return -1.0 when checkmated
                 # and we are checkmated because it's our turn to move
                 return dict(), -1.0
-        return self.raw_eval(board)
+        return self.raw_eval(board, softmax_temp)
 
 
 class ChessModelWithCache:

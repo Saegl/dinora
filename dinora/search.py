@@ -1,3 +1,4 @@
+from typing import Tuple
 import numpy as np
 import math
 import chess
@@ -46,9 +47,16 @@ class UCTNode:
             current.board.push_uci(current.move)
         return current
 
-    def expand(self, child_priors):
+    def expand(self, child_priors, dir_alpha, noise_eps):
         self.is_expanded = True
-        for move, prior in child_priors.items():
+        e = noise_eps
+
+        if self.parent is None:  # Is root node
+            noise = np.random.dirichlet([dir_alpha] * len(child_priors))
+
+        for i, (move, prior) in enumerate(child_priors.items()):
+            if self.parent is None:
+                prior = (1 - e) * prior + e * noise[i]
             self.add_child(move, prior)
 
     def add_child(self, move, prior):
@@ -64,7 +72,7 @@ class UCTNode:
             current = current.parent
             turnfactor *= -1
         current.number_visits += 1
-    
+
     def __str__(self) -> str:
         return f"UCTNode <{self.board}, {self.children}>"
 
@@ -99,7 +107,9 @@ def send_tree_info(send, root):
             )
 
 
-def uct_nodes(board, nodes, net=None, C=1.0, send=None):
+def uct_nodes(
+    board, nodes, net, C, send, dirichlet_alpha, noise_eps, softmax_temp
+) -> Tuple[chess.Move, float]:
     start = time()
     count = 0
     delta_last = 0
@@ -108,8 +118,8 @@ def uct_nodes(board, nodes, net=None, C=1.0, send=None):
     for _ in range(nodes):
         count += 1
         leaf = root.select_leaf(C)
-        child_priors, value_estimate = net.evaluate(leaf.board)
-        leaf.expand(child_priors)
+        child_priors, value_estimate = net.evaluate(leaf.board, softmax_temp)
+        leaf.expand(child_priors, dirichlet_alpha, noise_eps)
         leaf.backup(value_estimate)
         now = time()
         delta = now - start
@@ -119,7 +129,7 @@ def uct_nodes(board, nodes, net=None, C=1.0, send=None):
             send_info(send, bestmove, count, delta, score)
 
     bestmove, _, score = get_best_move(root)
-    
+
     send_tree_info(send, root)
     send_info(send, bestmove, count, delta, score)
 
@@ -127,25 +137,27 @@ def uct_nodes(board, nodes, net=None, C=1.0, send=None):
     return bestmove, score
 
 
-def uct_time(board, net, C, move_time, send):
+def uct_time(
+    board, net, C, move_time, send, dirichlet_alpha, noise_eps, softmax_temp
+) -> Tuple[chess.Move, float]:
+    start = time()
     count = 0
     delta_last = 0
 
     root = UCTNode(board)
-    start = time()
 
     for _ in range(2):  # Calculate min 2 nodes
         count += 1
         leaf = root.select_leaf(C)
-        child_priors, value_estimate = net.evaluate(leaf.board)
-        leaf.expand(child_priors)
+        child_priors, value_estimate = net.evaluate(leaf.board, softmax_temp)
+        leaf.expand(child_priors, dirichlet_alpha, noise_eps)
         leaf.backup(value_estimate)
 
     while True:
         count += 1
         leaf = root.select_leaf(C)
-        child_priors, value_estimate = net.evaluate(leaf.board)
-        leaf.expand(child_priors)
+        child_priors, value_estimate = net.evaluate(leaf.board, softmax_temp)
+        leaf.expand(child_priors, dirichlet_alpha, noise_eps)
         leaf.backup(value_estimate)
 
         now = time()
@@ -168,23 +180,23 @@ def uct_time(board, net, C, move_time, send):
 
 
 if __name__ == "__main__":
-    from badgyal import BGNet
+    from dinora.utils import disable_tensorflow_log
+
+    disable_tensorflow_log()
+
     from dinora.net import ChessModel, ChessModelWithCache
 
     fen = input("fen> ") or chess.STARTING_FEN
-    nodes = int(input("nodes> ") or 2000)
-    c = float(input("c> ") or 3.0)
+    nodes = int(input("nodes> ") or 200)
+    c = float(input("c> ") or 2.0)
+    dirichlet_alpha = 0.3
+    noise_eps = 0.25
+    softmax_temp = 1.6
 
     board = chess.Board(fen)
-    net = ChessModel('models/best_light_model.h5')
-    # net = ChessModelWithCache(200000, 'models/best_light_model.h5')
-
-    # class Bad:
-    #     net_ = BGNet(False)
-    #     def evaluate(self, b): return Bad.net_.eval(b)
-    
-    # net = Bad()
+    net = ChessModel("models/best_light_model.h5")
 
     start = time()
-    uct_nodes(board, nodes, net, c, send=print)
+    bestmove, value = uct_nodes(board, nodes, net, c, print, dirichlet_alpha, noise_eps, softmax_temp)
     print("Elapsed time: ", time() - start)
+    print(f"Bestmove: {bestmove}")
