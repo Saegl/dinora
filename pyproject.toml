@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "Dinora"
-version = "0.1.2"
+version = "0.5"
 description = "Chess Engine"
 authors = ["Saegl <saegl@protonmail.com>"]
 license = "GPL v3"
