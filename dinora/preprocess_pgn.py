@@ -38,7 +38,7 @@ def policy_output(move: chess.Move, flip: bool):
     return policy
 
 
-def load_chess_games(filename_pgn: str, max_games: int = 100000):
+def load_chess_games(filename_pgn: str, max_games: int):
     pgn = open(filename_pgn, "r", encoding="utf8", errors="ignore")
     game = True
     i = 0
