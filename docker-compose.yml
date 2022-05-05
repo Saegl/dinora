@@ -7,7 +7,7 @@ services:
       dockerfile: ./docker/Dockerfile
     volumes:
       - .:/proj
-      - /proj/bin  # To not overwrite file modes.
+      # - /proj/bin  # To not overwrite file modes.
     stdin_open: true
     tty: true
     ports:
