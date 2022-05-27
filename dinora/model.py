@@ -1,7 +1,9 @@
 from tensorflow import keras
-from tensorflow.keras import layers # type: ignore
+from tensorflow.keras import layers  # type: ignore
 from tensorflow.keras.regularizers import L2  # type: ignore
+
 # Ignore Pylance reportMissingImports
+
 
 class ModelConfig:
     cnn_filter_num = 256

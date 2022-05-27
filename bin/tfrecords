@@ -4,6 +4,7 @@ This program generates TFRecord dataset from pgn file
 WARNING: Experimental
 """
 from dinora.utils import disable_tensorflow_log
+
 disable_tensorflow_log()
 
 import argparse
@@ -33,13 +34,15 @@ def create_example(planes, policy, result):
 
 games = load_chess_games("pgn/mygames.pgn", 1000)
 
-with tf.io.TFRecordWriter("some.tfrec", 'GZIP') as writer:
+with tf.io.TFRecordWriter("some.tfrec", "GZIP") as writer:
     print("TFRecord with")
     for planes, (policy, result) in chess_positions(games):
         example = create_example(planes, policy, result)
         writer.write(example.SerializeToString())
 
 exit()
+
+
 def parse_tfrecord_fn(example):
     feature_description = {
         "planes": tf.io.VarLenFeature(tf.float32),

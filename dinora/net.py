@@ -79,6 +79,7 @@ class ChessModelWithCache:
 
 
 if __name__ == "__main__":
+
     def print_policy(p):
         items = list(p.items())
         items.sort(key=lambda x: x[1])

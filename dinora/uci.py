@@ -58,7 +58,14 @@ def uci_command(cmd: str, board: chess.Board, net):
             engine_time = wtime if board.turn else btime
             move_time = time_manager(board.fullmove_number, engine_time)
             move, _ = search.uct_time(
-                board, net, c_puct, move_time, send, dirichlet_alpha, noise_eps, softmax_temp
+                board,
+                net,
+                c_puct,
+                move_time,
+                send,
+                dirichlet_alpha,
+                noise_eps,
+                softmax_temp,
             )
         # go wtime <wtime> btime <btime> winc <winc> binc <binc>
         elif len(tokens) == 9 and tokens[1] == "wtime":
@@ -70,7 +77,14 @@ def uci_command(cmd: str, board: chess.Board, net):
             engine_inc = winc if board.turn else binc
             move_time = time_manager(board.fullmove_number, engine_time, engine_inc)
             move, _ = search.uct_time(
-                board, net, c_puct, move_time, send, dirichlet_alpha, noise_eps, softmax_temp
+                board,
+                net,
+                c_puct,
+                move_time,
+                send,
+                dirichlet_alpha,
+                noise_eps,
+                softmax_temp,
             )
         else:
             move, _ = search.uct_nodes(
