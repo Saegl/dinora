@@ -10,7 +10,7 @@ FPU_ROOT = 0.0
 
 
 def cp(Q):
-    return int(295 * Q / (1 - 0.976953125 * Q ** 14))
+    return int(295 * Q / (1 - 0.976953125 * Q**14))
 
 
 class UCTNode:
@@ -197,6 +197,8 @@ if __name__ == "__main__":
     net = ChessModel("models/best_light_model.h5")
 
     start = time()
-    bestmove, value = uct_nodes(board, nodes, net, c, print, dirichlet_alpha, noise_eps, softmax_temp)
+    bestmove, value = uct_nodes(
+        board, nodes, net, c, print, dirichlet_alpha, noise_eps, softmax_temp
+    )
     print("Elapsed time: ", time() - start)
     print(f"Bestmove: {bestmove}")

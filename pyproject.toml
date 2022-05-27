@@ -11,6 +11,7 @@ tensorflow = "2.8.0"
 numpy = "^1.19.2"
 chess = "^1.6.1"
 pylru = "^1.2.0"
+pre-commit = "^2.19.0"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^22.3.0"}
