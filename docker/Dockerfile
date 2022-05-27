@@ -16,4 +16,5 @@ RUN useradd -m -d /proj -s /bin/bash app
 RUN chown -R app:app /proj/*
 RUN chmod +x /proj/bin/*
 ENV PATH "$PATH:/proj/bin"
+ENV PYTHONPATH "${PYTHONPATH}:/proj"
 USER app
