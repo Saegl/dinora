@@ -67,13 +67,13 @@ class ChessModelWithCache:
         self.cache = pylru.lrucache(size)
         self.net = ChessModel(model_path=model_path)
 
-    def evaluate(self, board: chess.Board):
+    def evaluate(self, board: chess.Board, softmax_temp):
         epd = board.epd()
         if epd in self.cache:
             policy, value = self.cache[epd]
             return policy, value
         else:
-            policy, value = self.net.evaluate(board)
+            policy, value = self.net.evaluate(board, softmax_temp)
             self.cache[epd] = [policy, value]
             return policy, value
 
