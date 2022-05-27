@@ -87,7 +87,7 @@ def uci_command(cmd: str, board: chess.Board, net):
 
 def start_uci():
     board = chess.Board()
-    net = dinora.net.ChessModel("models/best_light_model.h5")
+    net = dinora.net.ChessModel("models/latest.h5")
     while True:
         board, net = uci_command(input(), board, net)
 
