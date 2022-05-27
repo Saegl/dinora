@@ -18,6 +18,8 @@ null
 
 - This is the first changelog of the Dinora project. The engine is in the early stages of development:
 it can play some chess, but the engine is weak
+- The standard variant of chess is supported as well as a standard clock with or without increment
+ (3+0, 3+2, 5+0, 5+5)
 - You can train supervised NN by providing PGN. But it is a blind experience: no graphs or logs, 
 and most parameters are default e.g. learning rate.
 - To play with the engine you can install any UCI-compatible GUI and follow readme installation.
