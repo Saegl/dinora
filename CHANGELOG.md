@@ -8,11 +8,21 @@ This project is **not** using [Semantic Versioning](https://semver.org/spec/v2.0
 just to highlight big changes when changing MAJOR or MINOR numbers, but is not used for 
 backward compatibility)
 
-## [Unreleased]
+## [0.1.1] - Future release
+Supervised training improvements and engine strength estimation
 
-null
+## [0.1.0] - Future release
+Documentation release
+
+### Added
+
+- Documentation generator is added. Now documentation will be stored under /docs dir and 
+online version at (https://example.com).
+- Installation with docker is now in the docs
+- Supervised NN training tutorial is now in the docs
 
 ## [0.0.1] - 2022.05.27
+Minimal NN chess engine
 
 ### Added
 
