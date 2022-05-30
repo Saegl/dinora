@@ -6,7 +6,7 @@ import pylru
 from tensorflow import keras
 import numpy as np
 
-from .board_utils import canon_input_planes
+from .board_representation.canon_planes import canon_input_planes
 from .policy import move_lookup, flipped_move_lookup
 
 

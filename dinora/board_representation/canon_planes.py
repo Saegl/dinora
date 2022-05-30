@@ -1,3 +1,39 @@
+"""
+The main function here is canon_input_planes.
+It takes board fen, like this: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+and returns a numpy array of shape (18, 8, 8) for keras CNN input in NCHW format.
+
+N is the number of boards (since this func process only one board, it is not in numpy shape for now)
+C [channels] is the number of planes (12 for pieces, 4 for castling, 1 for fifty move, 1 for en passant)
+H [height] and W [width] are the chess board size 8 x 8
+
+More about channels layers:
+    Pieces layers (12), each layer is a 8 x 8 matrix of floats, with 1.0 for a piece and 0.0 for empty cell:
+        0 => white king
+        1 => white queen
+        2 => white rook
+        3 => white bishop
+        4 => white knight
+        5 => white pawn
+        6 => black king
+        7 => black queen
+        8 => black rook
+        9 => black bishop
+        10 => black knight
+        11 => black pawn
+    Castling layers (4), entire layer is filled with 1.0 if castling is available, 0.0 otherwise:
+        12 => white can castle kingside
+        13 => white can castle queenside
+        14 => black can castle kingside
+        15 => black can castle queenside
+    Fifty move layer (1), filled with the number of half moves since the last pawn move or capture:
+        16 => fifty move count
+    En passant layer (1):
+        17 => en passant square
+
+Array weight is 18 * 8 * 8 * 4 = 4608 bytes, where 4 is float32
+"""
+
 import numpy as np
 
 pieces_order = "KQRBNPkqrbnp"  # 12x8x8
@@ -9,13 +45,12 @@ def canon_input_planes(fen, flip: bool):
     :param fen:
     :return : (18, 8, 8) representation of the game state
     """
-    fen = maybe_flip_fen(fen, flip)
+    if flip:
+        fen = flip_fen(fen, flip)
     return all_input_planes(fen)
 
 
-def maybe_flip_fen(fen, flip=False):
-    if not flip:
-        return fen
+def flip_fen(fen):
     foo = fen.split(" ")
     rows = foo[0].split("/")
 
@@ -42,14 +77,9 @@ def maybe_flip_fen(fen, flip=False):
     )
 
 
-def is_black_turn(fen):
-    return fen.split(" ")[1] == "b"
-
-
 def all_input_planes(fen):
-    current_aux_planes = aux_planes(fen)  # [6*8*8]
-
     history_both = to_planes(fen)  # [12*8*8]
+    current_aux_planes = aux_planes(fen)  # [6*8*8]
 
     ret = np.vstack((history_both, current_aux_planes))
     assert ret.shape == (18, 8, 8)
