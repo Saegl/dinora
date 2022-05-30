@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""This program generates npz dataset from pgn file"""
+"""
+This program generates npz dataset from pgn file
+WARNING: Broken, fifty moves count is not stored properly
+"""
 import argparse
 import numpy as np
 
