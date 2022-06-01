@@ -46,7 +46,7 @@ def canon_input_planes(fen, flip: bool):
     :return : (18, 8, 8) representation of the game state
     """
     if flip:
-        fen = flip_fen(fen, flip)
+        fen = flip_fen(fen)
     return all_input_planes(fen)
 
 
