@@ -12,6 +12,7 @@ numpy = "^1.19.2"
 chess = "^1.6.1"
 pylru = "^1.2.0"
 pre-commit = "^2.19.0"
+pytest = "^7.1.2"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^22.3.0"}

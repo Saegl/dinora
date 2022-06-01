@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+"""This script captures the current canon planes
+from the tests/positions/various.json for tests.
+Run this file if you want to update canon_planes
+representation"""
+import json
+import argparse
+
+import numpy as np
+from chess import Board
+from dinora.board_representation.canon_planes import canon_input_planes
+
+parser = argparse.ArgumentParser(description="Update canon test")
+args = parser.parse_args()
+
+
+with open("tests/positions/various.json") as f:
+    positions = json.load(f)
+
+all_planes = [canon_input_planes(pos, not Board(pos).turn) for pos in positions]
+arr = np.array(all_planes)
+np.save("tests/positions/canon_planes.npy", arr)
