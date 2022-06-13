@@ -2,7 +2,10 @@ import sys
 import traceback
 
 import chess
-import dinora.net
+
+from dinora.utils import disable_tensorflow_log
+
+disable_tensorflow_log()
 from dinora import search
 
 from math import cos
@@ -13,6 +16,11 @@ c_puct = 2.0
 softmax_temp = 1.6
 dirichlet_alpha = 0.3
 noise_eps = 0.00
+
+
+class UciState:
+    def __init__(self):
+        self.net = None
 
 
 def send(s: str):
@@ -28,13 +36,18 @@ def time_manager(moves_number: int, time_left: int, inc: int = 0) -> float:
     return move_time
 
 
-def uci_command(cmd: str, board: chess.Board, net):
+def uci_command(state: UciState, cmd: str, board: chess.Board):
     tokens = cmd.split()
     if tokens[0] == "uci":
         send("id name Dinora")
         send("id author Saegl")
+        send("option name model type string default models/latest.h5")
         send("uciok")
     elif tokens[0] == "isready":
+        import dinora.net
+
+        if state.net is None:
+            state.net = dinora.net.ChessModel("models/latest.h5")
         send("readyok")
     elif tokens[0] == "ucinewgame":
         pass
@@ -59,7 +72,7 @@ def uci_command(cmd: str, board: chess.Board, net):
             move_time = time_manager(board.fullmove_number, engine_time)
             move, _ = search.uct_time(
                 board,
-                net,
+                state.net,
                 c_puct,
                 move_time,
                 send,
@@ -78,7 +91,7 @@ def uci_command(cmd: str, board: chess.Board, net):
             move_time = time_manager(board.fullmove_number, engine_time, engine_inc)
             move, _ = search.uct_time(
                 board,
-                net,
+                state.net,
                 c_puct,
                 move_time,
                 send,
@@ -88,7 +101,14 @@ def uci_command(cmd: str, board: chess.Board, net):
             )
         else:
             move, _ = search.uct_nodes(
-                board, 300, net, c_puct, send, dirichlet_alpha, noise_eps, softmax_temp
+                board,
+                300,
+                state.net,
+                c_puct,
+                send,
+                dirichlet_alpha,
+                noise_eps,
+                softmax_temp,
             )
         send(f"bestmove {move}")
     elif cmd == "quit":
@@ -96,14 +116,13 @@ def uci_command(cmd: str, board: chess.Board, net):
     else:
         send(f"info string command is not processed: {cmd}")
 
-    return board, net
-
 
 def start_uci():
+    uci_state = UciState()
     board = chess.Board()
-    net = dinora.net.ChessModel("models/latest.h5")
+
     while True:
-        board, net = uci_command(input(), board, net)
+        uci_command(uci_state, input(), board)
 
 
 if __name__ == "__main__":
@@ -112,7 +131,7 @@ if __name__ == "__main__":
     except:
         logfile = open("dinora.log", "w")
         exc_type, exc_value, exc_tb = sys.exc_info()
-        logfile.write(traceback.format_exception(exc_type, exc_value, exc_tb))
+        logfile.write("".join(traceback.format_exception(exc_type, exc_value, exc_tb)))
         logfile.write("\n")
         logfile.flush()
         logfile.close()
