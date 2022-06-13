@@ -5,11 +5,7 @@ COPY . /proj
 WORKDIR /proj
 
 # Install python dependencies with poetry
-RUN pip install -U pip
-RUN pip install poetry
-
-RUN poetry config virtualenvs.create false \
-  && poetry install --no-interaction --no-ansi
+RUN pip install -r docker/requirements.txt
 
 # Binary
 RUN useradd -m -d /proj -s /bin/bash app
