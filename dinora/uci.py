@@ -23,15 +23,17 @@ def send(s: str):
     sys.stdout.write("\n")
     sys.stdout.flush()
 
+
 class UciState:
     def __init__(self):
         self.net = None
         self.board = chess.Board()
-    
+
     def load_neural_network(self):
         if self.net is None:
-            send("info string loading nn... it make take a while")
+            send("info string loading nn, it make take a while")
             import dinora.net
+
             self.net = dinora.net.ChessModel("models/latest.h5")
             send("info string nn is loaded")
 
@@ -66,7 +68,6 @@ def uci_command(state: UciState, cmd: str):
             index = tokens.index("moves")
             moves = tokens[index + 1 :]
             for move in moves:
-                send(f"info string pushing move {move}")
                 state.board.push_uci(move)
     elif tokens[0] == "go":
         state.load_neural_network()
@@ -94,7 +95,9 @@ def uci_command(state: UciState, cmd: str):
             binc = int(tokens[8])
             engine_time = wtime if state.board.turn else btime
             engine_inc = winc if state.board.turn else binc
-            move_time = time_manager(state.board.fullmove_number, engine_time, engine_inc)
+            move_time = time_manager(
+                state.board.fullmove_number, engine_time, engine_inc
+            )
             move, _ = search.uct_time(
                 state.board,
                 state.net,
