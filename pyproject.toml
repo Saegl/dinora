@@ -7,15 +7,22 @@ license = "GPL v3"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
-tensorflow = "2.8.0"
 numpy = "^1.19.2"
 chess = "^1.6.1"
 pylru = "^1.2.0"
-pre-commit = "^2.19.0"
-pytest = "^7.1.2"
 
-[tool.poetry.dev-dependencies]
-black = {version = "^22.3.0"}
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.1.2"
+pre-commit = "^2.19.0"
+black = "^22.3.0"
+pytest-benchmark = "^3.4.1"
+
+[tool.poetry.group.docs.dependencies]
+Sphinx = "^5.1.1"
+
+[tool.poetry.group.tf.dependencies]
+tensorflow = "2.8.0"
+protobuf = "3.20.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
