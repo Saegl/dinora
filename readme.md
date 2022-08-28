@@ -19,7 +19,7 @@ basing on a few games against me, so it's not accurate.
 You can see example game below  
 (10+0) Dinora (100-200 nodes in search) vs Me (2200 Rapid Lichess rating)  
 
-![Chess game](https://github.com/Saegl/dinora/raw/main/assets/gif/gfychess-example.gif "Chess Game with Dinora engine")
+<img src="https://github.com/Saegl/dinora/raw/main/assets/gif/gfychess-example.gif" width="350">
 
 # Acknowledgements
 
