@@ -5,11 +5,15 @@
 
 Welcome to Dinora's documentation!
 ==================================
+Dinora is alphazero-like chess engine.
+It uses keras/tensorflow for position evaluation and Monte Carlo Tree Search
+for calculating best move.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-   
+
+   installation
    benchmarking
 
 
