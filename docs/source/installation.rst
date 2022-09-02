@@ -33,19 +33,19 @@ You need only latest.h5 file
 
 .. code-block:: console
 
-    $ pip install poetry==1.2.0rc2
+    $ pip install poetry==1.2.0
 
 or by using pipx to keep you global env clean
 
 .. code-block:: console
     
-    $ pipx install poetry==1.2.0rc2
+    $ pipx install poetry==1.2.0
 
 And install python dependecies, in repo dir run
 
 .. code-block:: console
 
-    $ poetry install
+    $ poetry install --all-extras
 
 5. Now you can check that cli interface is working.
 In project directory run
