@@ -1,3 +1,3 @@
-from .uci import start_uci
+from dinora.cli import cli
 
-start_uci()
+cli()
