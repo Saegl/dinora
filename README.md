@@ -1,5 +1,8 @@
 # Dinora
 
+[![Documentation Status](https://readthedocs.org/projects/dinora/badge/?version=latest)](https://dinora.readthedocs.io/en/latest/?badge=latest)
+
+
 [Documentation](https://dinora.readthedocs.io/en/latest/) | [Installation](https://dinora.readthedocs.io/en/latest/installation.html)
 
 Dinora is alphazero-like chess engine. It uses 
