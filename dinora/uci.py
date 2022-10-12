@@ -121,7 +121,7 @@ def uci_command(state: UciState, cmd: str):
             )
         send(f"bestmove {move}")
     elif cmd == "quit":
-        exit()
+        sys.exit()
     else:
         send(f"info string command is not processed: {cmd}")
 
