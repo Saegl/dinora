@@ -22,7 +22,7 @@ softmax_temp = 1.6
 dirichlet_alpha = 0.3
 noise_eps = 0.2
 
-stats = {}
+stats = {}  # type: ignore  # TODO
 i = 0
 while True:
     selfplay_games = [

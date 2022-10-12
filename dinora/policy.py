@@ -94,12 +94,3 @@ def flip_policy(pol):
     :return: the policy, flipped (for switching between black and white it seems)
     """
     return np.asarray([pol[ind] for ind in unflipped_index])
-
-
-if __name__ == "__main__":
-    move = chess.Move.from_uci("e2e4")
-    print(uci_labels)
-    print(flipped_uci_labels)
-
-    print(move_lookup[move])
-    print(flipped_move_lookup[move])

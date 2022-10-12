@@ -40,10 +40,11 @@ def policy_output(move: chess.Move, flip: bool):
 
 def load_chess_games(filename_pgn: str, max_games: int):
     pgn = open(filename_pgn, "r", encoding="utf8", errors="ignore")
-    game = True
     i = 0
-    while game:
+    while True:
         game = chess.pgn.read_game(pgn)
+        if game is None:
+            break
         if not game or game.headers.get("Variant", "Standard") != "Standard":
             game = chess.pgn.read_game(pgn)
             continue

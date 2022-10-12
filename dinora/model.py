@@ -1,3 +1,5 @@
+from typing import Type
+
 from tensorflow import keras
 from tensorflow.keras import layers  # type: ignore
 from tensorflow.keras.regularizers import L2  # type: ignore
@@ -21,7 +23,7 @@ class LightConfig(ModelConfig):
     l2_reg = 1e-4
 
 
-def build_model(mc: ModelConfig) -> keras.Model:
+def build_model(mc: Type[ModelConfig]) -> keras.Model:
     base_inputs, base_outputs = build_base_block(mc)
     res_outputs = build_residual_blocks(base_outputs, mc)
     policy_out = build_policy_output(res_outputs, mc)
@@ -36,7 +38,7 @@ def build_model(mc: ModelConfig) -> keras.Model:
     return model
 
 
-def build_base_block(mc: ModelConfig):
+def build_base_block(mc: Type[ModelConfig]):
     # input_shape = (batch, channels, height, columns)
     inputs = layers.Input(shape=(18, 8, 8))
     x = layers.Conv2D(
@@ -53,14 +55,14 @@ def build_base_block(mc: ModelConfig):
     return inputs, x
 
 
-def build_residual_blocks(inputs, mc: ModelConfig):
+def build_residual_blocks(inputs, mc: Type[ModelConfig]):
     x = inputs
     for i in range(mc.res_layer_num):
         x = build_residual_block(x, i + 1, mc)
     return x
 
 
-def build_residual_block(inputs, index, mc: ModelConfig):
+def build_residual_block(inputs, index, mc: Type[ModelConfig]):
     res_name = f"res-{index}"
     x = layers.Conv2D(
         filters=mc.cnn_filter_num,
@@ -88,7 +90,7 @@ def build_residual_block(inputs, index, mc: ModelConfig):
     return x
 
 
-def build_policy_output(inputs, mc: ModelConfig):
+def build_policy_output(inputs, mc: Type[ModelConfig]):
     x = layers.Conv2D(
         filters=2,
         kernel_size=1,
@@ -106,7 +108,7 @@ def build_policy_output(inputs, mc: ModelConfig):
     return x
 
 
-def build_value_output(inputs, mc: ModelConfig):
+def build_value_output(inputs, mc: Type[ModelConfig]):
     x = layers.Conv2D(
         filters=4,
         kernel_size=1,
@@ -125,11 +127,3 @@ def build_value_output(inputs, mc: ModelConfig):
         1, kernel_regularizer=L2(mc.l2_reg), activation="tanh", name="value_out"
     )(x)
     return x
-
-
-if __name__ == "__main__":
-    model = build_model(ModelConfig)
-    model.summary()
-
-    lmodel = build_model(LightConfig)
-    lmodel.summary()

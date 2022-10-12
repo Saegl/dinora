@@ -54,7 +54,3 @@ def dev():
 def metrics():
     """Generate engine metrics"""
     raise UnimplementedCommand("Metrics are not yet implemented")
-
-
-if __name__ == "__main__":
-    cli()

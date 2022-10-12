@@ -67,8 +67,8 @@ def uci_command(state: UciState, cmd: str):
         if "moves" in tokens:
             index = tokens.index("moves")
             moves = tokens[index + 1 :]
-            for move in moves:
-                state.board.push_uci(move)
+            for move_token in moves:
+                state.board.push_uci(move_token)
     elif tokens[0] == "go":
         state.load_neural_network()
         # go wtime <wtime> btime <btime>

@@ -113,7 +113,7 @@ def uct_nodes(
 ) -> Tuple[chess.Move, float]:
     start = time()
     count = 0
-    delta_last = 0
+    delta_last = 0.0
 
     root = UCTNode(board)
     for _ in range(nodes):
@@ -143,7 +143,7 @@ def uct_time(
 ) -> Tuple[chess.Move, float]:
     start = time()
     count = 0
-    delta_last = 0
+    delta_last = 0.0
 
     root = UCTNode(board)
 
@@ -178,28 +178,3 @@ def uct_time(
 
     # if we have a bad score, go for a draw
     return bestmove, score
-
-
-if __name__ == "__main__":
-    from dinora.utils import disable_tensorflow_log
-
-    disable_tensorflow_log()
-
-    from dinora.net import ChessModel, ChessModelWithCache
-
-    fen = input("fen> ") or chess.STARTING_FEN
-    nodes = int(input("nodes> ") or 200)
-    c = float(input("c> ") or 2.0)
-    dirichlet_alpha = 0.3
-    noise_eps = 0.25
-    softmax_temp = 1.6
-
-    board = chess.Board(fen)
-    net = ChessModel("models/best_light_model.h5")
-
-    start = time()
-    bestmove, value = uct_nodes(
-        board, nodes, net, c, print, dirichlet_alpha, noise_eps, softmax_temp
-    )
-    print("Elapsed time: ", time() - start)
-    print(f"Bestmove: {bestmove}")

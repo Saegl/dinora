@@ -17,9 +17,10 @@ def create_dataset_from_pgn(pgn_path: str, max_games: int) -> tf.data.Dataset:
     return create_dataset_from_games(games)
 
 
-def create_dataset_from_selfplay(nodes, net, c) -> tf.data.Dataset:
-    games = [gen_game(nodes, net, c)]
-    return create_dataset_from_games(games)
+# TODO: create dataset from selfplay
+# def create_dataset_from_selfplay(nodes, net, c) -> tf.data.Dataset:
+#     games = [gen_game(nodes, net, c)]
+#     return create_dataset_from_games(games)
 
 
 def create_dataset_from_games(games) -> tf.data.Dataset:

@@ -3,7 +3,7 @@ from statistics import mean
 
 import chess
 import chess.engine
-from chess.pgn import Game
+from chess.pgn import Game, GameNode
 
 from .utils import disable_tensorflow_log
 
@@ -52,14 +52,19 @@ for fish_elo, game_n in product(stockfish_elo, range(number_of_games)):
     game.headers["White"] = white
     game.headers["Black"] = black
 
-    node = game
+    node: GameNode = game
     while not node.board().is_game_over(claim_draw=True):
         if dinora_color:
             # move = fish.play(node.board(), limit=chess.engine.Limit(nodes=100_000)).move
-            move, _ = uct_nodes(node.board(), dinora_nodes, dinora_net, dinora_c)
-            move = chess.Move.from_uci(move)
+            move, _ = uct_nodes(
+                node.board(), dinora_nodes, dinora_net, dinora_c, print, 0.0, 0.0, 0.0
+            )
         else:
-            move = fish.play(node.board(), limit=chess.engine.Limit(nodes=100_000)).move
+            mbmove = fish.play(
+                node.board(), limit=chess.engine.Limit(nodes=100_000)
+            ).move
+            if mbmove:
+                move = mbmove
         node = node.add_variation(move)
         dinora_color = not dinora_color
         print(".", end="", flush=True)

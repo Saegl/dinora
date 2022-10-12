@@ -11,7 +11,7 @@ from .policy import move_lookup, flipped_move_lookup
 
 
 MODELS_DIR = join(dirname(realpath(__file__)), "..", "models")
-BEST_MODEL = join(MODELS_DIR, "best_model.h5")
+BEST_MODEL = join(MODELS_DIR, "latest.h5")
 
 
 class ChessModel:
@@ -43,9 +43,9 @@ class ChessModel:
 
         # map to sum(policies) == 1
         s = sum(policies)
-        policies = map(lambda e: math.exp(e / t) / s, policies)
+        policies_map = map(lambda e: math.exp(e / t) / s, policies)
 
-        return dict(zip(moves, policies)), value
+        return dict(zip(moves, policies_map)), value
 
     def evaluate(self, board: chess.Board, softmax_temp):
         result = None
@@ -76,27 +76,3 @@ class ChessModelWithCache:
             policy, value = self.net.evaluate(board, softmax_temp)
             self.cache[epd] = [policy, value]
             return policy, value
-
-
-if __name__ == "__main__":
-
-    def print_policy(p):
-        items = list(p.items())
-        items.sort(key=lambda x: x[1])
-        for item in items:
-            print(item)
-
-    fen = input("fen>")
-    board = chess.Board(fen)
-    net = ChessModel()
-
-    policy, score = net.evaluate(board)
-    print_policy(policy)
-    print(score)
-
-    import badgyal
-
-    bad = badgyal.BGNet(False)
-    policy, score = bad.eval(board)
-    print_policy(policy)
-    print(score)
