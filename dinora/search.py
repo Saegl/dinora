@@ -9,8 +9,9 @@ FPU = -1.0
 FPU_ROOT = 0.0
 
 
-def cp(Q):
-    return int(295 * Q / (1 - 0.976953125 * Q**14))
+def cp(q: float) -> int:
+    """Convert UCT Q values to Stockfish like centipawns"""
+    return int(295 * q / (1 - 0.976953125 * q**14))
 
 
 class UCTNode:
