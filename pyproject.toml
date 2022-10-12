@@ -45,6 +45,7 @@ pre-commit = "^2.19.0"
 black = "^22.3.0"
 pytest-benchmark = "^3.4.1"
 mypy = "^0.982"
+notebook = "^6.4.12"
 
 [tool.poetry.extras]
 tf = [
