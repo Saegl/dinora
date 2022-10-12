@@ -21,10 +21,22 @@ def uci():
 @cli.command()
 def healthcheck():
     """Check if Dinora is installed properly"""
-    raise UnimplementedCommand("Healthcheck is not yet implemented")
-    # TODO check tf gpu is available
+    import tensorflow as tf
+
+    ok = True
+    click.secho("Checking gpu...")
+    if tf.config.list_physical_devices("GPU"):
+        click.secho("GPU: Found", fg="green")
+    else:
+        ok = False
+        click.secho("GPU: Not found", fg="red")
+
     # TODO check that keras model is reachable
-    # click.secho("OK: Everything is working", fg="green")
+
+    if ok:
+        click.secho("OK: Everything is working", fg="green")
+    else:
+        click.secho("NOT OK: errors above", fg="red")
 
 
 @cli.command()
