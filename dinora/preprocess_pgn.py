@@ -4,7 +4,7 @@ import chess
 import chess.pgn
 
 from .policy import policy_from_move, flip_policy
-from .board_representation.canon_planes import canon_input_planes
+from .board_representation import canon_input_planes
 
 logging.basicConfig(level=logging.DEBUG)
 

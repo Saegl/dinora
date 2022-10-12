@@ -3,7 +3,7 @@ import pytest
 import chess
 import numpy as np
 
-from dinora.board_representation.canon_planes import canon_input_planes
+from dinora.board_representation import canon_input_planes
 
 with open("tests/data/positions/various.json") as f:
     various = json.load(f)
