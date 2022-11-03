@@ -34,7 +34,7 @@ class UciState:
             send("info string loading nn, it make take a while")
             import dinora.net
 
-            self.net = dinora.net.ChessModel("models/latest.h5")
+            self.net = dinora.net.ChessModel()
             send("info string nn is loaded")
 
 
@@ -109,7 +109,7 @@ def uci_command(state: UciState, cmd: str):
                 softmax_temp,
             )
         else:
-            move, _ = search.uct_nodes(
+            root_node = search.uct_nodes(
                 state.board,
                 300,
                 state.net,
@@ -119,6 +119,7 @@ def uci_command(state: UciState, cmd: str):
                 noise_eps,
                 softmax_temp,
             )
+            move, _, _ = search.get_best_move(root_node)
         send(f"bestmove {move}")
     elif cmd == "quit":
         sys.exit()

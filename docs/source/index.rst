@@ -16,6 +16,7 @@ for calculating best move.
    installation
    benchmarking
    development
+   treeviz
 
 
 

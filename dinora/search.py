@@ -20,7 +20,7 @@ class UCTNode:
         self.move = move
         self.is_expanded = False
         self.parent = parent  # Optional[UCTNode]
-        self.children = OrderedDict()  # Dict[move, UCTNode]
+        self.children: OrderedDict[chess.Move, UCTNode] = OrderedDict()
         self.prior = prior  # float
         if parent == None:
             self.total_value = FPU_ROOT  # float
@@ -80,7 +80,12 @@ class UCTNode:
 
 def get_best_move(root):
     bestmove, node = max(
-        root.children.items(), key=lambda item: (item[1].number_visits, item[1].Q())
+        # prefer number of visits
+        root.children.items(),
+        key=lambda item: (item[1].number_visits, item[1].Q()),
+        # prefer Q value
+        # root.children.items(),
+        # key=lambda item: (item[1].Q(), item[1].number_visits),
     )
     score = int(round(cp(node.Q()), 0))
     return bestmove, node, score
@@ -133,9 +138,7 @@ def uct_nodes(
 
     send_tree_info(send, root)
     send_info(send, bestmove, count, delta, score)
-
-    # if we have a bad score, go for a draw
-    return bestmove, score
+    return root
 
 
 def uct_time(

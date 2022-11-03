@@ -24,6 +24,12 @@ You can see example game below
 
 <img src="https://github.com/Saegl/dinora/raw/main/assets/gif/gfychess-example.gif" width="350">
 
+## Tree Visualization
+
+There is a tool for tree visualization, look more [here](https://dinora.readthedocs.io/en/latest/treeviz.html)
+
+<img src="https://github.com/Saegl/dinora/raw/main/docs/source/treeviz/state.png">
+
 # Acknowledgements
 
 This engine based on https://github.com/Zeta36/chess-alpha-zero and 
