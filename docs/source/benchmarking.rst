@@ -1,6 +1,8 @@
 Benchmarking
 ===============================================================
 
+WARNING: benchmarking is not working
+
 Here is info about benchmarking various parts of Dinora engine.
 Benchmarking needed to improve chess engine speed, which leads to
 producing better moves in less time.
