@@ -12,12 +12,10 @@ import tensorflow as tf
 
 from dinora.model import build_model, LightConfig
 from dinora.dataset import create_dataset_from_pgn
-from dinora.keras_utils import TimeCallback
 
 
 parser = argparse.ArgumentParser(description="This program starts supervised training")
 parser.add_argument("dataset_path")
-parser.add_argument("--hours", type=int)
 parser.add_argument("--max_games", type=int)
 
 args = parser.parse_args()
@@ -57,9 +55,6 @@ dataset = dataset.batch(512).prefetch(tf.data.AUTOTUNE)
 print("Dataset loaded")
 
 callbacks = []
-
-if args.hours:
-    callbacks.append(TimeCallback(args.hours))
 
 model.fit(dataset, epochs=1, callbacks=callbacks)
 print("Complete")
