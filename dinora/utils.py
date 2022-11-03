@@ -1,4 +1,4 @@
-def disable_tensorflow_log():
+def disable_tensorflow_log():  # pragma: no cover
     import os
 
     os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
