@@ -54,3 +54,11 @@ class NodesCountConstraint(Constraint):
 
     def __str__(self) -> str:
         return f"<NodesCountConstraint: {self.count=} {self.step=}>"
+
+
+class InfiniteConstraint(Constraint):
+    def meet(self) -> bool:
+        return True
+
+    def __str__(self) -> str:
+        return f"<InfiniteConstraint 8>"

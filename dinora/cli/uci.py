@@ -7,9 +7,11 @@ from dinora.mcts import (
     run_mcts,
     MCTSparams,
     Constraint,
+    InfiniteConstraint,
     TimeConstraint,
     NodesCountConstraint,
 )
+from dinora.cli.uci_parser import parse_go_params, UciGoParams
 
 
 extra_time = 0.5
@@ -42,7 +44,7 @@ class UciState:
             send("info string nn is loaded")
 
     def dispatcher(self, line: str):
-        tokens = line.split()
+        tokens = line.strip().split()
         if tokens[0] == "uci":
             self.uci()
         elif tokens[0] == "isready":
@@ -88,32 +90,28 @@ class UciState:
 
     def go(self, tokens: list[str]):
         self.load_neural_network()
+        go_params = parse_go_params(tokens)
+        send(f"info string parsed params {go_params}")
+
         constraint: Constraint
-        # go wtime <wtime> btime <btime>
-        if len(tokens) == 5 and tokens[1] == "wtime":
-            wtime = int(tokens[2])
-            btime = int(tokens[4])
-            engine_time = wtime if self.board.turn else btime
-            constraint = TimeConstraint(
-                moves_number=self.board.fullmove_number,
-                engine_time=engine_time,
-                engine_inc=0,
-            )
-        # go wtime <wtime> btime <btime> winc <winc> binc <binc>
-        elif len(tokens) == 9 and tokens[1] == "wtime":
-            wtime = int(tokens[2])
-            btime = int(tokens[4])
-            winc = int(tokens[6])
-            binc = int(tokens[8])
-            engine_time = wtime if self.board.turn else btime
-            engine_inc = winc if self.board.turn else binc
+        if go_params.infinite:
+            constraint = InfiniteConstraint()
+
+        elif time := go_params.is_time(self.board.turn):
+            engine_time, engine_inc = time
             constraint = TimeConstraint(
                 moves_number=self.board.fullmove_number,
                 engine_time=engine_time,
                 engine_inc=engine_inc,
             )
+
+        elif nodes := go_params.nodes:
+            constraint = NodesCountConstraint(nodes)
+
         else:
-            constraint = NodesCountConstraint(300)
+            constraint = InfiniteConstraint()
+
+        send(f"info string chosen constraint {constraint}")
 
         root_node = run_mcts(
             board=self.board,
@@ -125,7 +123,7 @@ class UciState:
         send(f"bestmove {move}")
 
 
-def start_uci(printlogs: bool = False):
+def start_uci(printlogs: bool = True):
     try:
         uci_state = UciState()
         uci_state.loop()
