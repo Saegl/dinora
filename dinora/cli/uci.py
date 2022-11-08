@@ -36,9 +36,9 @@ class UciState:
 
             disable_tensorflow_log()
             send("info string loading nn, it make take a while")
-            import dinora.net
+            from dinora.models.dnn import DNNModel
 
-            self.net = dinora.net.ChessModel(softmax_temp)
+            self.net = DNNModel(softmax_temp)
             send("info string nn is loaded")
 
     def dispatcher(self, line: str):

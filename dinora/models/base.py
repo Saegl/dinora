@@ -5,7 +5,7 @@ Priors = dict[chess.Move, float]
 StateValue = float
 
 
-class Evaluator(ABC):
+class BaseModel(ABC):
     @abstractmethod
     def evaluate(self, state: chess.Board) -> tuple[Priors, StateValue]:
         pass

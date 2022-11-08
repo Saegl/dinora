@@ -6,15 +6,16 @@ import pylru
 from tensorflow import keras
 import numpy as np
 
-from .board_representation import canon_input_planes
-from .policy import move_lookup, flipped_move_lookup
+from dinora.board_representation import canon_input_planes
+from dinora.policy import move_lookup, flipped_move_lookup
+from dinora.models.base import BaseModel, Priors, StateValue
 
 
-MODELS_DIR = join(dirname(realpath(__file__)), "..", "models")
+MODELS_DIR = join(dirname(realpath(__file__)), "../../..", "models")
 BEST_MODEL = join(MODELS_DIR, "latest.h5")
 
 
-class ChessModel:
+class DNNModel(BaseModel):
     def __init__(self, softmax_temp: float, model_path=BEST_MODEL) -> None:
         self.softmax_temp: float = softmax_temp
         self.model: keras.Model = keras.models.load_model(model_path)
@@ -48,7 +49,7 @@ class ChessModel:
 
         return dict(zip(moves, policies_map)), value
 
-    def evaluate(self, board: chess.Board):
+    def evaluate(self, board: chess.Board) -> tuple[Priors, StateValue]:
         result = board.result(claim_draw=True)
         if result == "*":
             # Game is not ended
@@ -71,7 +72,7 @@ class ChessModel:
 class ChessModelWithCache:
     def __init__(self, size=200000, model_path=BEST_MODEL):
         self.cache = pylru.lrucache(size)
-        self.net = ChessModel(model_path=model_path)
+        self.net = DNNModel(model_path=model_path)
 
     def evaluate(self, board: chess.Board, softmax_temp):
         epd = board.epd()

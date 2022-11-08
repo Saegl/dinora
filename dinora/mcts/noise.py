@@ -3,7 +3,7 @@ Noise can be applied at root
 to change engine behavior in each game
 """
 import numpy as np
-from dinora.mcts.evaluator import Priors
+from dinora.models.base import Priors
 
 
 def apply_noise(priors: Priors, dirichlet_alpha: float, noise_eps: float) -> Priors:

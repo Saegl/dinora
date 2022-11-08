@@ -4,8 +4,8 @@ from dinora.mcts.node import Node
 from dinora.mcts.uci_info import UciInfo
 from dinora.mcts.noise import apply_noise
 from dinora.mcts.constraints import Constraint
-from dinora.mcts.evaluator import Evaluator, Priors
 from dinora.mcts.params import MCTSparams
+from dinora.models import BaseModel, Priors
 
 
 def selection(root: Node, c: float) -> Node:
@@ -39,7 +39,7 @@ def backpropagation(node: Node, value_estimate: float) -> None:
 def run_mcts(
     board: chess.Board,
     constraint: Constraint,
-    evaluator: Evaluator,
+    evaluator: BaseModel,
     params: MCTSparams,
 ) -> Node:
     uci_info = UciInfo()

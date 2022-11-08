@@ -3,9 +3,9 @@ from dinora.utils import disable_tensorflow_log
 disable_tensorflow_log()
 from tensorflow import keras
 
-from dinora.net import ChessModel
+from dinora.models.dnn.adapter import DNNModel
 from dinora.dataset import create_dataset_from_games
-from dinora.model import build_model, LightConfig
+from dinora.models.dnn.keras_model import build_model, LightConfig
 from dinora.selfplay import gen_game
 
 nodes = 5
@@ -15,7 +15,7 @@ dirichlet_alpha = 0.3
 noise_eps = 0.2
 
 
-net = ChessModel(softmax_temp)
+net = DNNModel(softmax_temp)
 net.model = build_model(LightConfig)  # Start from zero
 net.model.compile(
     keras.optimizers.Adam(0.05),

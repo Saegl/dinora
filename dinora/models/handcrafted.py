@@ -1,6 +1,8 @@
 import math
 import chess
 
+from dinora.models.base import BaseModel, Priors, StateValue
+
 
 def evaluate_board(board: chess.Board) -> float:
     mobility = board.legal_moves.count()
@@ -47,6 +49,6 @@ def move_ordering(board: chess.Board):
     return dict(zip(moves, softmax))
 
 
-class DummyModel:
-    def evaluate(self, board: chess.Board, *args, **kwargs):
+class DummyModel(BaseModel):
+    def evaluate(self, board: chess.Board) -> tuple[Priors, StateValue]:
         return move_ordering(board), evaluate_board(board)
