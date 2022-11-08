@@ -6,7 +6,8 @@ import chess
 from dinora.utils import disable_tensorflow_log
 
 disable_tensorflow_log()
-from dinora import search
+from dinora.mcts.search import run_mcts, MCTSparams
+from dinora.mcts.constraints import TimeConstraint, NodesCountConstraint
 
 from math import cos
 
@@ -34,7 +35,7 @@ class UciState:
             send("info string loading nn, it make take a while")
             import dinora.net
 
-            self.net = dinora.net.ChessModel()
+            self.net = dinora.net.ChessModel(softmax_temp)
             send("info string nn is loaded")
 
 
@@ -76,16 +77,10 @@ def uci_command(state: UciState, cmd: str):
             wtime = int(tokens[2])
             btime = int(tokens[4])
             engine_time = wtime if state.board.turn else btime
-            move_time = time_manager(state.board.fullmove_number, engine_time)
-            move, _ = search.uct_time(
-                state.board,
-                state.net,
-                c_puct,
-                move_time,
-                send,
-                dirichlet_alpha,
-                noise_eps,
-                softmax_temp,
+            constraint = TimeConstraint(
+                moves_number=state.board.fullmove_number,
+                engine_time=engine_time,
+                engine_inc=0,
             )
         # go wtime <wtime> btime <btime> winc <winc> binc <binc>
         elif len(tokens) == 9 and tokens[1] == "wtime":
@@ -95,31 +90,21 @@ def uci_command(state: UciState, cmd: str):
             binc = int(tokens[8])
             engine_time = wtime if state.board.turn else btime
             engine_inc = winc if state.board.turn else binc
-            move_time = time_manager(
-                state.board.fullmove_number, engine_time, engine_inc
-            )
-            move, _ = search.uct_time(
-                state.board,
-                state.net,
-                c_puct,
-                move_time,
-                send,
-                dirichlet_alpha,
-                noise_eps,
-                softmax_temp,
+            constraint = TimeConstraint(
+                moves_number=state.board.fullmove_number,
+                engine_time=engine_time,
+                engine_inc=engine_inc,
             )
         else:
-            root_node = search.uct_nodes(
-                state.board,
-                300,
-                state.net,
-                c_puct,
-                send,
-                dirichlet_alpha,
-                noise_eps,
-                softmax_temp,
-            )
-            move, _, _ = search.get_best_move(root_node)
+            constraint = NodesCountConstraint(300)
+
+        root_node = run_mcts(
+            board=state.board,
+            constraint=constraint,
+            evaluator=state.net,
+            params=MCTSparams(),
+        )
+        move = root_node.get_most_visited_move()
         send(f"bestmove {move}")
     elif cmd == "quit":
         sys.exit()
@@ -128,16 +113,12 @@ def uci_command(state: UciState, cmd: str):
 
 
 def start_uci():
-    uci_state = UciState()
-
-    while True:
-        line = input()
-        uci_command(uci_state, line)
-
-
-if __name__ == "__main__":
     try:
-        start_uci()
+        uci_state = UciState()
+
+        while True:
+            line = input()
+            uci_command(uci_state, line)
     except:
         logfile = open("dinora.log", "w")
         exc_type, exc_value, exc_tb = sys.exc_info()

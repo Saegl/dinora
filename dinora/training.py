@@ -9,18 +9,19 @@ from dinora.model import build_model, LightConfig
 from dinora.selfplay import gen_game
 
 nodes = 5
-net = ChessModel("models/best_light_model.h5")
+c_puct = 2.0
+softmax_temp = 1.6
+dirichlet_alpha = 0.3
+noise_eps = 0.2
+
+
+net = ChessModel(softmax_temp)
 net.model = build_model(LightConfig)  # Start from zero
 net.model.compile(
     keras.optimizers.Adam(0.05),
     loss=["categorical_crossentropy", "mean_squared_error"],
     metrics=["accuracy"],
 )
-
-c_puct = 2.0
-softmax_temp = 1.6
-dirichlet_alpha = 0.3
-noise_eps = 0.2
 
 stats = {}  # type: ignore  # TODO
 i = 0

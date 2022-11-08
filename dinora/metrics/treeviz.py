@@ -9,7 +9,7 @@ import graphviz
 import cairosvg
 
 import chess.svg
-from dinora.search import *
+from dinora.mcts import run_mcts, MCTSparams, Node, NodesCountConstraint
 
 
 @dataclass
@@ -19,18 +19,18 @@ class RenderParams:
     show_prior = True
 
 
-def get_all_nodes(node: UCTNode):
+def get_all_nodes(node: Node):
     """Get all reachable nodes from a given node"""
     for _, child in node.children.items():
         yield child
         yield from get_all_nodes(child)
 
 
-def select_best_nodes(node: UCTNode, n: int) -> set[UCTNode]:
+def select_best_nodes_ids(node: Node, n: int) -> set[int]:
     """Get n best nodes from a given node, sorted by number of visits"""
     all_nodes = list(get_all_nodes(node))
     all_nodes.sort(reverse=True, key=lambda e: e.number_visits)
-    return set(all_nodes[:n])
+    return set(map(id, all_nodes[:n]))
 
 
 def build_root_node(dot: graphviz.Digraph, fen: str):
@@ -42,16 +42,16 @@ def build_root_node(dot: graphviz.Digraph, fen: str):
 
 def build_children_nodes(
     dot: graphviz.Digraph,
-    node: UCTNode,
+    node: Node,
     parent_id: str,
-    selected_nodes: set[UCTNode],
+    selected_nodes: set[int],
     params: RenderParams,
 ):
     others_visits = 0
     others_id = str(id(node.children))
     others_prior = 0.0
     for move, child in node.children.items():
-        if child not in selected_nodes or child.number_visits == 0:
+        if id(child) not in selected_nodes or child.number_visits == 0:
             others_visits += child.number_visits
             others_prior += child.prior
             continue
@@ -73,7 +73,7 @@ def build_children_nodes(
 
 
 def build_graph(
-    root: UCTNode,
+    root: Node,
     fen=chess.STARTING_BOARD_FEN,
     format="png",
     params: RenderParams = RenderParams(),
@@ -90,7 +90,7 @@ def build_graph(
         },
     )
 
-    selected_nodes = select_best_nodes(root, params.max_number_of_nodes)
+    selected_nodes = select_best_nodes_ids(root, params.max_number_of_nodes)
 
     build_root_node(dot, fen)
     build_children_nodes(dot, root, "root", selected_nodes, params)
@@ -101,14 +101,14 @@ def build_graph(
 def render_search_process(
     model,
     fen: str,
-    c: float,
     nodes=10,
     sleep_between_states: float = 0.0,
-    params: RenderParams = RenderParams(),
+    mcts_params: MCTSparams = MCTSparams(),
+    render_params: RenderParams = RenderParams(),
 ):
     for i in range(1, nodes):
-        root: UCTNode = uct_nodes(chess.Board(fen), i, model, c, None, 1.0, 0.0, 1.0)
-        graph = build_graph(root, params=params, fen=fen)
+        root = run_mcts(chess.Board(fen), NodesCountConstraint(i), model, mcts_params)
+        graph = build_graph(root, params=render_params, fen=fen)
         graph.render(directory="generated", filename=str(i), view=False)
         sleep(sleep_between_states)
 
@@ -117,10 +117,10 @@ def render_state(
     model,
     fen: str,
     nodes: int,
-    c: float,
     format: str = "svg",
-    params: RenderParams = RenderParams(),
+    mcts_params: MCTSparams = MCTSparams(),
+    render_params: RenderParams = RenderParams(),
 ) -> graphviz.Digraph:
-    root: UCTNode = uct_nodes(chess.Board(fen), nodes, model, c, None, 1.0, 0.0, 1.0)
-    graph = build_graph(root, params=params, fen=fen, format=format)
+    root = run_mcts(chess.Board(fen), NodesCountConstraint(nodes), model, mcts_params)
+    graph = build_graph(root, params=render_params, fen=fen, format=format)
     graph.render(directory="generated", filename="state", view=True)

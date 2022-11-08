@@ -15,7 +15,8 @@ BEST_MODEL = join(MODELS_DIR, "latest.h5")
 
 
 class ChessModel:
-    def __init__(self, model_path=BEST_MODEL) -> None:
+    def __init__(self, softmax_temp: float, model_path=BEST_MODEL) -> None:
+        self.softmax_temp: float = softmax_temp
         self.model: keras.Model = keras.models.load_model(model_path)
 
     def model_out(self, board: chess.Board):
@@ -25,20 +26,20 @@ class ChessModel:
         model_output = self.model(plane, training=False)
         return model_output
 
-    def raw_eval(self, board: chess.Board, softmax_temp):
+    def raw_eval(self, board: chess.Board):
         policy, value = self.model_out(board)
         # unwrap tensor
         policy = policy[0]
         value = float(value[0])
 
         # take only legal moves from policy
-        t = softmax_temp
+        t = self.softmax_temp
         moves = []
         policies = []
         lookup = move_lookup if board.turn else flipped_move_lookup
         for move in board.legal_moves:
             i = lookup[move]
-            moves.append(move.uci())
+            moves.append(move)
             policies.append(math.exp(float(policy[i]) / t))
 
         # map to sum(policies) == 1
@@ -47,7 +48,7 @@ class ChessModel:
 
         return dict(zip(moves, policies_map)), value
 
-    def evaluate(self, board: chess.Board, softmax_temp):
+    def evaluate(self, board: chess.Board):
         result = None
         if board.is_game_over(claim_draw=True):
             result = board.result(claim_draw=True)
@@ -59,7 +60,7 @@ class ChessModel:
                 # Always return -1.0 when checkmated
                 # and we are checkmated because it's our turn to move
                 return dict(), -1.0
-        return self.raw_eval(board, softmax_temp)
+        return self.raw_eval(board)
 
 
 class ChessModelWithCache:
