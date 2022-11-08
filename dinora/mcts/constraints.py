@@ -39,6 +39,9 @@ class TimeConstraint(Constraint):
             return True
         return time() - self.starttime < self.move_time
 
+    def __str__(self) -> str:
+        return f"<TimeConstraint: {self.move_time=} {self.starttime=}>"
+
 
 class NodesCountConstraint(Constraint):
     def __init__(self, count: int) -> None:
@@ -48,3 +51,6 @@ class NodesCountConstraint(Constraint):
     def meet(self) -> bool:
         self.step += 1
         return self.count > self.step
+
+    def __str__(self) -> str:
+        return f"<NodesCountConstraint: {self.count=} {self.step=}>"
