@@ -1,5 +1,6 @@
 import sys
 import traceback
+from dataclasses import fields
 
 import chess
 
@@ -11,14 +12,8 @@ from dinora.mcts import (
     TimeConstraint,
     NodesCountConstraint,
 )
-from dinora.cli.uci_parser import parse_go_params, UciGoParams
-
-
-extra_time = 0.5
-c_puct = 2.0
-softmax_temp = 1.6
-dirichlet_alpha = 0.3
-noise_eps = 0.00
+from dinora.cli.uci_parser import parse_go_params
+from dinora.cli.uci_options import UciOptions
 
 
 def send(s: str):
@@ -29,24 +24,37 @@ def send(s: str):
 
 class UciState:
     def __init__(self):
-        self.net = None
+        self.model = None  # model initialized after first `go` call
         self.board = chess.Board()
+        self.mcts_params = MCTSparams()
+        self.option_types: dict[str, UciOptions] = {}
+
+    def get_options(self):
+        for field in fields(self.mcts_params):
+            option_name = field.name
+            option_type: UciOptions = field.metadata["uci_option_type"]
+            option_type_name = option_type.uci_type
+            option_default = field.default
+            self.option_types[option_name] = option_type
+            yield option_name, option_type_name, option_default
 
     def load_neural_network(self):
-        if self.net is None:
+        if self.model is None:
             from dinora.utils import disable_tensorflow_log
 
             disable_tensorflow_log()
             send("info string loading nn, it make take a while")
             from dinora.models.dnn import DNNModel
 
-            self.net = DNNModel(softmax_temp)
+            self.model = DNNModel(softmax_temp=1.6)
             send("info string nn is loaded")
 
     def dispatcher(self, line: str):
         tokens = line.strip().split()
         if tokens[0] == "uci":
             self.uci()
+        if tokens[0] == "setoption":
+            self.setoption(tokens)
         elif tokens[0] == "isready":
             self.isready()
         elif tokens[0] == "ucinewgame":
@@ -67,10 +75,19 @@ class UciState:
 
     ### UCI Commands:
     def uci(self):
-        send("id name Dinora Docker")
+        send("id name Dinora")
         send("id author Saegl")
-        send("option name model type string default models/latest.h5")
+        for name, type_name, default in self.get_options():
+            send(f"option name {name} type {type_name} default {default}")
         send("uciok")
+
+    def setoption(self, tokens: list[str]):
+        i = tokens.index("value")
+        name = tokens[i - 1].lower()
+        value = tokens[i + 1]
+        option_type = self.option_types[name]
+        converted_value = option_type.convert(value)
+        setattr(self.mcts_params, name, converted_value)
 
     def isready(self):
         send("readyok")
@@ -116,8 +133,8 @@ class UciState:
         root_node = run_mcts(
             board=self.board,
             constraint=constraint,
-            evaluator=self.net,
-            params=MCTSparams(),
+            evaluator=self.model,
+            params=self.mcts_params,
         )
         move = root_node.get_most_visited_move()
         send(f"bestmove {move}")
