@@ -13,7 +13,7 @@ def cli():
 @cli.command()
 def uci():
     """Start UCI"""
-    from dinora.uci import start_uci
+    from dinora.cli.uci import start_uci
 
     start_uci()
 

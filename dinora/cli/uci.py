@@ -9,8 +9,6 @@ disable_tensorflow_log()
 from dinora.mcts.search import run_mcts, MCTSparams
 from dinora.mcts.constraints import TimeConstraint, NodesCountConstraint
 
-from math import cos
-
 
 extra_time = 0.5
 c_puct = 2.0
@@ -37,13 +35,6 @@ class UciState:
 
             self.net = dinora.net.ChessModel(softmax_temp)
             send("info string nn is loaded")
-
-
-def time_manager(moves_number: int, time_left: int, inc: int = 0) -> float:
-    moves_left = (23 * cos(moves_number / 25) + 26) / (0.01 * moves_number + 1)
-    remaining_time = time_left / 1000 + moves_left * inc / 1000
-    move_time = remaining_time / moves_left - extra_time
-    return move_time
 
 
 def uci_command(state: UciState, cmd: str):
