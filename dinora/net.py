@@ -49,18 +49,23 @@ class ChessModel:
         return dict(zip(moves, policies_map)), value
 
     def evaluate(self, board: chess.Board):
-        result = None
-        if board.is_game_over(claim_draw=True):
-            result = board.result(claim_draw=True)
-
-        if result != None:
-            if result == "1/2-1/2":
-                return dict(), 0.0
-            else:
-                # Always return -1.0 when checkmated
-                # and we are checkmated because it's our turn to move
-                return dict(), -1.0
-        return self.raw_eval(board)
+        result = board.result(claim_draw=True)
+        if result == "*":
+            # Game is not ended
+            # evaluate by using ANN
+            priors, value_estimate = self.raw_eval(board)
+        elif result == "1/2-1/2":
+            # It's already draw
+            # or we can claim draw, anyway `value_estimate` is 0.0
+            priors, _ = self.raw_eval(board)
+            value_estimate = 0.0
+        else:
+            # result == '1-0' or result == '0-1'
+            # we are checkmated because it's our turn to move
+            # so the `value_estimate` is -1.0
+            priors = {}  # no moves after checkmate
+            value_estimate = -1.0
+        return priors, value_estimate
 
 
 class ChessModelWithCache:
