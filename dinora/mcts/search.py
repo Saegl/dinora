@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 import chess
 
 from dinora.mcts.node import Node
@@ -7,20 +5,7 @@ from dinora.mcts.uci_info import UciInfo
 from dinora.mcts.noise import apply_noise
 from dinora.mcts.constraints import Constraint
 from dinora.mcts.evaluator import Evaluator, Priors
-
-
-@dataclass
-class MCTSparams:
-    # First Play Urgency - value of unvisited nodes
-    fpu: float = -1.0
-    fpu_at_root: float = 0.0
-
-    # exploration parameter
-    c: float = 2.0
-
-    # random
-    dirichlet_alpha: float = 0.3
-    noise_eps: float = 0.0  # set to 0.0 to disable random
+from dinora.mcts.params import MCTSparams
 
 
 def selection(root: Node, c: float) -> Node:
