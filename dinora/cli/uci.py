@@ -3,11 +3,13 @@ import traceback
 
 import chess
 
-from dinora.utils import disable_tensorflow_log
-
-disable_tensorflow_log()
-from dinora.mcts.search import run_mcts, MCTSparams
-from dinora.mcts.constraints import TimeConstraint, NodesCountConstraint
+from dinora.mcts import (
+    run_mcts,
+    MCTSparams,
+    Constraint,
+    TimeConstraint,
+    NodesCountConstraint,
+)
 
 
 extra_time = 0.5
@@ -30,46 +32,70 @@ class UciState:
 
     def load_neural_network(self):
         if self.net is None:
+            from dinora.utils import disable_tensorflow_log
+
+            disable_tensorflow_log()
             send("info string loading nn, it make take a while")
             import dinora.net
 
             self.net = dinora.net.ChessModel(softmax_temp)
             send("info string nn is loaded")
 
+    def dispatcher(self, line: str):
+        tokens = line.split()
+        if tokens[0] == "uci":
+            self.uci()
+        elif tokens[0] == "isready":
+            self.isready()
+        elif tokens[0] == "ucinewgame":
+            pass
+        elif tokens[0] == "position":
+            self.position(tokens)
+        elif tokens[0] == "go":
+            self.go(tokens)
+        elif tokens[0] == "quit":
+            sys.exit(0)
+        else:
+            send(f"info string command is not processed: {line}")
 
-def uci_command(state: UciState, cmd: str):
-    tokens = cmd.split()
-    if tokens[0] == "uci":
+    def loop(self):
+        while True:
+            line = input()
+            self.dispatcher(line)
+
+    ### UCI Commands:
+    def uci(self):
         send("id name Dinora Docker")
         send("id author Saegl")
         send("option name model type string default models/latest.h5")
         send("uciok")
-    elif tokens[0] == "isready":
-        state.load_neural_network()
+
+    def isready(self):
         send("readyok")
-    elif tokens[0] == "ucinewgame":
-        pass
-    elif tokens[0] == "position":
+
+    def position(self, tokens: list[str]):
         if tokens[1] == "startpos":
-            state.board = chess.Board()
+            self.board = chess.Board()
         if tokens[1] == "fen":
             fen = " ".join(tokens[2:8])
-            state.board = chess.Board(fen)
+            self.board = chess.Board(fen)
 
         if "moves" in tokens:
             index = tokens.index("moves")
             moves = tokens[index + 1 :]
             for move_token in moves:
-                state.board.push_uci(move_token)
-    elif tokens[0] == "go":
-        state.load_neural_network()
+                self.board.push_uci(move_token)
+
+    def go(self, tokens: list[str]):
+        self.load_neural_network()
+        constraint: Constraint
         # go wtime <wtime> btime <btime>
         if len(tokens) == 5 and tokens[1] == "wtime":
             wtime = int(tokens[2])
             btime = int(tokens[4])
-            engine_time = wtime if state.board.turn else btime
+            engine_time = wtime if self.board.turn else btime
             constraint = TimeConstraint(
-                moves_number=state.board.fullmove_number,
+                moves_number=self.board.fullmove_number,
                 engine_time=engine_time,
                 engine_inc=0,
             )
@@ -79,10 +105,10 @@ def uci_command(state: UciState, cmd: str):
             btime = int(tokens[4])
             winc = int(tokens[6])
             binc = int(tokens[8])
-            engine_time = wtime if state.board.turn else btime
-            engine_inc = winc if state.board.turn else binc
+            engine_time = wtime if self.board.turn else btime
+            engine_inc = winc if self.board.turn else binc
             constraint = TimeConstraint(
-                moves_number=state.board.fullmove_number,
+                moves_number=self.board.fullmove_number,
                 engine_time=engine_time,
                 engine_inc=engine_inc,
             )
@@ -90,30 +116,29 @@ def uci_command(state: UciState, cmd: str):
             constraint = NodesCountConstraint(300)
 
         root_node = run_mcts(
-            board=state.board,
+            board=self.board,
             constraint=constraint,
-            evaluator=state.net,
+            evaluator=self.net,
             params=MCTSparams(),
         )
         move = root_node.get_most_visited_move()
         send(f"bestmove {move}")
-    elif cmd == "quit":
-        sys.exit()
-    else:
-        send(f"info string command is not processed: {cmd}")
 
 
-def start_uci():
+def start_uci(printlogs: bool = False):
     try:
         uci_state = UciState()
-
-        while True:
-            line = input()
-            uci_command(uci_state, line)
+        uci_state.loop()
+    except SystemExit:
+        pass
     except:
-        logfile = open("dinora.log", "w")
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        logfile.write("".join(traceback.format_exception(exc_type, exc_value, exc_tb)))
-        logfile.write("\n")
-        logfile.flush()
-        logfile.close()
+        with open("dinora.log", "wt", encoding="utf8") as logfile:
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            logfile.write(
+                "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+            )
+            logfile.write("\n")
+
+        if printlogs:
+            with open("dinora.log", "rt", encoding="utf8") as f:
+                print(f.read())
