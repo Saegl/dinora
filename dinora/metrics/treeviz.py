@@ -12,11 +12,19 @@ import chess.svg
 from dinora.mcts import run_mcts, MCTSparams, Node, NodesCountConstraint
 
 
+NodeID = str
+
+
+def node_id(node: object) -> NodeID:
+    return str(id(node))
+
+
 @dataclass
 class RenderParams:
     max_number_of_nodes: int = 150
     show_other_node: bool = True
-    show_prior = True
+    show_prior: bool = True
+    open_default_gui: bool = False
 
 
 def get_all_nodes(node: Node):
@@ -26,50 +34,110 @@ def get_all_nodes(node: Node):
         yield from get_all_nodes(child)
 
 
-def select_best_nodes_ids(node: Node, n: int) -> set[int]:
-    """Get n best nodes from a given node, sorted by number of visits"""
+def select_most_visited_nodes(node: Node, n: int) -> set[NodeID]:
+    """Select n most visited nodes"""
     all_nodes = list(get_all_nodes(node))
     all_nodes.sort(reverse=True, key=lambda e: e.number_visits)
-    return set(map(id, all_nodes[:n]))
+    return set(map(node_id, all_nodes[:n]))
 
 
-def build_root_node(dot: graphviz.Digraph, fen: str):
+def tree_shape(root: Node) -> list[int]:
+    """Calculate number of nodes on each depth by using dfs"""
+
+    depthlist: list[int] = []
+
+    def dfs(node: Node, depth: int):
+        for _, child in node.children.items():
+            if len(depthlist) == depth:
+                depthlist.append(0)
+            if not child.children:
+                continue
+            depthlist[depth] += 1
+            dfs(child, depth + 1)
+
+    dfs(root, 0)
+    return depthlist
+
+
+def get_pv_set(root: Node) -> set[NodeID]:
+    ans = set()
+
+    curr = root
+    while len(curr.children) != 0:
+        bestchild = curr.best_child(0.0)
+        ans.add(node_id(bestchild))
+        curr = bestchild
+    return ans
+
+
+def build_info_node(graph: graphviz.Digraph, root: Node):
+    children = list(root.children.items())
+    children.sort(key=lambda t: (t[1].number_visits, t[1].Q()), reverse=True)
+    top_visited_labels = [
+        f"{t[0]} - N:{t[1].number_visits}, Q:{t[1].Q():.3f}" for t in children[:5]
+    ]
+    top_visited = "\n".join(top_visited_labels)
+
+    children.sort(key=lambda t: (t[1].Q(), t[1].number_visits), reverse=True)
+    top_q_highest_labels = [
+        f"{t[0]} - Q:{t[1].Q():.3f}, N{t[1].number_visits}" for t in children[:5]
+    ]
+    top_q = "\n".join(top_q_highest_labels)
+
+    bestchild = root.best_child(0.0)
+    info = (
+        f"Side to move: {'white' if root.board.turn else 'black'} \n"
+        f"Q at bestchild {bestchild.Q():.3f} \n\n"
+        f"TOP 5 most visited nodes at root: \n{top_visited} \n\n"
+        f"TOP 5 highest Q nodes at root: \n{top_q} \n\n"
+        f"Tree Shape: {tree_shape(root)}"
+    )
+    graph.node("info", label=info, shape="box")
+
+
+def build_root_node(graph: graphviz.Digraph, fen: str):
     """Save root node in digraph and attach board preview"""
     # FIXME: cairo is big dependency, is there better way to convert svg to png?
     cairosvg.svg2png(chess.svg.board(chess.Board(fen)), write_to="generated/cboard.png")
-    dot.node("root", label="", image="cboard.png", imagescale="false", shape="box")
+    graph.node("root", label="", image="cboard.png", imagescale="false", shape="box")
 
 
 def build_children_nodes(
-    dot: graphviz.Digraph,
+    graph: graphviz.Digraph,
     node: Node,
     parent_id: str,
-    selected_nodes: set[int],
+    selected_nodes: set[NodeID],
+    pv_set: set[NodeID],
     params: RenderParams,
 ):
     others_visits = 0
-    others_id = str(id(node.children))
+    others_id = node_id(node.children)
     others_prior = 0.0
     for move, child in node.children.items():
-        if id(child) not in selected_nodes or child.number_visits == 0:
+        child_id = node_id(child)
+
+        if child_id not in selected_nodes or child.number_visits == 0:
             others_visits += child.number_visits
             others_prior += child.prior
             continue
 
-        child_id = str(id(child))
-        label = f"{{ {str(move)} | Q:{child.Q():.2f} N:{child.number_visits} }}"
+        label = f"{{ {str(move)} | Q:{child.Q():.3f} N:{child.number_visits} VE: {child.board_value_estimate_info:.3f} }}"
 
-        dot.node(child_id, label, shape="record")
-        prior_props = {"label": f"{child.prior:.2f}"} if params.show_prior else {}
-        dot.edge(parent_id, child_id, **prior_props)
-        build_children_nodes(dot, child, child_id, selected_nodes, params)
+        if child_id in pv_set:
+            color = "red"
+        else:
+            color = None
+        graph.node(child_id, label, shape="record", color=color)
+        prior_props = {"label": f"{child.prior:.3f}"} if params.show_prior else {}
+        graph.edge(parent_id, child_id, **prior_props)
+        build_children_nodes(graph, child, child_id, selected_nodes, pv_set, params)
 
     others_label = f"{{ othr | Q:?.?? N:{others_visits} }}"
 
     if params.show_other_node:
-        dot.node(others_id, others_label, shape="record", color="orange")
+        graph.node(others_id, others_label, shape="record", color="orange")
         prior_props = {"label": f"{others_prior:.2f}"} if params.show_prior else {}
-        dot.edge(parent_id, others_id, **prior_props)
+        graph.edge(parent_id, others_id, **prior_props)
 
 
 def build_graph(
@@ -79,7 +147,7 @@ def build_graph(
     params: RenderParams = RenderParams(),
 ) -> graphviz.Digraph:
 
-    dot = graphviz.Digraph(
+    graph = graphviz.Digraph(
         "search-tree",
         format=format,
         comment="Monte Carlo Search Tree",
@@ -90,12 +158,16 @@ def build_graph(
         },
     )
 
-    selected_nodes = select_best_nodes_ids(root, params.max_number_of_nodes)
+    pv_set = get_pv_set(root)
+    selected_nodes = select_most_visited_nodes(root, params.max_number_of_nodes).union(
+        pv_set
+    )
 
-    build_root_node(dot, fen)
-    build_children_nodes(dot, root, "root", selected_nodes, params)
+    build_info_node(graph, root)
+    build_root_node(graph, fen)
+    build_children_nodes(graph, root, "root", selected_nodes, pv_set, params)
 
-    return dot
+    return graph
 
 
 def render_search_process(
@@ -109,7 +181,9 @@ def render_search_process(
     for i in range(1, nodes):
         root = run_mcts(chess.Board(fen), NodesCountConstraint(i), model, mcts_params)
         graph = build_graph(root, params=render_params, fen=fen)
-        graph.render(directory="generated", filename=str(i), view=False)
+        graph.render(
+            directory="generated", filename=str(i), view=render_params.open_default_gui
+        )
         sleep(sleep_between_states)
 
 
@@ -120,7 +194,10 @@ def render_state(
     format: str = "svg",
     mcts_params: MCTSparams = MCTSparams(),
     render_params: RenderParams = RenderParams(),
-) -> graphviz.Digraph:
+) -> Node:
     root = run_mcts(chess.Board(fen), NodesCountConstraint(nodes), model, mcts_params)
     graph = build_graph(root, params=render_params, fen=fen, format=format)
-    graph.render(directory="generated", filename="state", view=True)
+    graph.render(
+        directory="generated", filename="state", view=render_params.open_default_gui
+    )
+    return root
