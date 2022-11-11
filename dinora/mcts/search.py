@@ -27,7 +27,7 @@ def expansion(node: Node, child_priors: Priors, fpu: float) -> None:
 def backpropagation(node: Node, value_estimate: float) -> None:
     current = node
     # Child nodes are multiplied by -1 because we want max(-opponent eval)
-    turnfactor = -1
+    turnfactor = -1.0
     while current.parent is not None:
         current.number_visits += 1
         current.total_value += value_estimate * turnfactor
@@ -46,6 +46,7 @@ def run_mcts(
 
     root = Node(params.fpu_at_root, lazyboard=board)
     child_priors, value_estimate = evaluator.evaluate(root.board)
+    root.board_value_estimate_info = value_estimate
     child_priors = apply_noise(
         child_priors,
         params.dirichlet_alpha,
@@ -56,10 +57,11 @@ def run_mcts(
 
     while constraint.meet():
         leaf = selection(root, params.c)
-        child_priors, value_estimate = evaluator.evaluate(root.board)
+        child_priors, value_estimate = evaluator.evaluate(leaf.board)
+        leaf.board_value_estimate_info = value_estimate
         expansion(leaf, child_priors, params.fpu)
         backpropagation(leaf, value_estimate)
-        uci_info.after_iteration(root)
+        uci_info.after_iteration(root, params.send_func)
 
-    uci_info.at_mcts_end(root)
+    uci_info.at_mcts_end(root, params.send_func)
     return root
