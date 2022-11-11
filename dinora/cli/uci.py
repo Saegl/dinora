@@ -31,12 +31,13 @@ class UciState:
 
     def get_options(self):
         for field in fields(self.mcts_params):
-            option_name = field.name
-            option_type: UciOptions = field.metadata["uci_option_type"]
-            option_type_name = option_type.uci_type
-            option_default = field.default
-            self.option_types[option_name] = option_type
-            yield option_name, option_type_name, option_default
+            if field.metadata.get("uci_option_type"):
+                option_name = field.name
+                option_type: UciOptions = field.metadata["uci_option_type"]
+                option_type_name = option_type.uci_type
+                option_default = field.default
+                self.option_types[option_name] = option_type
+                yield option_name, option_type_name, option_default
 
     def load_neural_network(self):
         if self.model is None:
@@ -46,6 +47,8 @@ class UciState:
             send("info string loading nn, it make take a while")
             from dinora.models.dnn import DNNModel
 
+            # from dinora.models.badgyal import BadgyalModel as DNNModel
+
             self.model = DNNModel(softmax_temp=1.6)
             send("info string nn is loaded")
 
@@ -53,7 +56,7 @@ class UciState:
         tokens = line.strip().split()
         if tokens[0] == "uci":
             self.uci()
-        if tokens[0] == "setoption":
+        elif tokens[0] == "setoption":
             self.setoption(tokens)
         elif tokens[0] == "isready":
             self.isready()
@@ -136,7 +139,7 @@ class UciState:
             evaluator=self.model,
             params=self.mcts_params,
         )
-        move = root_node.get_most_visited_move()
+        move = root_node.get_most_visited_node().move
         send(f"bestmove {move}")
 
 
