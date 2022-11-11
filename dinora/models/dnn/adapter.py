@@ -16,7 +16,7 @@ BEST_MODEL = join(MODELS_DIR, "latest.h5")
 
 
 class DNNModel(BaseModel):
-    def __init__(self, softmax_temp: float, model_path=BEST_MODEL) -> None:
+    def __init__(self, softmax_temp: float = 2.0, model_path=BEST_MODEL) -> None:
         self.softmax_temp: float = softmax_temp
         self.model: keras.Model = keras.models.load_model(model_path)
 

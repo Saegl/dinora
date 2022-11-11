@@ -40,7 +40,7 @@ def move_ordering(board: chess.Board):
         to_value = piece_value(to_piece)
 
         material_diff = to_value - from_value
-        moves.append(move.uci())
+        moves.append(move)
         diffs.append(material_diff)
 
     bottom = sum(math.exp(x) for x in diffs)
