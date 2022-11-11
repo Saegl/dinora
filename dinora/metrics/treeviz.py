@@ -2,6 +2,7 @@
 Visualization of MCTS
 Look at jupyter/treeviz.ipynb for an example of using this module
 """
+from typing import Iterator, Literal
 from dataclasses import dataclass
 from time import sleep
 
@@ -10,7 +11,7 @@ import cairosvg
 
 import chess.svg
 from dinora.mcts import run_mcts, MCTSparams, Node, NodesCountConstraint
-
+from dinora.models.base import BaseModel
 
 NodeID = str
 
@@ -27,7 +28,7 @@ class RenderParams:
     open_default_gui: bool = False
 
 
-def get_all_nodes(node: Node):
+def get_all_nodes(node: Node) -> Iterator[Node]:
     """Get all reachable nodes from a given node"""
     for _, child in node.children.items():
         yield child
@@ -46,7 +47,7 @@ def tree_shape(root: Node) -> list[int]:
 
     depthlist: list[int] = []
 
-    def dfs(node: Node, depth: int):
+    def dfs(node: Node, depth: int) -> None:
         for _, child in node.children.items():
             if len(depthlist) == depth:
                 depthlist.append(0)
@@ -70,7 +71,7 @@ def get_pv_set(root: Node) -> set[NodeID]:
     return ans
 
 
-def build_info_node(graph: graphviz.Digraph, root: Node):
+def build_info_node(graph: graphviz.Digraph, root: Node) -> None:
     children = list(root.children.items())
     children.sort(key=lambda t: (t[1].number_visits, t[1].Q()), reverse=True)
     top_visited_labels = [
@@ -95,7 +96,7 @@ def build_info_node(graph: graphviz.Digraph, root: Node):
     graph.node("info", label=info, shape="box")
 
 
-def build_root_node(graph: graphviz.Digraph, fen: str):
+def build_root_node(graph: graphviz.Digraph, fen: str) -> None:
     """Save root node in digraph and attach board preview"""
     # FIXME: cairo is big dependency, is there better way to convert svg to png?
     cairosvg.svg2png(chess.svg.board(chess.Board(fen)), write_to="generated/cboard.png")
@@ -109,7 +110,7 @@ def build_children_nodes(
     selected_nodes: set[NodeID],
     pv_set: set[NodeID],
     params: RenderParams,
-):
+) -> None:
     others_visits = 0
     others_id = node_id(node.children)
     others_prior = 0.0
@@ -142,8 +143,8 @@ def build_children_nodes(
 
 def build_graph(
     root: Node,
-    fen=chess.STARTING_BOARD_FEN,
-    format="png",
+    fen: str = chess.STARTING_BOARD_FEN,
+    format: Literal["png", "svg"] = "png",
     params: RenderParams = RenderParams(),
 ) -> graphviz.Digraph:
 
@@ -171,13 +172,13 @@ def build_graph(
 
 
 def render_search_process(
-    model,
+    model: BaseModel,
     fen: str,
-    nodes=10,
+    nodes: int = 10,
     sleep_between_states: float = 0.0,
     mcts_params: MCTSparams = MCTSparams(),
     render_params: RenderParams = RenderParams(),
-):
+) -> None:
     for i in range(1, nodes):
         root = run_mcts(chess.Board(fen), NodesCountConstraint(i), model, mcts_params)
         graph = build_graph(root, params=render_params, fen=fen)
@@ -188,10 +189,10 @@ def render_search_process(
 
 
 def render_state(
-    model,
+    model: BaseModel,
     fen: str,
     nodes: int,
-    format: str = "svg",
+    format: Literal["png", "svg"] = "svg",
     mcts_params: MCTSparams = MCTSparams(),
     render_params: RenderParams = RenderParams(),
 ) -> Node:

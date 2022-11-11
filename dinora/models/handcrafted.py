@@ -29,7 +29,7 @@ def piece_value(piece: chess.Piece | None) -> float:
         raise ValueError(f"Unsupported chess piece: {piece}")
 
 
-def move_ordering(board: chess.Board):
+def move_ordering(board: chess.Board) -> Priors:
     moves = []
     diffs = []
     for move in board.legal_moves:

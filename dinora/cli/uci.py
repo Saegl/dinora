@@ -1,5 +1,6 @@
 import sys
 import traceback
+from typing import Iterator, Any
 from dataclasses import fields
 
 import chess
@@ -12,24 +13,27 @@ from dinora.mcts import (
     TimeConstraint,
     NodesCountConstraint,
 )
+from dinora.models.base import BaseModel
 from dinora.cli.uci_parser import parse_go_params
 from dinora.cli.uci_options import UciOptions
 
 
-def send(s: str):
+def send(s: str) -> None:
     sys.stdout.write(s)
     sys.stdout.write("\n")
     sys.stdout.flush()
 
 
 class UciState:
-    def __init__(self):
-        self.model = None  # model initialized after first `go` call
+    def __init__(self) -> None:
+        self.model: BaseModel | None = None  # model initialized after first `go` call
         self.board = chess.Board()
         self.mcts_params = MCTSparams()
         self.option_types: dict[str, UciOptions] = {}
 
-    def get_options(self):
+    def get_options(
+        self,
+    ) -> Iterator[tuple[str, str, Any]]:
         for field in fields(self.mcts_params):
             if field.metadata.get("uci_option_type"):
                 option_name = field.name
@@ -39,7 +43,7 @@ class UciState:
                 self.option_types[option_name] = option_type
                 yield option_name, option_type_name, option_default
 
-    def load_neural_network(self):
+    def load_neural_network(self) -> None:
         if self.model is None:
             from dinora.utils import disable_tensorflow_log
 
@@ -52,7 +56,7 @@ class UciState:
             self.model = DNNModel(softmax_temp=1.6)
             send("info string nn is loaded")
 
-    def dispatcher(self, line: str):
+    def dispatcher(self, line: str) -> None:
         tokens = line.strip().split()
         if tokens[0] == "uci":
             self.uci()
@@ -71,20 +75,20 @@ class UciState:
         else:
             send(f"info string command is not processed: {line}")
 
-    def loop(self):
+    def loop(self) -> None:
         while True:
             line = input()
             self.dispatcher(line)
 
     ### UCI Commands:
-    def uci(self):
+    def uci(self) -> None:
         send("id name Dinora")
         send("id author Saegl")
         for name, type_name, default in self.get_options():
             send(f"option name {name} type {type_name} default {default}")
         send("uciok")
 
-    def setoption(self, tokens: list[str]):
+    def setoption(self, tokens: list[str]) -> None:
         i = tokens.index("value")
         name = tokens[i - 1].lower()
         value = tokens[i + 1]
@@ -92,10 +96,10 @@ class UciState:
         converted_value = option_type.convert(value)
         setattr(self.mcts_params, name, converted_value)
 
-    def isready(self):
+    def isready(self) -> None:
         send("readyok")
 
-    def position(self, tokens: list[str]):
+    def position(self, tokens: list[str]) -> None:
         if tokens[1] == "startpos":
             self.board = chess.Board()
         if tokens[1] == "fen":
@@ -108,8 +112,10 @@ class UciState:
             for move_token in moves:
                 self.board.push_uci(move_token)
 
-    def go(self, tokens: list[str]):
+    def go(self, tokens: list[str]) -> None:
         self.load_neural_network()
+        assert self.model  # Model loaded and it's not None
+
         go_params = parse_go_params(tokens)
         send(f"info string parsed params {go_params}")
 
@@ -143,7 +149,7 @@ class UciState:
         send(f"bestmove {move}")
 
 
-def start_uci(printlogs: bool = True):
+def start_uci(printlogs: bool = True) -> None:
     try:
         uci_state = UciState()
         uci_state.loop()

@@ -1,21 +1,22 @@
+from typing import Any
 import chess
 import numpy as np
 
 
-def create_flipped_uci_labels():
+def create_flipped_uci_labels() -> list[str]:
     """
     Seems to somehow transform the labels used for describing the universal chess interface format, putting
     them into a returned list.
     :return:
     """
 
-    def repl(x):
+    def repl(x: str) -> str:
         return "".join([(str(9 - int(a)) if a.isdigit() else a) for a in x])
 
     return [repl(x) for x in create_uci_labels()]
 
 
-def create_uci_labels():
+def create_uci_labels() -> list[str]:
     """
     Creates the labels for the universal chess interface into an array and returns them
     :return:
@@ -79,7 +80,7 @@ flipped_move_lookup = {
 }
 
 
-def policy_from_move(move: chess.Move):
+def policy_from_move(move: chess.Move) -> Any:
     policy = np.zeros(len(uci_labels))
 
     i = move_lookup[move]
@@ -87,7 +88,7 @@ def policy_from_move(move: chess.Move):
     return policy
 
 
-def flip_policy(pol):
+def flip_policy(pol: Any) -> Any:
     """
 
     :param pol policy to flip:

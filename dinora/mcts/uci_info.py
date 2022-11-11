@@ -57,6 +57,8 @@ class UciInfo:
             self.delta_last = delta
             bestnode = root.get_most_visited_node()
             score = calc_score(bestnode)
+
+            assert bestnode.move
             send_info(
                 send_func,
                 bestnode.move.uci(),
@@ -69,5 +71,7 @@ class UciInfo:
         bestnode = root.get_most_visited_node()
         delta = time() - self.start_time
         score = calc_score(bestnode)
+
+        assert bestnode.move
         send_info(send_func, bestnode.move.uci(), self.count, delta, score)
         send_tree_info(send_func, root)

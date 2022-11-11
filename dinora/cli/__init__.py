@@ -6,12 +6,12 @@ class UnimplementedCommand(Exception):
 
 
 @click.group()
-def cli():
+def cli() -> None:
     """Dinora is a chess engine"""
 
 
 @cli.command()
-def uci():
+def uci() -> None:
     """Start UCI"""
     from dinora.cli.uci import start_uci
 
@@ -19,7 +19,7 @@ def uci():
 
 
 @cli.command()
-def healthcheck():
+def healthcheck() -> None:
     """Check if Dinora is installed properly"""
     import tensorflow as tf
 
@@ -40,17 +40,17 @@ def healthcheck():
 
 
 @cli.command()
-def download():
+def download() -> None:
     """Download model weights"""
     raise UnimplementedCommand("Download is not yet implemented")
 
 
 @cli.group()
-def dev():
+def dev() -> None:
     """Commands for developers"""
 
 
 @dev.command()
-def metrics():
+def metrics() -> None:
     """Generate engine metrics"""
     raise UnimplementedCommand("Metrics are not yet implemented")

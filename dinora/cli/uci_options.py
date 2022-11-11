@@ -1,8 +1,12 @@
+# TODO: I don't know how to properly annotate convert
+from typing import Any
+
+
 class Check:
     uci_type = "check"
 
     @staticmethod
-    def convert(val: str):
+    def convert(val: str) -> Any:
         pass
 
 
@@ -12,7 +16,7 @@ class Spin:
     maxvalue: int
 
     @staticmethod
-    def convert(val: str):
+    def convert(val: str) -> Any:
         pass
 
 
@@ -20,7 +24,7 @@ class String:
     uci_type = "string"
 
     @staticmethod
-    def convert(val: str):
+    def convert(val: str) -> Any:
         pass
 
 
@@ -30,7 +34,7 @@ class FloatString:
     uci_type = "string"
 
     @staticmethod
-    def convert(val: str):
+    def convert(val: str) -> Any:
         return float(val)
 
 

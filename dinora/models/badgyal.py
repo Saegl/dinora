@@ -10,7 +10,7 @@ class BadgyalModel(BaseModel):
         self.badg = BGNet(False, False)
 
     def raw_eval(self, board: chess.Board) -> tuple[Priors, StateValue]:
-        return self.badg.eval(board)
+        return self.badg.eval(board)  # type: ignore
 
     def evaluate(self, board: chess.Board) -> tuple[Priors, StateValue]:
         result = board.result(claim_draw=True)

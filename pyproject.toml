@@ -71,4 +71,11 @@ norecursedirs = 'tests/bench'
 
 [tool.mypy]
 ignore_missing_imports = true
-exclude = ['docs', 'tests']
+plugins = [
+    'numpy.typing.mypy_plugin'
+]
+exclude = [
+    'docs',
+    'tests',
+    'dinora/models/dnn/keras_model.py'  # Will replace keras with pytorch, maybe
+]
