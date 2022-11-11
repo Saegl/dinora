@@ -58,6 +58,11 @@ class DNNModel(BaseModel):
         elif result == "1/2-1/2":
             # It's already draw
             # or we can claim draw, anyway `value_estimate` is 0.0
+            # TODO: should I set priors = {}?
+            # It's logical to set it empty because there is no need
+            # to calculate deeper already draw position,
+            # but with low time/nodes search, it leads to
+            # empty node.children bug
             priors, _ = self.raw_eval(board)
             value_estimate = 0.0
         else:
