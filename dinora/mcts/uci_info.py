@@ -48,22 +48,26 @@ class UciInfo:
         self.count = 0
         self.delta_last = 0.0
 
-    def after_iteration(self, root: Node) -> None:
+    def after_iteration(self, root: Node, send_func: Callable[[str], None]) -> None:
         self.count += 1
         now = time()
         delta = now - self.start_time
 
         if delta - self.delta_last > 5:  # Send info every 5 sec
             self.delta_last = delta
-            score = calc_score(root)
+            bestnode = root.get_most_visited_node()
+            score = calc_score(bestnode)
             send_info(
-                print,  # TODO: real send function
-                root.get_most_visited_move().uci(),
+                send_func,
+                bestnode.move.uci(),
                 self.count,
                 delta,
                 score,
             )
 
-    def at_mcts_end(self, root: Node) -> None:
-        # TODO: send_info() here
-        send_tree_info(print, root)
+    def at_mcts_end(self, root: Node, send_func: Callable[[str], None]) -> None:
+        bestnode = root.get_most_visited_node()
+        delta = time() - self.start_time
+        score = calc_score(bestnode)
+        send_info(send_func, bestnode.move.uci(), self.count, delta, score)
+        send_tree_info(send_func, root)

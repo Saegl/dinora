@@ -10,6 +10,9 @@ import chess
 class Node:
     total_value: float
     prior: float = 0.0
+    board_value_estimate_info: float = (
+        -99.0
+    )  # NOT used in search calc, only for treeviz info
     lazyboard: chess.Board | None = None
     move: chess.Move | None = None
     parent: Optional["Node"] = None
@@ -31,19 +34,19 @@ class Node:
     def is_root(self) -> bool:
         return self.parent is None
 
-    def get_most_visited_move(self) -> chess.Move:
-        move, _ = max(
+    def get_most_visited_node(self) -> "Node":
+        _, node = max(
             self.children.items(),
             key=lambda item: (item[1].number_visits, item[1].Q()),
         )
-        return move
+        return node
 
-    def get_highest_q_move(self) -> chess.Move:
-        move, _ = max(
+    def get_highest_q_node(self) -> "Node":
+        _, node = max(
             self.children.items(),
             key=lambda item: (item[1].Q(), item[1].number_visits),
         )
-        return move
+        return node
 
     def Q(self) -> float:
         return self.total_value / (1 + self.number_visits)
