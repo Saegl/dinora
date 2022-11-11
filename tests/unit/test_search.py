@@ -1,13 +1,10 @@
+import pytest
 import chess
 from dinora.mcts import run_mcts, NodesCountConstraint, MCTSparams
 from dinora.mcts.uci_info import cp
 
-
-# from dinora.models.handcrafted import DummyModel as TestModel  # Fast model
-
-from dinora.models.dnn import DNNModel as TestModel  # Real model
-
-model = TestModel()
+from dinora.models.badgyal import BadgyalModel
+from dinora.models.dnn import DNNModel
 
 
 def test_cp():
@@ -20,7 +17,8 @@ def test_cp():
     assert cp(1.0) == -cp(-1.0)
 
 
-def test_search_starting_position():
+@pytest.mark.parametrize("model", [DNNModel(), BadgyalModel()])
+def test_search_starting_position(model):
     board = chess.Board()
     nodes_count = 20
     root = run_mcts(

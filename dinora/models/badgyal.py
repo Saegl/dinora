@@ -5,9 +5,12 @@ from dinora.models import Priors, StateValue, BaseModel
 
 
 class BadgyalModel(BaseModel):
-    def __init__(self, softmax_temp: float) -> None:
+    def __init__(self, softmax_temp: float = 1.61) -> None:
         self.softmax_temp: float = softmax_temp
         self.badg = BGNet(False, False)
+
+    def raw_eval(self, board: chess.Board) -> tuple[Priors, StateValue]:
+        return self.badg.eval(board)
 
     def evaluate(self, board: chess.Board) -> tuple[Priors, StateValue]:
         result = board.result(claim_draw=True)
