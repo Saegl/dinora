@@ -3,7 +3,6 @@ from os.path import dirname, realpath, join
 from typing import Any
 
 import chess
-import pylru
 from tensorflow import keras
 import numpy as np
 
@@ -73,19 +72,3 @@ class DNNModel(BaseModel):
             priors = {}  # no moves after checkmate
             value_estimate = -1.0
         return priors, value_estimate
-
-
-class ChessModelWithCache:
-    def __init__(self, size: int = 200000, model_path: str = BEST_MODEL) -> None:
-        self.cache = pylru.lrucache(size)
-        self.net = DNNModel(model_path=model_path)
-
-    def evaluate(self, board: chess.Board) -> tuple[Priors, StateValue]:
-        epd = board.epd()
-        if epd in self.cache:
-            policy, value = self.cache[epd]
-            return policy, value
-        else:
-            policy, value = self.net.evaluate(board)
-            self.cache[epd] = [policy, value]
-            return policy, value

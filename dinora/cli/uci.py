@@ -50,10 +50,12 @@ class UciState:
             disable_tensorflow_log()
             send("info string loading nn, it make take a while")
             from dinora.models.dnn import DNNModel
+            from dinora.models.cached_model import CachedModel
 
             # from dinora.models.badgyal import BadgyalModel as DNNModel
 
-            self.model = DNNModel(softmax_temp=1.6)
+            # self.model = DNNModel(softmax_temp=1.6)
+            self.model = CachedModel(DNNModel(softmax_temp=2.0))
             send("info string nn is loaded")
 
     def dispatcher(self, line: str) -> None:
