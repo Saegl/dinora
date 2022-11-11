@@ -1,3 +1,4 @@
+from typing import Callable
 from dataclasses import dataclass, field
 from dinora.cli.uci_options import FloatString
 
@@ -23,3 +24,5 @@ class MCTSparams:
     noise_eps: float = field(
         default=0.0, metadata={"uci_option_type": FloatString()}
     )  # set to 0.0 to disable random
+
+    send_func: Callable[[str], None] = print
