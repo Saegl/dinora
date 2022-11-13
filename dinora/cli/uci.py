@@ -78,6 +78,7 @@ class UciState:
             send(f"info string command is not processed: {line}")
 
     def loop(self) -> None:
+        send("Dinora chess engine")
         while True:
             line = input()
             self.dispatcher(line)
