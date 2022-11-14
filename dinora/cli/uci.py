@@ -7,6 +7,7 @@ import chess
 
 from dinora.mcts import (
     run_mcts,
+    Node,
     MCTSparams,
     Constraint,
     InfiniteConstraint,
@@ -31,6 +32,7 @@ class UciState:
         self.board = chess.Board()
         self.mcts_params = MCTSparams()
         self.option_types: dict[str, UciOptions] = {}
+        self.tree: Node | None = None
 
     def get_options(
         self,
@@ -107,6 +109,11 @@ class UciState:
             for move_token in moves:
                 self.board.push_uci(move_token)
 
+                if self.tree:
+                    for node in self.tree.children.values():
+                        if node.board.epd() == self.board.epd():
+                            self.tree = node
+
     def go(self, tokens: list[str]) -> None:
         self.load_model()
         assert self.model  # Model loaded and it's not None
@@ -134,12 +141,19 @@ class UciState:
 
         send(f"info string chosen constraint {constraint}")
 
+        if self.tree and self.board.epd() == self.tree.board.epd():
+            tree = self.tree
+        else:
+            tree = None
+
         root_node = run_mcts(
             board=self.board,
+            tree=tree,
             constraint=constraint,
             evaluator=self.model,
             params=self.mcts_params,
         )
+        self.tree = root_node
         move = root_node.get_most_visited_node().move
         send(f"bestmove {move}")
 

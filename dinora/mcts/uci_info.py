@@ -73,3 +73,6 @@ class UciInfo:
         assert bestnode.move
         send_info(send_func, self.count, delta, score, root.get_pv_line())
         send_tree_info(send_func, root)
+
+    def reuse_stats(self, visits: int, send_func: Callable[[str], None]) -> None:
+        send_func(f"info string reuse {visits} nodes")

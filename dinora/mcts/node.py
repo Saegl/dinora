@@ -34,6 +34,14 @@ class Node:
     def is_root(self) -> bool:
         return self.parent is None
 
+    def to_root(self) -> None:
+        if not self.lazyboard:
+            self.lazyboard = self.parent.board.copy()
+            self.lazyboard.push(self.move)
+        self.parent = None
+        # Hope gc will collect parent and all his children
+        # (except this one)
+
     def get_pv_line(self) -> str:
         curr = self
         line = []
@@ -73,4 +81,4 @@ class Node:
         self.children[move] = Node(parent=self, move=move, prior=prior, total_value=fpu)
 
     def __str__(self) -> str:
-        return f"UCTNode <{self.board}, {self.children}>"
+        return f"<Node {self.move} {self.number_visits}>"
