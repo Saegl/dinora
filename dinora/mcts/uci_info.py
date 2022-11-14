@@ -16,15 +16,15 @@ def calc_score(node: Node) -> int:
 
 def send_info(
     send: Callable[[str], None],
-    bestmove: str,
     count: int,
     delta: float,
     score: int,
+    pv: str,
 ) -> None:
     if send != None:
         send(
-            "info depth 1 seldepth 1 score cp {} nodes {} nps {} pv {}".format(
-                score, count, int(round(count / delta, 0)), bestmove
+            "info score cp {} nodes {} nps {} pv {}".format(
+                score, count, int(round(count / delta, 0)), pv
             )
         )
 
@@ -57,14 +57,12 @@ class UciInfo:
             self.delta_last = delta
             bestnode = root.get_most_visited_node()
             score = calc_score(bestnode)
-
-            assert bestnode.move
             send_info(
                 send_func,
-                bestnode.move.uci(),
                 self.count,
                 delta,
                 score,
+                root.get_pv_line(),
             )
 
     def at_mcts_end(self, root: Node, send_func: Callable[[str], None]) -> None:
@@ -73,5 +71,5 @@ class UciInfo:
         score = calc_score(bestnode)
 
         assert bestnode.move
-        send_info(send_func, bestnode.move.uci(), self.count, delta, score)
+        send_info(send_func, self.count, delta, score, root.get_pv_line())
         send_tree_info(send_func, root)

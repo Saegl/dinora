@@ -34,6 +34,15 @@ class Node:
     def is_root(self) -> bool:
         return self.parent is None
 
+    def get_pv_line(self) -> str:
+        curr = self
+        line = []
+        while len(curr.children) > 0:
+            curr = curr.get_most_visited_node()
+            line.append(curr.move.uci())
+
+        return " ".join(line)
+
     def get_most_visited_node(self) -> "Node":
         _, node = max(
             self.children.items(),
