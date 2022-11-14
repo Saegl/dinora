@@ -5,24 +5,56 @@ from dinora.models.base import BaseModel, Priors, StateValue
 
 
 def evaluate_board(board: chess.Board) -> float:
-    mobility = board.legal_moves.count()
-    return mobility / 40
+    our_mobility = board.legal_moves.count()
+    board.push_uci("0000")
+    opponent_mobility = board.legal_moves.count()
+    board.pop()
+
+    mobility = our_mobility - opponent_mobility
+    our_material = material(board) if board.turn else -material(board)
+
+    # 15 legal moves = 1 extra pawn
+    pawns = our_material + mobility / 15.0
+
+    # Need to scale evaluation to (-1: 1)
+    # Let's say +5 extra pawns = win
+    # tanh(3) ~ 1.0 = win
+    return math.tanh(pawns * (3 / 5))
+
+
+def material(board: chess.Board) -> float:
+    white_material = 0.0
+    black_material = 0.0
+    for square in chess.SQUARES:
+        piece = board.piece_at(square)
+        if not piece:
+            continue  # Skip empty squares
+
+        if piece.color:
+            white_material += piece_value(piece)
+        else:
+            black_material += piece_value(piece)
+    return white_material - black_material
 
 
 def piece_value(piece: chess.Piece | None) -> float:
+    """
+    Values taken from here
+    https://lichess.org/@/ubdip/blog/finding-the-value-of-pieces/PByOBlNB
+    """
     if not piece:
         # Empty square
         return 0.0
     elif piece.piece_type == chess.PAWN:
         return 1.0
     elif piece.piece_type == chess.KNIGHT:
-        return 3.0
+        return 3.16
     elif piece.piece_type == chess.BISHOP:
-        return 3.2
+        return 3.28
     elif piece.piece_type == chess.ROOK:
-        return 5.0
+        return 4.93
     elif piece.piece_type == chess.QUEEN:
-        return 9.0
+        return 9.82
     elif piece.piece_type == chess.KING:
         return 90.0
     else:
