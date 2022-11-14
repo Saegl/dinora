@@ -25,7 +25,8 @@ def send(s: str) -> None:
 
 
 class UciState:
-    def __init__(self) -> None:
+    def __init__(self, model_name: str) -> None:
+        self.model_name = model_name
         self.model: BaseModel | None = None  # model initialized after first `go` call
         self.board = chess.Board()
         self.mcts_params = MCTSparams()
@@ -43,19 +44,10 @@ class UciState:
                 self.option_types[option_name] = option_type
                 yield option_name, option_type_name, option_default
 
-    def load_neural_network(self) -> None:
+    def load_model(self) -> None:
         if self.model is None:
-            from dinora.utils import disable_tensorflow_log
-
-            disable_tensorflow_log()
             send("info string loading nn, it make take a while")
-            from dinora.models.dnn import DNNModel
-            from dinora.models.cached_model import CachedModel
-
-            # from dinora.models.badgyal import BadgyalModel as DNNModel
-
-            # self.model = DNNModel(softmax_temp=1.6)
-            self.model = CachedModel(DNNModel(softmax_temp=2.0))
+            self.model = model_selector(self.model_name)
             send("info string nn is loaded")
 
     def dispatcher(self, line: str) -> None:
@@ -116,7 +108,7 @@ class UciState:
                 self.board.push_uci(move_token)
 
     def go(self, tokens: list[str]) -> None:
-        self.load_neural_network()
+        self.load_model()
         assert self.model  # Model loaded and it's not None
 
         go_params = parse_go_params(tokens)
@@ -152,9 +144,40 @@ class UciState:
         send(f"bestmove {move}")
 
 
-def start_uci(printlogs: bool = True) -> None:
+def model_selector(model: str) -> BaseModel:
+    if model.startswith("cached_"):
+        model = model.removeprefix("cached_")
+        cached = True
+    else:
+        cached = False
+
+    instance: BaseModel
+    if model == "dnn":
+        from dinora.models.dnn import DNNModel
+
+        instance = DNNModel()
+    elif model == "handcrafted":
+        from dinora.models.handcrafted import DummyModel
+
+        instance = DummyModel()
+    elif model == "badgyal":
+        from dinora.models.badgyal import BadgyalModel
+
+        instance = BadgyalModel()
+    else:
+        raise ValueError("Unknown model name")
+
+    if cached:
+        from dinora.models.cached_model import CachedModel
+
+        return CachedModel(instance)
+    else:
+        return instance
+
+
+def start_uci(model_name: str, printlogs: bool = True) -> None:
     try:
-        uci_state = UciState()
+        uci_state = UciState(model_name)
         uci_state.loop()
     except SystemExit:
         pass

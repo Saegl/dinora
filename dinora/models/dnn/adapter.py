@@ -3,6 +3,11 @@ from os.path import dirname, realpath, join
 from typing import Any
 
 import chess
+
+from dinora.utils import disable_tensorflow_log
+
+disable_tensorflow_log()
+
 from tensorflow import keras
 import numpy as np
 

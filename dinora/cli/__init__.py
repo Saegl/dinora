@@ -11,11 +11,20 @@ def cli() -> None:
 
 
 @cli.command()
-def uci() -> None:
+@click.option(
+    "--model",
+    default="cached_dnn",
+    help=(
+        "Model used to evaluate position, predict future moves."
+        "Available options: 'dnn', 'badgyal', 'handcrafted' "
+        "and same models but cached (use 'cached_' prefix)"
+    ),
+)
+def uci(model: str) -> None:
     """Start UCI"""
     from dinora.cli.uci import start_uci
 
-    start_uci()
+    start_uci(model)
 
 
 @cli.command()
