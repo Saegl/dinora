@@ -20,11 +20,12 @@ def cli() -> None:
         "and same models but cached (use 'cached_' prefix)"
     ),
 )
-def uci(model: str) -> None:
+@click.option("--override-go", default="", help="Override uci go command")
+def uci(model: str, override_go: str) -> None:
     """Start UCI"""
     from dinora.cli.uci import start_uci
 
-    start_uci(model)
+    start_uci(model, override_go)
 
 
 @cli.command()

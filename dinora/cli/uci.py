@@ -27,8 +27,9 @@ def send(s: str) -> None:
 
 
 class UciState:
-    def __init__(self, model_name: str) -> None:
-        self.model_name = model_name
+    def __init__(self, model_name: str, override_go: str) -> None:
+        self.model_name: str = model_name
+        self.override_go: str = override_go
         self.model: BaseModel | None = None  # model initialized after first `go` call
         self.board = chess.Board()
         self.mcts_params = MCTSparams()
@@ -119,6 +120,9 @@ class UciState:
         self.load_model()
         assert self.model  # Model loaded and it's not None
 
+        if self.override_go:
+            tokens = self.override_go.strip().split()
+
         go_params = parse_go_params(tokens)
         send(f"info string parsed params {go_params}")
 
@@ -193,9 +197,9 @@ def model_selector(model: str) -> BaseModel:
         return instance
 
 
-def start_uci(model_name: str) -> None:
+def start_uci(model_name: str, override_go: str) -> None:
     try:
-        uci_state = UciState(model_name)
+        uci_state = UciState(model_name, override_go)
         uci_state.loop()
     except SystemExit:
         pass
