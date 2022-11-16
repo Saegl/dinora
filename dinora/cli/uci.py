@@ -58,12 +58,12 @@ class UciState:
         tokens = line.strip().split()
         if tokens[0] == "uci":
             self.uci()
+        elif tokens[0] == "ucinewgame":
+            self.ucinewgame()
         elif tokens[0] == "setoption":
             self.setoption(tokens)
         elif tokens[0] == "isready":
             self.isready()
-        elif tokens[0] == "ucinewgame":
-            pass
         elif tokens[0] == "position":
             self.position(tokens)
         elif tokens[0] == "go":
@@ -86,6 +86,11 @@ class UciState:
         for name, type_name, default in self.get_options():
             send(f"option name {name} type {type_name} default {default}")
         send("uciok")
+
+    def ucinewgame(self) -> None:
+        self.tree = None
+        self.load_model()
+        self.board = chess.Board()
 
     def setoption(self, tokens: list[str]) -> None:
         i = tokens.index("value")
