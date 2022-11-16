@@ -8,9 +8,14 @@ class UciGoParams:
     winc: int | None = None
     binc: int | None = None
     nodes: int | None = None
+    movetime: int | None = None
     infinite: bool = False
 
     def is_time(self, turn: bool) -> tuple[int, int] | None:
+        """
+        Time for whole game or whole game with increment
+        from parsed wtime, btime, winc, binc
+        """
         # Can return time only if both wtime and btime specified
         if not (self.wtime and self.btime):
             return None
@@ -41,7 +46,14 @@ def parse_go_params(tokens: list[str]) -> UciGoParams:
         currtok = consume_tok()
 
         # tokens with integer value
-        if currtok in ["wtime", "btime", "winc", "binc", "nodes"]:
+        if currtok in [
+            "wtime",
+            "btime",
+            "winc",
+            "binc",
+            "nodes",
+            "movetime",
+        ]:
             val = consume_tok()
             setattr(params, currtok, int(val))  # type: ignore
 

@@ -2,6 +2,7 @@ from dinora.mcts.constraints import (
     Constraint,
     NodesCountConstraint,
     TimeConstraint,
+    MoveTimeConstraint,
     InfiniteConstraint,
 )
 from dinora.mcts.node import Node
@@ -13,6 +14,7 @@ __all__ = [
     "Constraint",
     "NodesCountConstraint",
     "TimeConstraint",
+    "MoveTimeConstraint",
     "InfiniteConstraint",
     "Node",
     "run_mcts",

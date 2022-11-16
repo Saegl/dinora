@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 from time import time
 from math import cos
@@ -41,6 +42,19 @@ class TimeConstraint(Constraint):
 
     def __str__(self) -> str:
         return f"<TimeConstraint: {self.move_time=} {self.starttime=}>"
+
+
+@dataclass
+class MoveTimeConstraint(Constraint):
+    movetime: int
+    starttime: float = field(default_factory=time)
+    movetime_seconds: float = field(init=False)
+
+    def __post_init__(self):
+        self.movetime_seconds = self.movetime / 1000
+
+    def meet(self) -> bool:
+        return time() - self.starttime < (self.movetime / 1000)
 
 
 class NodesCountConstraint(Constraint):

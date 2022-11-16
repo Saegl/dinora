@@ -12,6 +12,7 @@ from dinora.mcts import (
     Constraint,
     InfiniteConstraint,
     TimeConstraint,
+    MoveTimeConstraint,
     NodesCountConstraint,
 )
 from dinora.models.base import BaseModel
@@ -124,6 +125,9 @@ class UciState:
         constraint: Constraint
         if go_params.infinite:
             constraint = InfiniteConstraint()
+
+        elif time := go_params.movetime:
+            constraint = MoveTimeConstraint(go_params.movetime)
 
         elif time := go_params.is_time(self.board.turn):
             engine_time, engine_inc = time
