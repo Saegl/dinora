@@ -193,7 +193,7 @@ def model_selector(model: str) -> BaseModel:
         return instance
 
 
-def start_uci(model_name: str, printlogs: bool = True) -> None:
+def start_uci(model_name: str) -> None:
     try:
         uci_state = UciState(model_name)
         uci_state.loop()
@@ -207,6 +207,5 @@ def start_uci(model_name: str, printlogs: bool = True) -> None:
             )
             logfile.write("\n")
 
-        if printlogs:
-            with open("dinora.log", "rt", encoding="utf8") as f:
-                print(f.read())
+        with open("dinora.log", "rt", encoding="utf8") as f:
+            print(f.read())
