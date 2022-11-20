@@ -37,8 +37,7 @@ def backpropagation(node: Node, value_estimate: float) -> None:
 
 
 def run_mcts(
-    board: chess.Board,
-    tree: Node | None,
+    state: chess.Board | Node,
     constraint: Constraint,
     evaluator: BaseModel,
     params: MCTSparams,
@@ -46,12 +45,12 @@ def run_mcts(
     uci_info = UciInfo()
 
     # Can reuse tree
-    if tree:
-        root = tree
+    if isinstance(state, Node):
+        root = state
         uci_info.reuse_stats(root.number_visits, params.send_func)
         print(root)
     else:
-        root = Node(params.fpu_at_root, lazyboard=board)
+        root = Node(params.fpu_at_root, lazyboard=state)
         child_priors, value_estimate = evaluator.evaluate(root.board)
         root.board_value_estimate_info = value_estimate
         child_priors = apply_noise(

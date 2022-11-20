@@ -160,14 +160,13 @@ class UciState:
             tree = None
 
         root_node = run_mcts(
-            board=self.board,
-            tree=tree,
+            state=tree if tree else self.board,
             constraint=constraint,
             evaluator=self.model,
             params=self.mcts_params,
         )
         self.tree = root_node
-        move = root_node.get_most_visited_node().move
+        move = root_node.get_most_visited_node().move  # Robust and non robust move?
         send(f"bestmove {move}")
 
 
