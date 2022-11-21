@@ -18,21 +18,31 @@ def create_flipped_uci_labels() -> list[str]:
 
 def create_uci_labels() -> list[str]:
     """
-    Creates the labels for the universal chess interface into an array and returns them
-    :return:
+    Creates the labels for the UCI into an array and returns them
     """
     labels_array = []
-    letters = ["a", "b", "c", "d", "e", "f", "g", "h"]
-    numbers = ["1", "2", "3", "4", "5", "6", "7", "8"]
+    letters = ["a", "b", "c", "d", "e", "f", "g", "h"]  # horizontal
+    numbers = ["1", "2", "3", "4", "5", "6", "7", "8"]  # vertical
     promoted_to = ["q", "r", "b", "n"]
 
+    # UCI move is like e2e4 = for pawns
+    #
+    # l1 = letter1 index
+    # n1 = number1 index
+    # l2 = letter2 index
+    # n2 = number2 index
+    #
     for l1 in range(8):
         for n1 in range(8):
             destinations = (
+                # horizontal straight moves (for rook and queen)
                 [(t, n1) for t in range(8)]
+                # vertical straight moves (for rook and queen)
                 + [(l1, t) for t in range(8)]
+                # Diagonal moves (for bishop and queen)
                 + [(l1 + t, n1 + t) for t in range(-7, 8)]
                 + [(l1 + t, n1 - t) for t in range(-7, 8)]
+                # Knight moves
                 + [
                     (l1 + a, n1 + b)
                     for (a, b) in [
