@@ -15,7 +15,7 @@ class MCTSparams:
     fpu_at_root: float = field(default=0.0, metadata={"uci_option_type": FloatString()})
 
     # exploration parameter
-    c: float = field(default=2.0, metadata={"uci_option_type": FloatString()})
+    cpuct: float = field(default=3.0, metadata={"uci_option_type": FloatString()})
 
     # random
     dirichlet_alpha: float = field(

@@ -62,7 +62,7 @@ def run_mcts(
         backpropagation(root, value_estimate)
 
     while constraint.meet():
-        leaf = selection(root, params.c)
+        leaf = selection(root, params.cpuct)
         child_priors, value_estimate = evaluator.evaluate(leaf.board)
         leaf.board_value_estimate_info = value_estimate
         expansion(leaf, child_priors, params.fpu)
