@@ -68,7 +68,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-norecursedirs = 'tests/bench'
+norecursedirs = 'bench'  # Run benchmarks only by specifying `bench` directory
 
 [tool.mypy]
 ignore_missing_imports = true
