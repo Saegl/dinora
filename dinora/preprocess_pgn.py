@@ -2,9 +2,10 @@ import logging
 
 import chess
 import chess.pgn
+import numpy as np
 
-from .policy import policy_from_move, flip_policy
-from .board_representation import canon_input_planes
+from dinora.board_representation2 import board_to_tensor
+from dinora.policy2 import policy_tensor
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -22,25 +23,12 @@ def num_result(game):
     return result
 
 
-def planes_input(fen: str, flip: bool):
-    plane = canon_input_planes(fen, flip)
-    return plane
-
-
 def result_output(result: float, flip: bool):
     return -result if flip else result
 
 
-def policy_output(move: chess.Move, flip: bool):
-    policy = policy_from_move(move)
-    if flip:
-        policy = flip_policy(policy)
-    return policy
-
-
-def load_chess_games(filename_pgn: str, max_games: int):
+def load_chess_games(filename_pgn: str):
     pgn = open(filename_pgn, "r", encoding="utf8", errors="ignore")
-    i = 0
     while True:
         game = chess.pgn.read_game(pgn)
         if game is None:
@@ -48,11 +36,7 @@ def load_chess_games(filename_pgn: str, max_games: int):
         if not game or game.headers.get("Variant", "Standard") != "Standard":
             game = chess.pgn.read_game(pgn)
             continue
-        i += 1
-        if i > max_games:
-            break
-        if i % 1000 == 0:
-            print(i)
+
         yield game
 
 
@@ -65,11 +49,14 @@ def chess_positions(games):
         board = game.board()
 
         for move in game.mainline_moves():
-            fen = board.fen()
             flip = not board.turn
+
             yield (
-                planes_input(fen, flip),
-                (policy_output(move, flip), result_output(result, flip)),
+                board_to_tensor(board),
+                (
+                    policy_tensor(move, flip),
+                    np.array([result_output(result, flip)], dtype=np.float32),
+                ),
             )
 
             try:

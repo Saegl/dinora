@@ -91,7 +91,7 @@ flipped_move_lookup = {
 
 
 def policy_from_move(move: chess.Move) -> Any:
-    policy = np.zeros(len(uci_labels))
+    policy = np.zeros(len(uci_labels), dtype=np.float32)
 
     i = move_lookup[move]
     policy[i] = 1.0

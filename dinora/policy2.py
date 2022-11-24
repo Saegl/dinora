@@ -195,6 +195,10 @@ def move_to_flipped_policy(move: chess.Move) -> npt.NDArray[np.float32]:
     return ONE_HOT_ENCODING_EYE[index]
 
 
+def policy_tensor(move: chess.Move, flip: bool):
+    return move_to_flipped_policy(move) if flip else move_to_policy(move)
+
+
 def move_prior_from_policy(
     policy: npt.NDArray[np.float32],
     move: chess.Move,
