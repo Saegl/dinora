@@ -15,7 +15,7 @@ from dinora.mcts import (
     MoveTimeConstraint,
     NodesCountConstraint,
 )
-from dinora.models.base import BaseModel
+from dinora.models import BaseModel, model_selector
 from dinora.cli.uci_parser import parse_go_params
 from dinora.cli.uci_options import UciOptions
 
@@ -168,37 +168,6 @@ class UciState:
         self.tree = root_node
         move = root_node.get_most_visited_node().move  # Robust and non robust move?
         send(f"bestmove {move}")
-
-
-def model_selector(model: str) -> BaseModel:
-    if model.startswith("cached_"):
-        model = model.removeprefix("cached_")
-        cached = True
-    else:
-        cached = False
-
-    instance: BaseModel
-    if model == "dnn":
-        from dinora.models.dnn import DNNModel
-
-        instance = DNNModel()
-    elif model == "handcrafted":
-        from dinora.models.handcrafted import DummyModel
-
-        instance = DummyModel()
-    elif model == "badgyal":
-        from dinora.models.badgyal import BadgyalModel
-
-        instance = BadgyalModel()
-    else:
-        raise ValueError("Unknown model name")
-
-    if cached:
-        from dinora.models.cached_model import CachedModel
-
-        return CachedModel(instance)
-    else:
-        return instance
 
 
 def start_uci(model_name: str, override_go: str) -> None:
