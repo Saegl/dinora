@@ -1,1 +1,1 @@
-docker-compose exec app uci
+poetry run dinora uci
