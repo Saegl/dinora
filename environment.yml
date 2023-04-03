@@ -1,0 +1,35 @@
+name: dinora
+channels:
+  - pytorch
+  - nvidia
+  - defaults
+dependencies:
+  - python=3.10
+  - conda-forge:numpy
+  - pytorch=2.0.0=py3.10_cuda11.8_cudnn8_0
+  - matplotlib
+  - notebook
+  - pip
+  - pip:
+      - -e .
+      # TODO migrate fully to torch and remove tf
+      - tensorflow<2.11
+      - tensor-annotations
+      - tensor-annotations-tensorflow-stubs
+      - chess
+      - pylru
+      - click
+      # MCTS graph viz
+      - graphviz
+      - CairoSVG # TODO find more ligthweight alt to svg->png
+      # documentation
+      - Sphinx
+      - furo
+      # tests
+      - pytest
+      - pytest-cov
+      - pytest-benchmark
+      # devtools
+      - pre-commit
+      - black
+      - mypy
