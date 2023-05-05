@@ -2,7 +2,7 @@ import math
 import chess
 import torch
 
-from dinora.models.torchnet.network import NeuralNetwork
+from dinora.models.torchnet.linear_net import LinearNN
 from dinora.board_representation2 import board_to_tensor
 from dinora.policy2 import move_prior_from_policy, move_prior_from_flipped_policy
 from dinora.models import BaseModel, Priors, StateValue
@@ -10,7 +10,7 @@ from dinora.models import BaseModel, Priors, StateValue
 
 class Torchnet(BaseModel):
     def __init__(self) -> None:
-        self.model = NeuralNetwork().to("cuda")
+        self.model = LinearNN().to("cuda")
         self.model.load_state_dict(torch.load("model.pth"))
         self.model.eval()
         self.softmax_temp = 1.6

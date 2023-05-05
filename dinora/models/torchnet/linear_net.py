@@ -1,7 +1,7 @@
 from torch import nn
 
 
-class NeuralNetwork(nn.Module):
+class LinearNN(nn.Module):
     def __init__(self) -> None:
         super().__init__()
         self.flatten = nn.Flatten()
@@ -19,7 +19,7 @@ class NeuralNetwork(nn.Module):
         )
         self.value_output = nn.Sequential(
             nn.Linear(2048, 1),
-            nn.Tanh(),
+            nn.Sigmoid(),
         )
 
     def forward(self, x):
