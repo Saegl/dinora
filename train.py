@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 from dinora.dataset2 import download_ccrl_dataset, random_dataset
 from dinora.models.torchnet.linear_net import LinearNN
+from dinora.models.torchnet.resnet import ResNet
 
 
 if not torch.cuda.is_available():
@@ -15,10 +16,10 @@ if not torch.cuda.is_available():
 device = "cuda"
 batch_size = 128
 learning_rate = 1e-3
-epochs = 5
+epochs = 2
 log_freq = 1_000  # batches
-checkpoint_freq = 1  # chunks
-chunks_count = 1  # 250 max
+checkpoint_freq = 4  # chunks
+chunks_count = 250  # 250 max
 
 # train_chunks, test_chunks = random_dataset()
 # dataset_name = 'Random'
@@ -31,7 +32,19 @@ dataset_name = f"CCRL-{chunks_count}chunks"
 
 # in one chunk there is 10k * 80 positions = 800k positions
 
-model = LinearNN().to(device)
+res_channels = 64
+res_blocks = 8
+policy_channels = 64
+value_channels = 16
+value_lin_channels = 64
+model = ResNet(
+    res_channels,
+    res_blocks,
+    policy_channels,
+    value_channels,
+    value_lin_channels,
+).to(device)
+# model = LinearNN().to(device)
 
 policy_loss_fn = nn.CrossEntropyLoss()
 value_loss_fn = nn.BCELoss()
@@ -48,8 +61,13 @@ run = wandb.init(
         "logging_freq": log_freq,
         "checkpoint_freq": checkpoint_freq,
         "optimizer": optimizer.__class__.__name__,
-        "model_class": model.__class__.__name__,
         "dataset": dataset_name,
+        "model_class": model.__class__.__name__,
+        "res_channels": res_channels,
+        "res_blocks": res_blocks,
+        "policy_channels": policy_channels,
+        "value_channels": value_channels,
+        "value_lin_channels": value_lin_channels,
     },
 )
 
