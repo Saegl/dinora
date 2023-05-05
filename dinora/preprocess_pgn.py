@@ -13,18 +13,18 @@ logging.basicConfig(level=logging.DEBUG)
 def num_result(game):
     result = game.headers["Result"]
     if result == "0-1":
-        result = -1.0
+        result = 0.0
     elif result == "1-0":
         result = 1.0
     elif result == "1/2-1/2":
-        result = 0.0
+        result = 0.5
     else:
         raise ValueError(f"Illegal game result: {result}")
     return result
 
 
 def result_output(result: float, flip: bool):
-    return -result if flip else result
+    return 1.0 - result if flip else result
 
 
 def load_chess_games(filename_pgn: str):
