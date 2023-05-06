@@ -14,10 +14,10 @@ if not torch.cuda.is_available():
     raise Exception("Cuda is not available!")
 
 device = "cuda"
-batch_size = 128
+batch_size = 2048
 learning_rate = 1e-3
-epochs = 2
-log_freq = 1_000  # batches
+epochs = 10
+log_freq = 50  # batches
 checkpoint_freq = 4  # chunks
 chunks_count = 250  # 250 max
 

@@ -3,6 +3,7 @@ import chess
 import torch
 
 from dinora.models.torchnet.linear_net import LinearNN
+from dinora.models.torchnet.resnet import ResNet
 from dinora.board_representation2 import board_to_tensor
 from dinora.policy2 import move_prior_from_policy, move_prior_from_flipped_policy
 from dinora.models import BaseModel, Priors, StateValue
@@ -10,8 +11,14 @@ from dinora.models import BaseModel, Priors, StateValue
 
 class Torchnet(BaseModel):
     def __init__(self) -> None:
-        self.model = LinearNN().to("cuda")
-        self.model.load_state_dict(torch.load("model.pth"))
+        self.model = ResNet(
+            res_channels = 64,
+            res_blocks = 8,
+            policy_channels = 64,
+            value_channels = 16,
+            value_lin_channels = 64,
+        ).to("cuda")
+        self.model.load_state_dict(torch.load("models/model-1epoch-75chunk.pth"))
         self.model.eval()
         self.softmax_temp = 1.6
 
@@ -29,7 +36,7 @@ class Torchnet(BaseModel):
         policy, value = self.model_out(board)
         # unwrap tensor
         policy = policy[0]
-        value = float(value[0])
+        value = float(value[0]) * 2.0 - 1.0
 
         # take only legal moves from policy
         t = self.softmax_temp
