@@ -1,30 +1,93 @@
-import tensorflow as tf
+import tarfile
+import pathlib
+from itertools import chain
 
-from .preprocess_pgn import load_chess_games, chess_positions
-from .selfplay import gen_game
+import requests
 
-default_dinora_signature = (
-    tf.TensorSpec(shape=(18, 8, 8), dtype=tf.float32, name=None),  # Board
-    (
-        tf.TensorSpec(shape=(1968,), dtype=tf.float32, name=None),  # Policy
-        tf.TensorSpec(shape=(), dtype=tf.float32, name=None),  # Game result
-    ),
-)
+from tqdm import tqdm
+from torch.utils.data import IterableDataset
 
-
-def create_dataset_from_pgn(pgn_path: str, max_games: int) -> tf.data.Dataset:
-    games = load_chess_games(pgn_path, max_games)
-    return create_dataset_from_games(games)
+from dinora.preprocess_pgn import load_chess_games, load_state_tensors
+from dinora.policy2 import ONE_HOT_ENCODING_EYE
 
 
-# TODO: create dataset from selfplay
-# def create_dataset_from_selfplay(nodes, net, c) -> tf.data.Dataset:
-#     games = [gen_game(nodes, net, c)]
-#     return create_dataset_from_games(games)
+class PGNDataset(IterableDataset):
+    """
+    Construct pytorch iterable dataset
+    from given path strings to chess PGNs
+
+    Example:
+    >>> train_data = PGNDataset("path/to/my/train.pgn")
+    >>> test_data = PGNDatset("path/to/my/test.pgn")
+    """
+
+    def __init__(self, *paths) -> None:
+        self.pgn_paths = paths
+
+    def __iter__(self):
+        games = chain(*(load_chess_games(path) for path in self.pgn_paths))
+        return load_state_tensors(games)
 
 
-def create_dataset_from_games(games) -> tf.data.Dataset:
-    tfdataset = tf.data.Dataset.from_generator(
-        lambda: chess_positions(games), output_signature=default_dinora_signature
+def download_ccrl_dataset(
+    download_folder: pathlib.Path = pathlib.Path("data"),
+    chunks_count: int = 250,
+) -> tuple[list[pathlib.Path], list[pathlib.Path]]:
+    """
+    Download CCRL games (2.5M games) and build PGNDataset from them
+    More about dataset in leela blog:
+    https://lczero.org/blog/2018/09/a-standard-dataset/
+
+    :param path: the path to save the CCRL dataset
+    :param count: 1-250 number of chunks, each chunk = 10k games
+    """
+
+    ccrl_achieve_path = download_folder / "ccrl.tar.bz2"
+    if ccrl_achieve_path.exists():
+        print("CCRL already downloaded")
+    else:
+        print("CCRL is not downloaded, downloading archieve...")
+        ccrl_achieve_path.parent.mkdir()
+        url = "http://storage.lczero.org/files/ccrl-pgn.tar.bz2"
+        response = requests.get(url, stream=True)
+        with open(ccrl_achieve_path, "wb") as handle:
+            for data in tqdm(response.iter_content(chunk_size=4096)):
+                handle.write(data)
+
+    extracted_path = download_folder / "ccrl_pgns"
+
+    if extracted_path.exists():
+        print("Extracted games found")
+    else:
+        print("Extracted games not found, extracting...")
+        with tarfile.open(ccrl_achieve_path, "r:bz2") as tar:
+            tar.extractall(extracted_path)
+
+    train_paths = list(
+        extracted_path / f"cclr/train/{i}.pgn" for i in range(1, chunks_count + 1)
     )
-    return tfdataset
+    test_paths = list(
+        extracted_path / f"cclr/test/{i}.pgn" for i in range(1, chunks_count + 1)
+    )
+
+    return train_paths, test_paths
+
+
+def random_dataset():
+    """
+    Dataset with random outputs,
+    just to compare difference in speed with other datasets
+    """
+    import numpy as np
+    from random import choice
+
+    class RandomDataset(IterableDataset):
+        def __iter__(self):
+            board = np.random.random((18, 8, 8)).astype(np.float32)
+            policy_tensor = choice(ONE_HOT_ENCODING_EYE)
+
+            result = np.random.random(1).astype(np.float32)
+            while True:
+                yield board, (policy_tensor, result)
+
+    return ([RandomDataset()], [RandomDataset()])
