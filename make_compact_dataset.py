@@ -6,7 +6,7 @@ import numpy as np
 
 from dinora.board_representation2 import board_to_compact_state
 from dinora.preprocess_pgn import load_game_states, outcome_tensor
-from dinora.dataset import download_ccrl_dataset
+from dinora.ccrl import download_ccrl_dataset
 from dinora.policy2 import policy_index_tensor
 
 
