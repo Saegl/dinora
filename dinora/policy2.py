@@ -199,6 +199,10 @@ def policy_tensor(move: chess.Move, flip: bool):
     return move_to_flipped_policy(move) if flip else move_to_policy(move)
 
 
+def policy_index_tensor(move: chess.Move, flip: bool) -> int:
+    return FLIPPED_MOVE_LOOKUP[move] if flip else MOVE_LOOKUP[move]
+
+
 def move_prior_from_policy(
     policy: npt.NDArray[np.float32],
     move: chess.Move,
