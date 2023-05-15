@@ -15,9 +15,12 @@ def model_selector(model: str) -> BaseModel:
         instance = DNNModel()
 
     elif model == "torchnet":
-        from dinora.models.torchnet.adapter import Torchnet
+        # from dinora.models.torchnet.adapter import Torchnet
+        from dinora.models.torchnet.resnet import ResNetLight
 
-        instance = Torchnet()
+        instance = ResNetLight.load_from_checkpoint("checkpoints\models\epoch=0epoch-step=8101step.ckpt")
+        
+        # instance = Torchnet()
 
     elif model == "handcrafted":
         from dinora.models.handcrafted import DummyModel

@@ -1,0 +1,24 @@
+{
+    "matmul_precision": "medium",
+
+    "tune_batch": false,
+    "batch_size": 4096,
+
+    "tune_learning_rate": false,
+    "learning_rate": 0.6918309709189363,
+
+    "enable_checkpointing": false,
+    "checkpoint_train_time_interval": {"seconds": 30},
+
+    "enable_sample_game_generator": true,
+    "enable_boards_evaluator": true,
+
+    "log_every_n_steps": 50,
+    "wandb_watch_every_n_steps": 15,
+
+    "limit_train_batches": 50,
+    "limit_val_batches": 10,
+
+    "val_check_type": "steps",
+    "val_check_steps": 25
+}
