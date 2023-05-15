@@ -2,14 +2,23 @@ name: dinora
 channels:
   - pytorch
   - nvidia
+  - conda-forge
   - defaults
 dependencies:
   - python=3.10
-  - conda-forge:numpy
+  - numpy
+  - lightning
+  - wandb
   - tqdm
   - pytorch=2.0.0=py3.10_cuda11.8_cudnn8_0
   - matplotlib
   - notebook
+  
+  # Visualizations
+  - pillow
+  - cairosvg
+  - python-graphviz
+
   - pip
   - pip:
       - -e .
@@ -20,10 +29,6 @@ dependencies:
       - chess
       - pylru
       - click
-      - wandb
-      # MCTS graph viz
-      - graphviz
-      - CairoSVG # TODO find more ligthweight alt to svg->png
       # documentation
       - Sphinx
       - furo
