@@ -112,9 +112,18 @@ def fit(config: Config):
     )
     wandb_logger.watch(model, log="all", log_freq=config.wandb_watch_every_n_steps)
 
-    ccrl = CCRLDataModule(
-        batch_size=config.batch_size,
+    from dinora.datamodules import CompactDataModule
+    from pathlib import Path
+
+    ccrl = CompactDataModule(
+        train_path=Path('data/converted_dataset/1.pgntrain.npz'),
+        val_path=Path('data/converted_dataset/1.pgntest.npz'),
+        batch_size=config.batch_size
     )
+
+    # ccrl = CCRLDataModule(
+    #     batch_size=config.batch_size,
+    # )
 
     trainer = pl.Trainer(
         max_epochs=-1,
