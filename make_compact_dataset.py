@@ -1,3 +1,8 @@
+"""
+To run this, you need this deps
+pip install -e . chess numpy wandb requests tqdm
+"""
+import json
 import concurrent.futures
 from pathlib import Path
 
@@ -40,11 +45,21 @@ def convert_ccrl_to_bin_dataset(
     tasks += [(path, save_dir / (path.name + "train.npz")) for path in train_paths]
     tasks += [(path, save_dir / (path.name + "test.npz")) for path in test_paths]
 
+    report = {
+        'train': {},
+        'test': {},
+    }
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        future_to_save_path = {executor.submit(convert, p[0], p[1]): p[1] for p in tasks}
-        for future in concurrent.futures.as_completed(future_to_save_path):
-            save_path = future_to_save_path[future]
-            print("File is converted: ", str(save_path))
+        futures = [executor.submit(convert, pgn, save) for pgn, save in tasks]
+        for future in concurrent.futures.as_completed(futures):
+            save_path, states_count = future.result()
+            print(f"File is converted: {save_path}, states {states_count}")
+
+            rel_path = save_path.relative_to(save_dir)
+            rel_path_str = str(rel_path)
+
+            label = 'train' if 'train' in rel_path_str else 'test'
+            report[label][rel_path_str] = states_count
 
             if artifact:
                 print(str(save_path))
@@ -52,6 +67,9 @@ def convert_ccrl_to_bin_dataset(
 
             if delete_after_upload:
                 save_path.unlink()
+    
+    with open(save_dir / 'report.json', 'w') as f:
+        json.dump(report, f)
 
     if artifact:
         run.log_artifact(artifact)
@@ -75,11 +93,36 @@ def convert(pgn_path: Path, save_path: Path):
     np.savez_compressed(
         save_path, boards=boards_np, policies=policies_np, outcomes=outcomes_np
     )
+    return save_path, len(boards_np)
 
 
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Tool to convert ccrl pgns to compact dataset"
+    )
+    parser.add_argument(
+        "--chunks_count",
+        help="Number of chunks (max 250)",
+        type=int,
+        default=250,
+    )
+    parser.add_argument(
+        "--no-upload",
+        help="Upload resulting dataset to wandb",
+        action='store_true'
+    )
+    parser.add_argument(
+        "--delete_after_upload",
+        help="Delete converted files after uploading to wandb",
+        action='store_true'
+    )
+
+    args = parser.parse_args()
+
     convert_ccrl_to_bin_dataset(
-        chunks_count=250,
-        upload=True,
-        delete_after_upload=True,
+        chunks_count=args.chunks_count,
+        upload=not args.no_upload,
+        delete_after_upload=args.delete_after_upload,
     )
