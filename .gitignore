@@ -5,6 +5,7 @@ models/*
 /jupyter/data/
 data/*
 wandb/*
+lightning_logs/*
 checkpoints/*
 !checkpoints/.gitkeep
 
