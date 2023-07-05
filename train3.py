@@ -9,12 +9,14 @@ from typing import Literal
 
 import torch
 
+
 import lightning.pytorch as pl
 from lightning.pytorch.loggers import WandbLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.tuner import Tuner
 
-from dinora.datamodules import CCRLDataModule
+# from dinora.datamodules import CCRLDataModule
+from dinora.datamodules import CompactDataModule
 from dinora.models.torchnet.resnet import *
 from dinora.train_callbacks import SampleGameGenerator, BoardsEvaluator
 
@@ -112,12 +114,8 @@ def fit(config: Config):
     )
     wandb_logger.watch(model, log="all", log_freq=config.wandb_watch_every_n_steps)
 
-    from dinora.datamodules import CompactDataModule
-    from pathlib import Path
-
     ccrl = CompactDataModule(
-        train_path=Path('data/converted_dataset/1.pgntrain.npz'),
-        val_path=Path('data/converted_dataset/1.pgntest.npz'),
+        dataset_folder=PROJECT_DIR / 'data' / 'converted_dataset',
         batch_size=config.batch_size
     )
 
