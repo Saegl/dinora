@@ -7,15 +7,14 @@ from datetime import timedelta
 from dataclasses import dataclass, asdict
 from typing import Literal
 
+import wandb
 import torch
-
 
 import lightning.pytorch as pl
 from lightning.pytorch.loggers import WandbLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.tuner import Tuner
 
-# from dinora.datamodules import CCRLDataModule
 from dinora.datamodules import CompactDataModule
 from dinora.models.torchnet.resnet import *
 from dinora.train_callbacks import SampleGameGenerator, BoardsEvaluator
@@ -51,7 +50,7 @@ class Config:
     wandb_watch_every_n_steps: int
 
     limit_train_batches: int | None
-    limit_val_batches: int | None
+    limit_val_batches: int | None  # FIXME: we use only first batches for validation
 
     val_check_type: Literal['chunk', 'steps']
     val_check_steps: int  # ignored when type = chunk
@@ -107,6 +106,14 @@ def fit(config: Config):
         learning_rate=config.learning_rate,
     )
 
+    run = wandb.init()
+    print("Downloading dataset from wandb")
+    dataset_label = 'saegl/dinora-chess/ccrl-compact:latest'
+    dataset_artifact = run.use_artifact(dataset_label)
+    dataset_dir = Path(dataset_artifact.download())
+    print("Download complete")
+
+
     wandb_logger = WandbLogger(
         project="dinora-chess",
         log_model="all",
@@ -115,10 +122,12 @@ def fit(config: Config):
     wandb_logger.watch(model, log="all", log_freq=config.wandb_watch_every_n_steps)
 
     ccrl = CompactDataModule(
-        dataset_folder=PROJECT_DIR / 'data' / 'converted_dataset',
+        dataset_folder=dataset_dir,
+        # dataset_folder=PROJECT_DIR / 'data' / 'converted_dataset', # local
         batch_size=config.batch_size
     )
 
+    # from dinora.datamodules import CCRLDataModule
     # ccrl = CCRLDataModule(
     #     batch_size=config.batch_size,
     # )
