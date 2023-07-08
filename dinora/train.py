@@ -27,7 +27,7 @@ logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)
 logging.getLogger("fsspec").setLevel(logging.WARNING)
 
 
-PROJECT_DIR = Path(__file__).parent
+PROJECT_DIR = Path(__file__).parent.parent
 
 
 @dataclass
