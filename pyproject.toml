@@ -15,13 +15,20 @@ classifiers = [
     "Intended Audience :: Science/Research"
 ]
 
-[tool.poetry] # Legacy
+[tool.poetry]
+name = "Dinora"
+version = "0.0.3"
+description = "Dinora Chess Engine"
 authors = ["Saegl <saegl@protonmail.com>"]
 maintainers = ["Saegl <saegl@protonmail.com>"]
 license = "GPL-3.0-only"
 homepage = "https://github.com/DinoraChess/dinora"
 repository = "https://github.com/DinoraChess/dinora"
 documentation = "https://dinora.readthedocs.io/en/latest"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.setuptools]
 py-modules = ['dinora']
