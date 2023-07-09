@@ -112,7 +112,9 @@ def fit(config: Config):
         learning_rate=config.learning_rate,
     )
 
-    run = wandb.init()
+    run = wandb.init(
+        project='dinora-chess'
+    )
     print("Downloading dataset from wandb")
     dataset_label = 'saegl/dinora-chess/ccrl-compact:latest'
     dataset_artifact = run.use_artifact(dataset_label)
