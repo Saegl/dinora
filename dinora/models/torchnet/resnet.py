@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
+from torch.optim.lr_scheduler import StepLR
 
 import lightning.pytorch as pl
 
@@ -139,10 +140,15 @@ class ResNetLight(pl.LightningModule):
         value_channels: int,
         value_lin_channels: int,
         learning_rate: float,
+        lr_scheduler_gamma: float,
+        lr_scheduler_freq: int,
     ):
         super().__init__()
         self.hparams.learning_rate = learning_rate
         self.save_hyperparameters()
+        self.lr_scheduler_gamma = lr_scheduler_gamma
+        self.lr_scheduler_freq = lr_scheduler_freq
+
         self.conv_block = ConvBlock(18, res_channels, 3, padding=1)
 
         blocks = [(f"resblock{i}", (ResBlock(res_channels))) for i in range(res_blocks)]
@@ -222,7 +228,20 @@ class ResNetLight(pl.LightningModule):
     
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
-        return optimizer
+        scheduler = StepLR(
+            optimizer,
+            step_size=1,
+            gamma=self.lr_scheduler_gamma,
+            verbose=True
+        )
+        return {
+            'optimizer': optimizer,
+            'lr_scheduler': {
+                'scheduler': scheduler,
+                'interval': 'step',
+                'frequency': self.lr_scheduler_freq,
+            },
+        }
     
     def eval_by_network(self, board: chess.Board):
         board_tensor = board_to_tensor(board)

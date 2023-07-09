@@ -6,6 +6,8 @@
 
     "tune_learning_rate": false,
     "learning_rate": 0.6918309709189363,
+    "lr_scheduler_gamma": 0.1,
+    "lr_scheduler_freq": 10,
 
     "enable_checkpointing": false,
     "checkpoint_train_time_interval": {"seconds": 30},

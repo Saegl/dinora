@@ -39,6 +39,8 @@ class Config:
 
     tune_learning_rate: bool
     learning_rate: float  # will be overwritten if tune_learning_rate = True
+    lr_scheduler_gamma: float  # Multiplicative factor for StepLR
+    lr_scheduler_freq: int   # change each steps
 
     enable_checkpointing: bool
     checkpoint_train_time_interval: dict
@@ -109,7 +111,10 @@ def fit(config: Config):
         policy_channels=config.policy_channels,
         value_channels=config.value_channels,
         value_lin_channels=config.value_lin_channels,
+
         learning_rate=config.learning_rate,
+        lr_scheduler_gamma=config.lr_scheduler_gamma,
+        lr_scheduler_freq=config.lr_scheduler_freq
     )
 
     run = wandb.init(
