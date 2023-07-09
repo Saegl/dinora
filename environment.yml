@@ -1,4 +1,4 @@
-name: dinora
+name: dinora_chess
 channels:
   - pytorch
   - nvidia
@@ -10,7 +10,8 @@ dependencies:
   - lightning
   - wandb
   - tqdm
-  - pytorch=2.0.0=py3.10_cuda11.8_cudnn8_0
+  - pytorch
+  - pytorch-cuda
   - matplotlib
   - notebook
   
