@@ -8,6 +8,8 @@ wandb/*
 artifacts/*
 lightning_logs/*
 checkpoints/*
+# FIXME: checkpoints shouldn't be created in dinora folder
+dinora/checkpoints/*
 !checkpoints/.gitkeep
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
