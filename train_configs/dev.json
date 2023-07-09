@@ -20,5 +20,11 @@
     "limit_val_batches": 10,
 
     "val_check_type": "steps",
-    "val_check_steps": 25
+    "val_check_steps": 25,
+
+    "res_channels": 64,
+    "res_blocks": 8,
+    "policy_channels": 64,
+    "value_channels": 16,
+    "value_lin_channels": 64
 }

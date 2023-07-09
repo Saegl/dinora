@@ -55,6 +55,12 @@ class Config:
     val_check_type: Literal['chunk', 'steps']
     val_check_steps: int  # ignored when type = chunk
 
+    res_channels: int
+    res_blocks: int
+    policy_channels: int
+    value_channels: int
+    value_lin_channels: int
+
 
 def fit(config: Config):
     torch.set_float32_matmul_precision(config.matmul_precision)
@@ -98,11 +104,11 @@ def fit(config: Config):
         callbacks.append(mc)
 
     model = ResNetLight(
-        res_channels=64,
-        res_blocks=8,
-        policy_channels=64,
-        value_channels=16,
-        value_lin_channels=64,
+        res_channels=config.res_channels,
+        res_blocks=config.res_blocks,
+        policy_channels=config.policy_channels,
+        value_channels=config.value_channels,
+        value_lin_channels=config.value_lin_channels,
         learning_rate=config.learning_rate,
     )
 
