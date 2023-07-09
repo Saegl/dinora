@@ -66,13 +66,6 @@ class BoardsEvaluator(Callback):
         image = Image.open(png_out)
         return image
     
-    def on_fit_start(self, trainer: pl.Trainer, pl_module: ResNetLight) -> None:
-        "Precompute wandb images"
-        for position in self.positions:
-            image = self.board_to_image(chess.Board(position['fen']))
-            wandb_image = wandb.Image(image)
-            position['wandb_image'] = wandb_image
-
     def on_validation_end(self, trainer: pl.Trainer, pl_module: ResNetLight) -> None:
         data = []
         COLUMNS = [
@@ -83,11 +76,12 @@ class BoardsEvaluator(Callback):
 
         for position in self.positions:
             board = chess.Board(fen=position['fen'])
+            wandb_image = wandb.Image(self.board_to_image(board))
             policy, probs = pl_module.eval_by_network(board)
             bestmove = max(policy, key=lambda k: policy[k])
 
             data.append([
-                position['wandb_image'],
+                wandb_image,
                 position['fen'],
                 position['material'],
                 position['text'],
