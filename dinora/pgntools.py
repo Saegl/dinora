@@ -8,7 +8,7 @@ from chess.pgn import Game
 import numpy as np
 import numpy.typing as npt
 
-from dinora.board_representation2 import board_to_tensor
+from dinora.board_representation2 import board_to_tensor, board_to_compact_state
 from dinora.policy2 import policy_index_tensor
 
 logging.basicConfig(level=logging.DEBUG)
@@ -37,15 +37,15 @@ def outcome_tensor(game, flip: bool):
 
 
 def load_chess_games(pgn: TextIO) -> Iterator[chess.pgn.Game]:
-    while True:
-        game = chess.pgn.read_game(pgn)
-        if game is None:
-            break
-        if not game or game.headers.get("Variant", "Standard") != "Standard":
-            game = chess.pgn.read_game(pgn)
-            continue
+    def is_supported_variant(game):
+        return game.headers.get("Variant", "Standard") == "Standard"
 
-        yield game
+    game = chess.pgn.read_game(pgn)
+    while game:
+        if is_supported_variant(game):
+            yield game
+        
+        game = chess.pgn.read_game(pgn)
 
 
 def load_game_states(pgn: TextIO) -> Iterator[tuple[Game, Board, Move]]:
@@ -66,14 +66,22 @@ def load_game_states(pgn: TextIO) -> Iterator[tuple[Game, Board, Move]]:
 def load_state_tensors(pgn: TextIO) -> Iterator[tuple[npf32, tuple[npf32, npf32]]]:
     for game, board, move in load_game_states(pgn):
         flip = not board.turn
-        try:
-            yield (
-                board_to_tensor(board),
-                (
-                    policy_index_tensor(move, flip),
-                    outcome_tensor(game, flip),
-                ),
-            )
-        except UnexpectedOutcome as e:
-            logging.warning(f"Cannot encode game outcome: {e}")
-            break
+        yield (
+            board_to_tensor(board),
+            (
+                policy_index_tensor(move, flip),
+                outcome_tensor(game, flip),
+            ),
+        )
+
+
+def load_compact_state_tensors(pgn: TextIO) -> Iterator[tuple[npf32, tuple[npf32, npf32]]]:
+    for game, board, move in load_game_states(pgn):
+        flip = not board.turn
+        yield (
+            board_to_compact_state(board),
+            (
+                policy_index_tensor(move, flip),
+                outcome_tensor(game, flip),
+            ),
+        )

@@ -59,11 +59,10 @@ def convert(pgn_path: Path, save_path: Path):
     outcomes = []
 
     with open(pgn_path, "r", encoding="utf8", errors="ignore") as pgn:
-        for game, board, move in load_game_states(pgn):
-            flip = not board.turn
-            boards.append(board_to_compact_state(board))
-            policies.append(policy_index_tensor(move, flip))
-            outcomes.append(outcome_tensor(game, flip))
+        for compact_state, (policy, outcome) in load_game_states(pgn):
+            boards.append(compact_state)
+            policies.append(policy)
+            outcomes.append(outcome)
 
     boards_np = np.array(boards, dtype=np.int64)
     policies_np = np.array(policies, dtype=np.int64)
