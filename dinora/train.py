@@ -120,7 +120,8 @@ def fit(config: Config):
     )
 
     run = wandb.init(
-        project='dinora-chess'
+        project='dinora-chess',
+        config={'config_file': asdict(config)},
     )
     print("Downloading dataset from wandb")
     dataset_label = 'saegl/dinora-chess/ccrl-compact:latest'
@@ -130,9 +131,7 @@ def fit(config: Config):
 
 
     wandb_logger = WandbLogger(
-        project="dinora-chess",
         log_model="all",
-        config={'config_file': asdict(config)},
     )
     wandb_logger.watch(model, log="all", log_freq=config.wandb_watch_every_n_steps)
 
