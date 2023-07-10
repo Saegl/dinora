@@ -33,6 +33,7 @@ PROJECT_DIR = Path(__file__).parent.parent
 @dataclass
 class Config:
     matmul_precision: str
+    max_time: dict | None
 
     tune_batch: bool
     batch_size: int  # will be overwritten if tune_batch = True
@@ -66,6 +67,7 @@ class Config:
 
 def fit(config: Config):
     torch.set_float32_matmul_precision(config.matmul_precision)
+    max_time = timedelta(**config.max_time) if config.max_time else None
 
     def calc_val_check_interval(config: Config) -> int | float:
         if config.val_check_type == 'chunk':
@@ -146,6 +148,7 @@ def fit(config: Config):
     # )
 
     trainer = pl.Trainer(
+        max_time=max_time,
         max_epochs=-1,
         logger=wandb_logger,
         log_every_n_steps=config.log_every_n_steps,

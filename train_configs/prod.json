@@ -1,5 +1,6 @@
 {
     "matmul_precision": "medium",
+    "max_time": null,
     
     "tune_batch": false,
     "batch_size": 2048,
