@@ -2,7 +2,7 @@ from itertools import chain
 
 from torch.utils.data import IterableDataset
 
-from dinora.preprocess_pgn import load_state_tensors
+from dinora.pgntools import load_state_tensors
 from dinora.policy2 import ONE_HOT_ENCODING_EYE
 
 
@@ -19,8 +19,13 @@ class PGNDataset(IterableDataset):
     def __init__(self, *paths) -> None:
         self.pgn_paths = paths
 
+    @staticmethod
+    def tensors_from_path(path):
+        with open(path, "r", encoding="utf8", errors="ignore") as pgn:
+            return load_state_tensors(pgn)
+
     def __iter__(self):
-        states = chain(*(load_state_tensors(path) for path in self.pgn_paths))
+        states = chain(*(PGNDataset.tensors_from_path(path) for path in self.pgn_paths))
         return states
 
 

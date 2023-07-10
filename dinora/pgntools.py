@@ -1,5 +1,5 @@
 import logging
-from typing import Iterator
+from typing import Iterator, TextIO
 
 import chess
 import chess.pgn
@@ -36,21 +36,20 @@ def outcome_tensor(game, flip: bool):
         raise UnexpectedOutcome(f"Illegal game result: {result}")
 
 
-def load_chess_games(filename_pgn: str) -> Iterator[chess.pgn.Game]:
-    with open(filename_pgn, "r", encoding="utf8", errors="ignore") as pgn:
-        while True:
+def load_chess_games(pgn: TextIO) -> Iterator[chess.pgn.Game]:
+    while True:
+        game = chess.pgn.read_game(pgn)
+        if game is None:
+            break
+        if not game or game.headers.get("Variant", "Standard") != "Standard":
             game = chess.pgn.read_game(pgn)
-            if game is None:
-                break
-            if not game or game.headers.get("Variant", "Standard") != "Standard":
-                game = chess.pgn.read_game(pgn)
-                continue
+            continue
 
-            yield game
+        yield game
 
 
-def load_game_states(filename_pgn: str) -> Iterator[tuple[Game, Board, Move]]:
-    for game in load_chess_games(filename_pgn):
+def load_game_states(pgn: TextIO) -> Iterator[tuple[Game, Board, Move]]:
+    for game in load_chess_games(pgn):
         board = game.board()
         for move in game.mainline_moves():
             yield game, board, move
@@ -64,8 +63,8 @@ def load_game_states(filename_pgn: str) -> Iterator[tuple[Game, Board, Move]]:
                 break
 
 
-def load_state_tensors(filename_pgn: str) -> Iterator[tuple[npf32, tuple[npf32, npf32]]]:
-    for game, board, move in load_game_states(filename_pgn):
+def load_state_tensors(pgn: TextIO) -> Iterator[tuple[npf32, tuple[npf32, npf32]]]:
+    for game, board, move in load_game_states(pgn):
         flip = not board.turn
         try:
             yield (
