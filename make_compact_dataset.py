@@ -1,12 +1,11 @@
 """
-To run this, you need this deps
+To run you need this deps:
 pip install -e . chess numpy wandb requests tqdm
 """
 import json
 import concurrent.futures
 from pathlib import Path
 
-import wandb
 import numpy as np
 
 from dinora.board_representation2 import board_to_compact_state
@@ -19,20 +18,8 @@ PROJECT_DIR = Path(__file__).parent
 
 
 def convert_ccrl_to_bin_dataset(
-    chunks_count: int, upload: bool, delete_after_upload: bool
+    chunks_count: int
 ):
-    artifact = None
-    if upload:
-        run = wandb.init(
-            project="dinora-chess",
-            job_type="upload_dataset",
-        )
-
-        artifact = wandb.Artifact(
-            name="ccrl-dataset",
-            type="dataset",
-        )
-
     train_paths, test_paths = download_ccrl_dataset(
         chunks_count=chunks_count,
     )
@@ -60,19 +47,10 @@ def convert_ccrl_to_bin_dataset(
 
             label = 'train' if 'train' in rel_path_str else 'test'
             report[label][rel_path_str] = states_count
-
-            if artifact:
-                print(str(save_path))
-                artifact.add_file(str(save_path))
-
-            if delete_after_upload:
-                save_path.unlink()
     
     with open(save_dir / 'report.json', 'w') as f:
         json.dump(report, f)
 
-    if artifact:
-        run.log_artifact(artifact)
 
 
 def convert(pgn_path: Path, save_path: Path):
@@ -108,21 +86,8 @@ if __name__ == "__main__":
         type=int,
         default=250,
     )
-    parser.add_argument(
-        "--no-upload",
-        help="Upload resulting dataset to wandb",
-        action='store_true'
-    )
-    parser.add_argument(
-        "--delete_after_upload",
-        help="Delete converted files after uploading to wandb",
-        action='store_true'
-    )
-
     args = parser.parse_args()
 
     convert_ccrl_to_bin_dataset(
         chunks_count=args.chunks_count,
-        upload=not args.no_upload,
-        delete_after_upload=args.delete_after_upload,
     )
