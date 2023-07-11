@@ -32,7 +32,7 @@ PROJECT_DIR = Path(__file__).parent.parent
 
 @dataclass
 class Config:
-    matmul_precision: str
+    matmul_precision: Literal['highest', 'high', 'medium']
     max_time: dict | None
 
     tune_batch: bool
