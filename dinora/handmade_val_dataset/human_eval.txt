@@ -1,0 +1,287 @@
+WHITE IS LOSING
+    1. under attack, down a queen
+        r3k1n1/5p2/p1p1p3/3pb3/7q/2N5/PPPP1PP1/R1B2RK1 w q - 4 17
+    2. black winning queen with fork
+        r4rk1/pbq1nppp/1p6/2pP2N1/3P4/2P1n1P1/PPQNB1K1/R1B3R1 w - - 7 19
+    3. no pawn, no activity, bad structure
+        r4rk1/3b1ppp/pq2pn2/8/Ppp5/2N1PQ2/1P2B1PP/R4RK1 w - - 0 18
+    4. middlegame no piece, no compensation
+        rnbq1rk1/ppp2ppp/3b1n2/8/8/3B1N2/PPP2PPP/R1BQ1RK1 w - - 0 11
+    5. down knight, pawns
+        r3r1k1/5ppp/1qp5/p7/2nPp2Q/2P5/P4RPP/4R1K1 w - - 0 24
+
+WHITE WORSE
+    1. no center, bad pawn struct
+        r3kb1r/pp6/5p1p/q2np3/1n1pN1bP/P4NB1/1PPQP1P1/2KR1B1R w kq - 1 16
+    2. down a pawn
+        r4rk1/pp1b3p/4ppp1/3pP3/3qP3/7R/PPQ3PP/R1B3K1 w - - 0 19
+    3. no pawn, no activity
+        r1bqkb1r/5ppp/p3p3/1p1n4/2p2B2/P1N2Q2/1P3PPP/R3KB1R w KQkq - 1 13
+    4. down exchange
+        r5k1/p1p1qr1p/1p1pNnpR/8/3P4/2PBP3/PP4P1/2K4Q w - - 1 23
+    5. down bishop, but slight activity
+        r1b3kr/ppp5/2np4/2bNp1qp/4P1pN/3P2PP/PPP3P1/R2QKR2 w Q - 4 15
+
+WHITE SLIGHTLY WORSE
+    1. more pawn islands, less active queen
+        2r2rk1/pp2bppp/2n1p3/3q4/2NP4/4B3/PP2QPPP/R2R2K1 w - - 0 15
+    2. bad pawn structure opening
+        r2qkb1r/pp3ppp/2n1pn2/2Pp4/3P4/5P1P/PP3P2/RNBQKB1R w KQkq - 1 9
+    3. awkward middlegame pawn structure
+        r3r1k1/ppqn1ppp/8/2p2p2/1BPPp3/2P1PP2/P1Q3PP/R4RK1 w - - 0 17
+    4. about to lose some pawns
+        r3r1k1/ppq2ppp/2p5/8/1BPPp1n1/2P1P3/P4QPP/R4RK1 w - - 2 19
+    5. jumpy knight is annoying
+        rn1qr1k1/pbp1bp1p/1p1pp1pB/8/3P2n1/2PBPN2/PPQN1PPP/2KR3R w - - 4 11
+
+WHITE EQUAL
+    1. starting position
+        rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    2. white passive opening
+        rnbqk2r/ppppbppp/4pn2/8/8/5NP1/PPPPPPBP/RNBQK2R w KQkq - 3 4
+    3. theoretical draw in rook vs rook vs pawns vs pawn
+        1R6/8/8/5rkp/6p1/8/5PK1/8 w - - 12 54
+    4. bad budapest for white (but stil eq)
+        r1b1k2r/ppppqppp/2n5/4n3/2P5/2P1PN2/P3BPPP/R1BQK2R w KQkq - 0 9
+    5. typical middlegame
+        r2q1rk1/ppp2pp1/2nb1n1p/7b/2BP4/2N1BN1P/PP3PP1/R2Q1RK1 w - - 1 12    
+
+WHITE SLIGHTLY BETTER
+    1. free center
+        rnbqkbnr/p2ppppp/8/2pP4/1p2P3/8/PPP2PPP/RNBQKBNR w KQkq - 0 4
+    2. free center 2
+        rn1qkbnr/1bpppp2/pp4p1/7p/2PPP2P/2N5/PP3PP1/R1BQKBNR w KQkq - 0 6   
+    3. more pawns rooks endgame with bishop and knight
+        8/pp2nkp1/8/2P1R3/8/2B4P/P1P2PK1/3r4 w - - 5 35
+    4. win pawn tactic
+        r3k2r/4bppp/p1p1pn2/q1Pp4/3P4/2N2P1P/PP1B1P2/R2QK2R w KQkq - 2 13
+    5. can start attack with g4
+        r2q1rk1/ppp2pp1/2np1n1p/4p3/3bP2B/1PNP1N1P/1PP2PP1/R2QK2R w KQ - 1 11
+
+WHITE BETTER
+    1. advantage in development
+        rn2k2r/1bpqn1b1/pp1p1pp1/3Pp1Bp/1PP1P2P/2NB1N2/P4PP1/R2QR1K1 w kq - 0 13
+    2. take free knight
+        r4rk1/p1p1qppp/1pnpb3/8/P1nN1P2/B1P1P3/4B1PP/R2Q1RK1 w - - 0 14
+    3. extra bishop
+        4rr1k/p1p2ppp/1p1p4/5P2/P2P4/B3nB2/5RPP/R5K1 w - - 4 22
+    4. attack with queen rook and bishop in endgame
+        3r2k1/pp2q1p1/2n1R1Q1/2P2p2/4p3/2B5/P1P2PPP/6K1 w - - 1 28
+    5. attack on king in the middlegame
+        r3r1k1/2pn1p2/2npq1p1/pp2p1B1/4P3/1PPPNQ1P/2P2P2/R3K1R1 w Q - 6 22
+
+WHITE IS WINNING
+    1. positional domination
+        2r1k2r/pb1nqppp/1p2pn2/1B2N3/8/P1N1P3/1P3PPP/2RQ1RK1 w k - 4 16
+    2. knight fork is the only move
+        3k3r/p2n1ppp/1p2pn2/1B2N3/4b3/P3P3/1P3PPP/5RK1 w - - 0 20
+    3. pawn fork on two nights (every move is winning)
+        7N/p3k1pp/3npn2/1p6/1Pb1P3/P4P2/5KPP/2RB4 w - - 7 31
+    4. have to take piece (only winnig move)
+        3r2k1/pb1Rbppp/1pn1p3/2p5/P3PB2/5NP1/1PP2PBP/6K1 w - - 1 17
+    5. mate net around king
+        rnb2k1r/6b1/p1Ppq1B1/3Qp1Bp/RP5P/5N2/5PP1/4R1K1 w - - 1 23
+
+WHITE MATE IN N
+    1. hard to find mate in 8
+        6k1/R5p1/1p3pNp/2p1p3/P3P3/4B1P1/1P3P1P/3rnBK1 w - - 4 24
+    2. sack knight to mate in 7
+        r3kb1r/4p2p/nqbP1ppP/p1p5/1pB1N3/5QB1/PPP2PP1/2KR3R w q - 3 20
+    3. sack bishop on h7 to mate in 4
+        r1bq1rk1/3n2pp/p1pNpp2/bpPn4/3P3N/3B2B1/PP3PPP/R2Q1RK1 w - - 8 18
+    4. simple mate in 2
+        2r3k1/p4p1p/6p1/P2B4/2r5/5QP1/q4PKP/8 w - - 0 31
+    5. simple mate in 2 on open king
+        5r2/pp2Qp2/1k6/4p3/3b4/P3q1P1/1PP2RK1/8 w - - 2 35
+
+WHITE WIN PIECE TACTIC
+    1. simple fork
+        3N1k2/2r5/pp1p4/3Kp2p/P4p2/7B/1P6/8 w - - 0 36
+    2. win queen by sacking bishop with check
+        6k1/5p2/3n2p1/2qBQ2p/p6P/6P1/P4PK1/8 w - - 10 44
+    3. win piece by queen overloading
+        3r2k1/5p1p/p1p1p1p1/q3r3/Nb4Q1/1P4RP/P3RPP1/6K1 w - - 0 28
+    4. fork and suck knight
+        2r1r1k1/1R1n1pp1/2N1pn2/B2p3p/3P4/P2b2P1/2R2PBP/6K1 w - - 2 23
+    5. free bishop
+        3r1rk1/ppq2ppp/4pn2/8/1b1N4/2P1B3/P1Q2PPP/3R1RK1 w - - 0 17
+
+WHITE OPENING
+    1. Stafford in Rosen style
+        r1bqkb1r/pppp1ppp/2n2n2/4N3/4P3/8/PPPP1PPP/RNBQKB1R w KQkq - 1 4
+    2. Passive black
+        rnbqk2r/ppp1npbp/3pp1p1/8/2PPP3/2N2N2/PP3PPP/R1BQKB1R w KQkq - 2 6
+    3. Closed center
+        r1bqkbnr/pp3ppp/2n1p3/3pP3/2pP4/2P2P2/PPB1N1PP/RNBQK2R w KQkq - 2 9
+    4. Early pawn suck by black (no compensation)
+        rn1qkb1r/ppp2ppp/4bn2/8/8/2N5/PPPP1PPP/R1BQKBNR w KQkq - 0 5
+    5. Isolated center pawn in QGD
+        rnbqk2r/ppp2pp1/3b1n1p/8/2BP4/P1N5/1P3PPP/R1BQK1NR w KQkq - 1 8
+
+WHITE MIDDLEGAME
+    1. only h4 to exchange queens and equalize
+        2kr3r/ppp2ppp/2p1b3/6q1/4P1P1/2NP1Q1P/PPPbK3/R4B1R w - - 1 13
+    2. good center
+        r1b2rk1/1pqnnpbp/2ppp1p1/p7/2PPP3/2N2N1P/PPQ1BPP1/R1BR2K1 w - - 1 11
+    3. extra queen winning middlegame
+        r1b1r1k1/1p4bp/1PpRp1p1/p2n4/4Q3/5N1P/PP2BPP1/R5K1 w - - 1 21
+    4. dream middlegame
+        r3k2r/ppqbbp1p/2n1p2B/3pP3/2p5/2P5/PPB1N1PP/RN1Q1RK1 w kq - 1 15
+    5. extra rook middlegame (no compensation)
+        r2q2k1/1pp3p1/p1nbpn1p/8/1P6/P1N5/1B2NPPP/R2Q1RK1 w - - 0 15
+
+WHITE ENDGAME
+    1. equal endgame (white in check)
+        7k/7p/6p1/p7/b1B2R1P/2P1K2r/8/8 w - - 3 30
+    2. slightly worse rook endgame
+        2k5/ppp4p/2p3p1/8/1b2P2P/2NP3R/PPP2r2/3K4 w - - 0 26
+    3. easy to win endgame
+        2b4k/R6p/6p1/p7/2B1pn2/7P/PP3PP1/R5K1 w - - 0 32
+    4. queens and knight and bishop
+        1k6/pbp1q3/1pp5/8/2P1NP2/1P4P1/P7/1K1Q4 w - - 1 32
+    5. extra pawn, bishops and knights
+        3b4/1p3p1k/p3p1pp/8/2P1P3/1P1n1P2/P3N1PP/B6K w - - 2 31
+
+BLACK IS LOSING
+    1. king under attack, down exchange
+        r1b2k2/1p3p2/p3p2p/3nP1q1/3P4/Q7/P1B2PPP/R4RK1 b - - 1 19
+    2. queens is trapped
+        1k1r1b1r/p1p1p1pp/1p6/3Pp3/4Q3/3PB1P1/PP3P1q/R3K2R b Q - 1 16
+    3. no knight, less pawns
+        2kr3r/1p1b1Q2/1q2p3/p1bpP3/3N4/2PBB3/PP3PPP/R3R1K1 b - - 2 21
+    4. really bad start
+        q3kbnr/p2b1ppp/1p1p4/2pP4/8/5N2/PPP2PPP/RNBQK2R b KQk - 0 9
+    5. losing rook endgame
+        6r1/2k5/p1p5/2p5/5R2/3P2Pp/PPP4P/6K1 b - - 1 28
+
+BLACK WORSE
+    1. down a few pawns middlegame
+        2kr3r/1p1bbQ1B/1q2p3/p1npP3/3N4/2P5/PP3PPP/R1B1R1K1 b - - 0 19
+    2. down two pawns after queen change
+        r3k2r/ppp1n3/3p4/2b1p2p/4P3/3P3N/PPP2PPP/RN3RK1 b kq - 0 14
+    3. under positional press
+        2q5/4b1k1/r2pr1p1/p1pNp2p/2P4P/1P1R2P1/P2RQP2/6K1 b - - 10 36
+    4. white has big lead in development
+        r1b1k1nr/pp3pp1/2p2q1p/2p1nN2/4P3/1BN5/PPP2PPP/R2Q1RK1 b kq - 1 11
+    5. white has pin and more active rooks
+        r1b2rk1/2q1bppp/p2np3/nP6/5B2/NB3N2/PP2QPPP/R2R2K1 b - - 0 16
+
+BLACK SLIGHTLY WORSE
+    1. under attack, bad bishop
+        r1bq1rk1/1p3p2/p3pnpp/2p1P3/3P4/2PQ1N2/P1B2PPP/R4RK1 b - - 0 14
+    2. caro kann but french (bishop)
+        r3k2r/1p1bbppp/1q2p3/p1npP3/3N2Q1/2P5/PPB2PPP/R1B1R1K1 b kq - 4 16
+    3. down a pawn
+        r3k1nr/pppq3p/2npN1p1/2b1p3/4P3/3P3Q/PPP2PPP/RNB1K2R b KQkq - 1 9
+    4. white has good knight in the center
+        r2b1rk1/5p1p/2qp2p1/p1pNp3/P1P1P3/1P3Q1P/5PP1/R4RK1 b - - 0 21
+    5. white has lead in development
+        r1b1k1nr/pp1p1pp1/2p2q1p/2b1nN2/4P3/1BN1B3/PPP2PPP/R2QK2R b KQkq - 1 9
+
+BLACK EQUAL
+    1. start with e4
+        rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1
+    2. rooks endgame draw
+        8/8/5P2/1p4R1/1k2K3/8/8/7r b - - 2 53
+    3. typical slav defense
+        r1bqk2r/pp1nbppp/2p1pn2/3p2B1/2PP4/2N1PN2/PP2BPPP/R2QK2R b KQkq - 4 7
+    4. black have to save piece
+        r4rk1/pb1Rbppp/1pn1p3/2p5/P3P3/5NP1/1PP2PBP/R1B3K1 b - - 2 13
+    5. caro cann panov equal
+        rnbqkb1r/pp2pppp/5n2/3P4/8/5N2/PP1P1PPP/RNBQKB1R b KQkq - 2 5
+
+BLACK SLIGHTLY BETTER
+    1. Can take center with pawns
+        r1bqkb1r/pppp2pp/2n2n2/4pPN1/2B5/8/PPPP1PPP/RNBQK2R b KQkq - 2 5
+    2. Extra pawn in opening
+        rnbqr1kb/p3pp1p/2p3pB/3p2N1/Np1PnQ2/1B6/PPP2PPP/R4RK1 b - - 1 13
+    3. only one move to win exchange
+        1r1q1rk1/3bbppp/p2p4/2pB4/2Q1P3/4B3/PP3PPP/1R3RK1 b - - 0 16
+    4. good middlegame
+        r4rk1/p4ppp/2pqpn2/3p4/3P2b1/3Q1N2/PPP1NPPP/R4RK1 b - - 1 12
+    5. extra pawn in middlegame, but weaker king
+        r2q1r2/pbp3bk/1p1p3p/2n1pp2/6nP/P1NPBN2/1PP1QP2/2KR1BR1 b - - 1 16
+
+BLACK BETTER
+    1. adventurous queen
+        r3k2r/1p3p2/pqn1p3/2PpPpp1/8/P4P2/1P2N1PP/2RQ1RK1 b kq - 0 19
+    2. more active rook in endgame
+        8/5pk1/p3p1p1/1p5p/1R6/PPr3PP/5P2/6K1 b - - 0 30
+    3. up exchange (in check)
+        r3r3/pppk2p1/5n1p/3pN3/8/PP6/3P1PPP/B3R1K1 b - - 2 19
+    4. safe extra pawn
+        rnbqr1k1/p4pbp/2p3p1/3p4/5Q2/1BN2N2/PP3PPP/R4RK1 b - - 2 20
+    5. up exchange in endgame
+        5rk1/5ppp/3p4/3B4/3pP3/5P2/Pr3P1P/3R2K1 b - - 0 25
+
+BLACK IS WINNING
+    1. long castle to win!
+        r3k2r/1R3p2/p1n1p3/2Pp1pp1/8/P3qP2/4N1PP/3Q1R1K b kq - 2 22
+    2. promote pawns and win (down a bishop)
+        8/8/1p6/1Bpk2KP/P5P1/8/5p2/8 b - - 0 59
+    3. center and activity
+        r1bqkb1r/pp3p2/2n2n1p/4p3/3pN1pP/5PB1/PPPQP1P1/R3KBNR b KQkq - 1 11
+    4. only one quiet move to get advantage
+        2r1kb1r/pp6/5p1p/q2nN3/1n1QN1bP/P5B1/1PP1P1P1/2KR1B1R b k - 0 17
+    5. up exchange
+        r2qr3/p5kp/2p1p1p1/2PpQ3/7P/1B6/P4PP1/5RK1 b - - 1 24
+
+BLACK MATE IN N
+    1. cool mate in 9
+        2kr3r/5p2/p1n1p3/2Pp1pp1/8/P3qP2/1R2N1PP/3Q1R1K b - - 4 23
+    2. simple mate in 2
+        2k5/1pp3pp/p1p3r1/4p3/P4r2/1PNP1nPK/2P1QP2/R4R2 b - - 0 22
+    3. mate in 2 with queen
+        r4r1k/pp4pp/2b1N3/4Q3/2B4q/P3R3/1P4PP/2R3K1 b - - 2 28
+    4. mate in 4 with rook sack
+        2kr3r/pp2R3/3p4/1Bp2p2/2Pq4/1Q4P1/PP3PK1/R7 b - - 0 25
+    5. mate in 5 with queen sack
+        5bk1/1p3p1p/6p1/P1q2p2/8/1QP5/4rPPP/2B2RK1 b - - 1 28
+
+BLACK WIN PIECE TACTIC
+    1. many trades with bishop win
+        r4rnk/pp4pp/3p4/nPp5/2PqPB2/P3Q1P1/6BP/R4RK1 b - - 2 20
+    2. clear check x-ray
+        1nb3k1/5ppp/1qp2n2/8/B4P2/4r2P/PPP1NQP1/R4RK1 b - - 0 18
+    3. queen fork with knight win
+        3qkbnr/Np1n1ppp/2r3b1/8/5B2/1Q6/PP2BPPP/R3K1NR b KQk - 0 14
+    4. win queen
+        3Q1b1r/pp3kpp/5n2/1p2q3/2P5/5RN1/P5PP/3R2K1 b - - 0 24
+    5. pin queen and king
+        3b4/1p1q2pk/p2p1r1p/2p5/8/1P3P2/1PPB2Q1/R4RK1 b - - 1 28
+
+BLACK OPENING
+    1. Italian
+        r1bqkb1r/pppp1ppp/2n2n2/4p1N1/2B1P3/8/PPPP1PPP/RNBQK2R b KQkq - 5 4
+    2. poor man symmetrical London
+        r1bqkb1r/ppp1pppp/2n2n2/3p4/3P1B2/2N2N2/PPP1PPPP/R2QKB1R b KQkq - 5 4
+    3. kings indian
+        r1bqkbnr/ppp2ppp/2n5/3pp3/8/5NP1/PPPPPPBP/RNBQ1RK1 b kq - 1 4
+    4. equal opening with hole on f7
+        r1bqkbnr/pp2p1pp/2n2p2/3p4/3P1B2/2N1P3/PP3PPP/R2QKBNR b KQkq - 0 6
+    5. bird
+        rnbqkb1r/pp2pppp/2p2n2/3p4/5P2/3P1N2/PPPNP1PP/R1BQKB1R b KQkq - 2 4
+
+BLACK MIDDLEGAME
+    1. equal middlegame
+        r1bq1rk1/pp2ppbp/1n3np1/3P4/2BP4/1QN5/PP2NPPP/R1B2RK1 b - - 8 10
+    2. equal, take right bishop
+        r2qkb1r/1p2npp1/p1n1p2p/3pPBB1/3P4/1N3P2/PP2N1PP/R2Q1RK1 b kq - 0 13 
+    3. under light attack
+        2rq1rk1/pb2bppp/5n2/n3p1N1/B1p1N3/3P3Q/PPP2PPP/R1B2RK1 b - - 3 14
+    4. middlegame middlegaming
+        r2qrnk1/ppp1bppp/4p3/3nP3/1P1P4/P2Q1N2/3N1PPP/R1B1R1K1 b - - 2 14
+    5. 0-0 vs 0-0-0
+        2rq1rk1/1pp1bppp/p3pnb1/3pB3/3P3P/2N3Q1/PPP1PPP1/2KR1B1R b - - 2 13
+
+BLACK ENDGAME
+    1. black can trade rooks and promote pawns
+        8/7p/4B1p1/p1P1K1k1/b4R2/8/7r/8 b - - 3 36
+    2. knights and pawns endgame
+        1n6/4k3/p3p1pp/2p1p3/8/1P2KP2/P3N1PP/8 b - - 1 42
+    3. rook vs two knights (with pawns)
+        5n2/p4kp1/4p2p/4n3/R7/P5P1/5P1P/6K1 b - - 1 32
+    4. bishop vs knight (with pawns)
+        2N5/pp6/2p1k2b/4pp1P/8/2P2P2/PP2K3/8 b - - 4 36
+    5. lost king vs king endgame
+        6k1/p5p1/6p1/3P4/7P/P1P5/1P3P1P/4K3 b - - 0 41
