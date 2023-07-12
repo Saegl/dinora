@@ -20,16 +20,6 @@ So when we want to make NN inference for black perspective
 -> we have to flip board over horizontal line 
 (white becomes black and black becomes white),
 after this flip, all prior probabilites from NN also comes flipped.
-
-There is 2 functions for training:
-    move_to_policy
-    move_to_flipped_policy
-
-And 2 function for playing:
-    move_prior_from_policy
-    move_prior_from_flipped_policy
-
-4 public functions overall
 """
 from typing import Iterable
 from itertools import product, chain
@@ -164,58 +154,35 @@ def flip_moves(moves: list[str]) -> list[str]:
     return [flip_move(move) for move in moves]
 
 
-ALL_UCI_MOVES = generate_uci_moves()
-ALL_UCI_MOVES_LEN = len(ALL_UCI_MOVES)
-assert ALL_UCI_MOVES_LEN == 1880  # Looks like there is 1880 possible moves
+INDEX_TO_MOVE: list[str] = generate_uci_moves()
+INDEX_TO_FLIPPED_MOVE = flip_moves(INDEX_TO_MOVE)
 
-FLIPPED_UCI_MOVES = flip_moves(ALL_UCI_MOVES)
-
-MOVE_LOOKUP = {
+MOVE_TO_INDEX = {
     chess.Move.from_uci(move): i
-    for move, i in zip(ALL_UCI_MOVES, range(ALL_UCI_MOVES_LEN))
+    for i, move in enumerate(INDEX_TO_MOVE)
 }
-FLIPPED_MOVE_LOOKUP = {
+FLIPPED_MOVE_TO_INDEX = {
     chess.Move.from_uci(move): i
-    for move, i in zip(FLIPPED_UCI_MOVES, range(ALL_UCI_MOVES_LEN))
+    for i, move in enumerate(INDEX_TO_FLIPPED_MOVE)
 }
 
-# Precompute all possible one-hot encoded policies
-ONE_HOT_ENCODING_EYE = np.eye(ALL_UCI_MOVES_LEN, ALL_UCI_MOVES_LEN, dtype=np.float32)
 
-
-def move_to_policy(move: chess.Move) -> npt.NDArray[np.float32]:
-    "Move from white perspective to one-hot encoded tensor"
-    index = MOVE_LOOKUP[move]
-    return ONE_HOT_ENCODING_EYE[index]
-
-
-def move_to_flipped_policy(move: chess.Move) -> npt.NDArray[np.float32]:
-    "Move from black perspective to one-hot encoded tensor"
-    index = FLIPPED_MOVE_LOOKUP[move]
-    return ONE_HOT_ENCODING_EYE[index]
-
-
-def policy_tensor(move: chess.Move, flip: bool):
-    return move_to_flipped_policy(move) if flip else move_to_policy(move)
+assert len(INDEX_TO_MOVE) == 1880  # Looks like there is 1880 possible moves
 
 
 def policy_index_tensor(move: chess.Move, flip: bool) -> int:
-    return FLIPPED_MOVE_LOOKUP[move] if flip else MOVE_LOOKUP[move]
+    return FLIPPED_MOVE_TO_INDEX[move] if flip else MOVE_TO_INDEX[move]
 
 
-def move_prior_from_policy(
+def index_to_move(index: int, flip: bool) -> str:
+    return INDEX_TO_FLIPPED_MOVE[index] if flip else INDEX_TO_MOVE[index]
+
+
+def extract_prob_from_policy(
     policy: npt.NDArray[np.float32],
     move: chess.Move,
-) -> float:
-    "White move prior probability from one-hot encoded tensor"
-    index = MOVE_LOOKUP[move]
-    return policy[index]
-
-
-def move_prior_from_flipped_policy(
-    policy: npt.NDArray[np.float32],
-    move: chess.Move,
-) -> float:
-    "Black move prior probability from one-hot encoded tensor"
-    index = FLIPPED_MOVE_LOOKUP[move]
+    flip: bool,
+) -> np.float32:
+    move_to_index_lookup = FLIPPED_MOVE_TO_INDEX if flip else MOVE_TO_INDEX
+    index = move_to_index_lookup[move]
     return policy[index]

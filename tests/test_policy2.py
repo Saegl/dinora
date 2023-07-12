@@ -2,21 +2,19 @@ import chess
 from io import StringIO
 from chess.pgn import read_game
 from dinora.policy2 import (
-    ALL_UCI_MOVES,
-    FLIPPED_UCI_MOVES,
-    move_to_policy,
-    move_to_flipped_policy,
-    move_prior_from_policy,
-    move_prior_from_flipped_policy,
+    INDEX_TO_MOVE,
+    INDEX_TO_FLIPPED_MOVE,
+    policy_index_tensor,
+    extract_prob_from_policy,
 )
 
 
 def test_no_duplicates():
-    assert len(ALL_UCI_MOVES) == len(set(ALL_UCI_MOVES))
+    assert len(INDEX_TO_MOVE) == len(set(INDEX_TO_MOVE))
 
 
 def test_no_duplicates_in_flipped_moves():
-    assert len(FLIPPED_UCI_MOVES) == len(set(FLIPPED_UCI_MOVES))
+    assert len(INDEX_TO_FLIPPED_MOVE) == len(set(INDEX_TO_FLIPPED_MOVE))
 
 
 def test_contain_all_moves():
@@ -26,8 +24,8 @@ def test_contain_all_moves():
     and some simple vertical, horizontal and diagonal moves
     """
 
-    all_moves_set = set(ALL_UCI_MOVES)
-    flipped_moves_set = set(FLIPPED_UCI_MOVES)
+    all_moves_set = set(INDEX_TO_MOVE)
+    flipped_moves_set = set(INDEX_TO_FLIPPED_MOVE)
     crazy_game = """
     [Event "?"]
     [Site "?"]
@@ -57,31 +55,13 @@ def test_contain_all_moves():
         assert move.uci() in flipped_moves_set
 
 
-def test_policy_tensor():
-    move = chess.Move.from_uci("e2e4")
-    policy_tensor = move_to_policy(move)
-    assert policy_tensor.sum() == 1.0
-
-    move_prior = move_prior_from_policy(policy_tensor, move)
-    assert move_prior == 1.0
-
-
-def test_flipped_policy_tensor():
-    move = chess.Move.from_uci("e2e4")
-    policy_tensor = move_to_flipped_policy(move)
-    assert policy_tensor.sum() == 1.0
-
-    move_prior = move_prior_from_flipped_policy(policy_tensor, move)
-    assert move_prior == 1.0
-
-
 def test_flipped_and_not_flipped():
     move = chess.Move.from_uci("e2e4")
-    assert move_to_policy(move).argmax() != move_to_flipped_policy(move).argmax()
+    assert policy_index_tensor(move, False) != policy_index_tensor(move, True)
 
 
 def test_flipped_and_not_flipped_symmetry():
     move1 = chess.Move.from_uci("e2e4")
     move2 = chess.Move.from_uci("e7e5")
 
-    assert move_to_policy(move1).argmax() == move_to_flipped_policy(move2).argmax()
+    assert policy_index_tensor(move1, True) == policy_index_tensor(move2, False)
