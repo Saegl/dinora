@@ -18,7 +18,30 @@ import numpy as np
 import numpy.typing as npt
 
 
-plane_index = {
+PLANE_NAMES = [
+    "WHITE KING",
+    "WHITE QUEEN",
+    "WHITE ROOK",
+    "WHITE BISHOP",
+    "WHITE KNIGHT",
+    "WHITE PAWN",
+    "BLACK KING",
+    "BLACK QUEEN",
+    "BLACK ROOK",
+    "BLACK BISHOP",
+    "BLACK KNIGHT",
+    "BLACK PAWN",
+    "WHITE SHORT CASTLE",
+    "WHITE LONG CASTLE",
+    "BLACK SHORT CASTLE",
+    "BLACK LONG CASTLE",
+    "FIFTY MOVES COUNTER",
+    "CAN EN PASSANT",
+]
+
+assert len(PLANE_NAMES) == 18
+
+PIECE_INDEX = {
     (chess.KING, chess.WHITE): 0,
     (chess.QUEEN, chess.WHITE): 1,
     (chess.ROOK, chess.WHITE): 2,
@@ -33,6 +56,8 @@ plane_index = {
     (chess.PAWN, chess.BLACK): 11,
 }
 
+assert len(PIECE_INDEX) == 12
+
 
 def board_to_tensor(board: chess.Board) -> npt.NDArray[np.float32]:
     "Convert current state (chessboard) to tensor"
@@ -46,7 +71,7 @@ def board_to_tensor(board: chess.Board) -> npt.NDArray[np.float32]:
     for square in chess.SQUARES:
         piece = board.piece_at(square)
         if piece:
-            index = plane_index[piece.piece_type, piece.color]
+            index = PIECE_INDEX[piece.piece_type, piece.color]
             tensor[index][square // 8][(square % 8)] = 1.0
 
     # Set castling rights [12: 16)
@@ -80,10 +105,13 @@ def board_to_compact_state(board: chess.Board) -> np.ndarray:
     for square in chess.SQUARES:
         piece = board.piece_at(square)
         if piece:
-            index = plane_index[piece.piece_type, piece.color]
+            index = PIECE_INDEX[piece.piece_type, piece.color]
             pieces_planes[index][square // 8][square % 8] = 1
 
-    pieces_array = np.packbits(pieces_planes.reshape(-1,), axis=0).view(np.uint64)
+    pieces_array = np.packbits(
+        pieces_planes.reshape(-1),
+        axis=0,
+    ).view(np.uint64)
 
     castling = board.castling_rights
     en_passant = board.ep_square if board.has_legal_en_passant() else 64
@@ -123,5 +151,5 @@ def compact_state_to_board_tensor(array: np.ndarray) -> np.ndarray:
     if en_passant != 64:
         square: chess.Square = en_passant
         configs[5][square // 8][square % 8] = 1.0
-    
+
     return np.concatenate((pieces_planes, configs))
