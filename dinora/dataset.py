@@ -3,7 +3,6 @@ from itertools import chain
 from torch.utils.data import IterableDataset
 
 from dinora.pgntools import load_state_tensors
-from dinora.policy2 import ONE_HOT_ENCODING_EYE
 
 
 class PGNDataset(IterableDataset):
@@ -27,23 +26,3 @@ class PGNDataset(IterableDataset):
     def __iter__(self):
         states = chain(*(PGNDataset.tensors_from_path(path) for path in self.pgn_paths))
         return states
-
-
-def random_dataset():
-    """
-    Dataset with random outputs,
-    just to compare difference in speed with other datasets
-    """
-    import numpy as np
-    from random import choice
-
-    class RandomDataset(IterableDataset):
-        def __iter__(self):
-            board = np.random.random((18, 8, 8)).astype(np.float32)
-            policy_tensor = choice(ONE_HOT_ENCODING_EYE)
-
-            result = np.random.random(1).astype(np.float32)
-            while True:
-                yield board, (policy_tensor, result)
-
-    return ([RandomDataset()], [RandomDataset()])
