@@ -12,7 +12,7 @@ from torch.optim.lr_scheduler import StepLR
 import lightning.pytorch as pl
 
 from dinora.board_representation2 import board_to_tensor
-from dinora.policy2 import move_prior_from_policy, move_prior_from_flipped_policy
+from dinora.policy2 import extract_prob_from_policy
 
 
 class ResNet(nn.Module):
@@ -258,9 +258,7 @@ class ResNetLight(pl.LightningModule):
         t = 2.72
         moves = []
         policies = []
-        lookup = (
-            move_prior_from_policy if board.turn else move_prior_from_flipped_policy
-        )
+        lookup = lambda policy, move: extract_prob_from_policy(policy, move, not board.turn)
         for move in board.legal_moves:
             move_prior = lookup(unwrapped_raw_policy, move)
             moves.append(move)
