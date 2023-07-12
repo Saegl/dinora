@@ -8,10 +8,8 @@ from pathlib import Path
 
 import numpy as np
 
-from dinora.board_representation2 import board_to_compact_state
-from dinora.pgntools import load_game_states, outcome_tensor
+from dinora.pgntools import load_compact_state_tensors
 from dinora.ccrl import download_ccrl_dataset
-from dinora.policy2 import policy_index_tensor
 
 
 PROJECT_DIR = Path(__file__).parent
@@ -59,7 +57,7 @@ def convert(pgn_path: Path, save_path: Path):
     outcomes = []
 
     with open(pgn_path, "r", encoding="utf8", errors="ignore") as pgn:
-        for compact_state, (policy, outcome) in load_game_states(pgn):
+        for compact_state, (policy, outcome) in load_compact_state_tensors(pgn):
             boards.append(compact_state)
             policies.append(policy)
             outcomes.append(outcome)
