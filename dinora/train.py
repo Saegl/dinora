@@ -2,12 +2,14 @@ import sys
 import json
 import logging
 import warnings
-from pathlib import Path
+import pathlib
 from datetime import timedelta
 from dataclasses import dataclass, asdict
 from typing import Literal
 
 import wandb
+from wandb.sdk.lib.disabled import RunDisabled
+
 import torch
 
 import lightning.pytorch as pl
@@ -15,6 +17,7 @@ from lightning.pytorch.loggers import WandbLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.tuner import Tuner
 
+from dinora import PROJECT_ROOT
 from dinora.datamodules import CompactDataModule
 from dinora.models.torchnet.resnet import *
 from dinora.train_callbacks import SampleGameGenerator, BoardsEvaluator
@@ -25,9 +28,6 @@ logging.getLogger("wandb").setLevel(logging.WARNING)
 logging.getLogger("git").setLevel(logging.WARNING)
 logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)
 logging.getLogger("fsspec").setLevel(logging.WARNING)
-
-
-PROJECT_DIR = Path(__file__).parent.parent
 
 
 @dataclass
@@ -100,7 +100,7 @@ def fit(config: Config):
             **config.checkpoint_train_time_interval
         )
         mc = ModelCheckpoint(
-            dirpath=PROJECT_DIR / "checkpoints/models",
+            dirpath=PROJECT_ROOT / "checkpoints/models",
             filename="{epoch}epoch-{step}step",
             save_weights_only=True,
             train_time_interval=checkpoint_train_time_interval,
@@ -126,7 +126,11 @@ def fit(config: Config):
     print("Downloading dataset from wandb")
     dataset_label = 'saegl/dinora-chess/ccrl-compact:latest'
     dataset_artifact = run.use_artifact(dataset_label)
-    dataset_dir = Path(dataset_artifact.download())
+    dataset_artifact_dir = dataset_artifact.download()
+    if isinstance(dataset_artifact_dir, RunDisabled):
+        dataset_folder = PROJECT_ROOT / 'data' / 'converted_dataset'
+    else:
+        dataset_folder = pathlib.Path(dataset_artifact_dir)
     print("Download complete")
 
 
@@ -136,8 +140,7 @@ def fit(config: Config):
     wandb_logger.watch(model, log="all", log_freq=config.wandb_watch_every_n_steps)
 
     ccrl = CompactDataModule(
-        dataset_folder=dataset_dir,
-        # dataset_folder=PROJECT_DIR / 'data' / 'converted_dataset', # local
+        dataset_folder=dataset_folder,
         batch_size=config.batch_size
     )
 
@@ -152,7 +155,7 @@ def fit(config: Config):
         logger=wandb_logger,
         log_every_n_steps=config.log_every_n_steps,
         enable_checkpointing=config.enable_checkpointing,
-        default_root_dir=Path(__file__).parent / "checkpoints",
+        default_root_dir=PROJECT_ROOT / "checkpoints",
         val_check_interval=calc_val_check_interval(config),
         callbacks=callbacks,
         limit_train_batches=config.limit_train_batches,

@@ -8,11 +8,9 @@ from pathlib import Path
 
 import numpy as np
 
+from dinora import PROJECT_ROOT
 from dinora.pgntools import load_compact_state_tensors
 from dinora.ccrl import download_ccrl_dataset
-
-
-PROJECT_DIR = Path(__file__).parent
 
 
 def convert_ccrl_to_bin_dataset(
@@ -22,7 +20,7 @@ def convert_ccrl_to_bin_dataset(
         chunks_count=chunks_count,
     )
 
-    save_dir = PROJECT_DIR / "data/converted_dataset"
+    save_dir = PROJECT_ROOT / "data/converted_dataset"
     save_dir.mkdir(parents=True, exist_ok=True)
 
     # list[(pgn_path, save_path)]
