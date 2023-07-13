@@ -120,25 +120,20 @@ def fit(config: Config):
         lr_scheduler_freq=config.lr_scheduler_freq
     )
 
-    run = wandb.init(
+    wandb_logger = WandbLogger(
         project='dinora-chess',
         config={'config_file': asdict(config)},
     )
+    
     print("Downloading dataset from wandb")
     dataset_label = 'saegl/dinora-chess/ccrl-compact:latest'
-    dataset_artifact = run.use_artifact(dataset_label)
+    dataset_artifact = wandb.run.use_artifact(dataset_label)
     dataset_artifact_dir = dataset_artifact.download()
     if isinstance(dataset_artifact_dir, RunDisabled):
         dataset_folder = PROJECT_ROOT / 'data' / 'converted_dataset'
     else:
         dataset_folder = pathlib.Path(dataset_artifact_dir)
     print("Download complete")
-
-
-    wandb_logger = WandbLogger(
-        log_model="all",
-    )
-    wandb_logger.watch(model, log="all", log_freq=config.wandb_watch_every_n_steps)
 
     ccrl = CompactDataModule(
         dataset_folder=dataset_folder,
