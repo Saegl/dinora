@@ -249,7 +249,8 @@ class ResNetLight(pl.LightningModule):
                 torch.from_numpy(board_tensor).reshape((1, 18, 8, 8)).to(self.device)
             )
         
-        unwrapped_raw_policy = raw_policy[0]
+        # TODO: Refactor this func, write softmax with temp
+        unwrapped_raw_policy = F.softmax(raw_policy[0])
         outcomes_probs = F.softmax(raw_value[0], dim=-1)
 
         # take only legal moves from policy
