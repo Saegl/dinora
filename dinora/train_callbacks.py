@@ -44,7 +44,7 @@ class BoardsEvaluator(Callback):
         COLUMNS = ['image'] * self.render_image + [
             'fen', 'text', 'type',
             'stockfish_cp', 'stockfish_wdl', 'stockfish_top3_lines',
-            'model_v', 'model_wdl', 'bestmove'
+            'model_v', 'model_wdl', 'model_bestmove'
         ]
 
         for position in self.positions:
