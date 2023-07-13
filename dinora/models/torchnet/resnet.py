@@ -98,7 +98,6 @@ class PolicyHead(nn.Module):
             ConvBlock(in_channels, policy_channels, 1),
             Flatten(),
             nn.Linear(8 * 8 * policy_channels, 1880),
-            nn.Softmax(dim=-1),
         )
 
     def forward(self, x):
@@ -125,7 +124,6 @@ class ValueHead(nn.Sequential):
                     ("lin1", nn.Linear(value_channels * 8 * 8, lin_channels)),
                     ("relu1", nn.ReLU(inplace=True)),
                     ("lin2", nn.Linear(lin_channels, 3)),
-                    ('softmax', nn.Softmax(dim=-1))
                 ]
             )
         )
