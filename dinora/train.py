@@ -34,6 +34,7 @@ logging.getLogger("fsspec").setLevel(logging.WARNING)
 class Config:
     matmul_precision: Literal['highest', 'high', 'medium']
     max_time: dict | None
+    max_epochs: int # set -1 to ignore
 
     tune_batch: bool
     batch_size: int  # will be overwritten if tune_batch = True
@@ -151,7 +152,7 @@ def fit(config: Config):
 
     trainer = pl.Trainer(
         max_time=max_time,
-        max_epochs=-1,
+        max_epochs=config.max_epochs,
         logger=wandb_logger,
         log_every_n_steps=config.log_every_n_steps,
         enable_checkpointing=config.enable_checkpointing,
