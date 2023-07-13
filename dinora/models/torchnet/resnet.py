@@ -171,8 +171,24 @@ class ResNetLight(pl.LightningModule):
         value_loss = F.cross_entropy(y_hat_value, y_value)
         cumulative_loss = policy_loss + value_loss
 
+        policy_accuracy = (
+            (y_hat_policy.argmax(1) == y_policy)
+            .float()
+            .sum()
+            .item()
+        ) / len(batch)
+
+        value_accuracy = (
+            (y_hat_value.argmax(1) == y_value)
+            .float()
+            .sum()
+            .item()
+        ) / len(batch)
+
         self.log_dict({
+            'train/policy_accuracy': policy_accuracy,
             'train/policy_loss': policy_loss,
+            'train/value_accuracy': value_accuracy,
             'train/value_loss': value_loss,
             'train/cumulative_loss': cumulative_loss
         })
@@ -188,12 +204,14 @@ class ResNetLight(pl.LightningModule):
         
         policy_accuracy = (
             (y_hat_policy.argmax(1) == y_policy)
-            .type(torch.float)
+            .float()
             .sum()
             .item()
         ) / len(batch)
 
         outcomes_matches = y_hat_value.argmax(1) == y_value
+
+        value_accuracy = outcomes_matches.float().sum().item() / len(batch)
 
         win_mask = y_value == 0
         win_count = win_mask.type(torch.float).sum().item()
@@ -220,6 +238,7 @@ class ResNetLight(pl.LightningModule):
         self.log_dict({
             "validation/policy_accuracy": policy_accuracy,
             "validation/policy_loss": F.cross_entropy(y_hat_policy, y_policy).item(),
+            "validation/vallue_accuracy": value_accuracy,
             "validation/value_loss": F.cross_entropy(y_hat_value, y_value).item(),
         })
 
