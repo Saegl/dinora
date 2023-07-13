@@ -165,6 +165,8 @@ class ResNetLight(pl.LightningModule):
     
     def training_step(self, batch, batch_idx):
         x, (y_policy, y_value) = batch
+        batch_len = len(x)
+
         y_hat_policy, y_hat_value = self(x)
         
         policy_loss = F.cross_entropy(y_hat_policy, y_policy)
@@ -176,14 +178,14 @@ class ResNetLight(pl.LightningModule):
             .float()
             .sum()
             .item()
-        ) / len(batch)
+        ) / batch_len
 
         value_accuracy = (
             (y_hat_value.argmax(1) == y_value)
             .float()
             .sum()
             .item()
-        ) / len(batch)
+        ) / batch_len
 
         self.log_dict({
             'train/policy_accuracy': policy_accuracy,
@@ -197,6 +199,7 @@ class ResNetLight(pl.LightningModule):
     
     def validation_step(self, batch: tuple[Tensor, tuple[Tensor, Tensor]], batch_idx):
         x, (y_policy, y_value) = batch
+        batch_len = len(x)
 
         y_hat_policy: torch.Tensor
         y_hat_value: torch.Tensor
@@ -207,11 +210,11 @@ class ResNetLight(pl.LightningModule):
             .float()
             .sum()
             .item()
-        ) / len(batch)
+        ) / batch_len
 
         outcomes_matches = y_hat_value.argmax(1) == y_value
 
-        value_accuracy = outcomes_matches.float().sum().item() / len(batch)
+        value_accuracy = outcomes_matches.float().sum().item() / batch_len
 
         win_mask = y_value == 0
         win_count = win_mask.type(torch.float).sum().item()
