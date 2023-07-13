@@ -51,7 +51,6 @@ class Config:
     enable_boards_evaluator: bool
 
     log_every_n_steps: int
-    wandb_watch_every_n_steps: int
 
     limit_train_batches: int | None
     limit_val_batches: int | None  # FIXME: we use only first batches for validation
