@@ -121,6 +121,7 @@ def fit(config: Config):
 
     wandb_logger = WandbLogger(
         project='dinora-chess',
+        log_model="all",  # save model weights to wandb
         config={'config_file': asdict(config)},
     )
     
