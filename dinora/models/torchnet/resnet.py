@@ -241,7 +241,7 @@ class ResNetLight(pl.LightningModule):
         self.log_dict({
             "validation/policy_accuracy": policy_accuracy,
             "validation/policy_loss": F.cross_entropy(y_hat_policy, y_policy).item(),
-            "validation/vallue_accuracy": value_accuracy,
+            "validation/value_accuracy": value_accuracy,
             "validation/value_loss": F.cross_entropy(y_hat_value, y_value).item(),
         })
 
