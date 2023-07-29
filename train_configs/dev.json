@@ -25,6 +25,8 @@
     "val_check_type": "steps",
     "val_check_steps": 25,
 
+    "model_type": "alphanet",
+
     "res_channels": 64,
     "res_blocks": 8,
     "policy_channels": 64,

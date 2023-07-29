@@ -3,10 +3,10 @@
     "max_time": null,
     "max_epochs": -1,
     
-    "tune_batch": false,
-    "batch_size": 2048,
+    "tune_batch": true,
+    "batch_size": 512,
 
-    "tune_learning_rate": false,
+    "tune_learning_rate": true,
     "learning_rate": 0.6918309709189363,
     "lr_scheduler_gamma": 0.5,
     "lr_scheduler_freq": 30000,
@@ -25,9 +25,11 @@
     "val_check_type": "steps",
     "val_check_steps": 10000,
 
-    "res_channels": 128,
-    "res_blocks": 10,
+    "model_type": "alphanet",
+
+    "res_channels": 256,
+    "res_blocks": 19,
     "policy_channels": 64,
-    "value_channels": 16,
-    "value_lin_channels": 64
+    "value_channels": 8,
+    "value_lin_channels": 256
 }

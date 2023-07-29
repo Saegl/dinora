@@ -19,7 +19,6 @@ from lightning.pytorch.tuner import Tuner
 
 from dinora import PROJECT_ROOT
 from dinora.datamodules import CompactDataModule
-from dinora.models.torchnet.resnet import *
 from dinora.train_callbacks import SampleGameGenerator, BoardsEvaluator
 
 
@@ -58,11 +57,42 @@ class Config:
     val_check_type: Literal['chunk', 'steps']
     val_check_steps: int  # ignored when type = chunk
 
+    model_type: Literal['resnet', 'alphanet']
+
     res_channels: int
     res_blocks: int
     policy_channels: int
     value_channels: int
     value_lin_channels: int
+
+
+def get_model(config: Config):
+    if config.model_type == 'resnet':
+        from dinora.models.torchnet.resnet import ResNetLight
+        return ResNetLight(
+            res_channels=config.res_channels,
+            res_blocks=config.res_blocks,
+            policy_channels=config.policy_channels,
+            value_channels=config.value_channels,
+            value_lin_channels=config.value_lin_channels,
+
+            learning_rate=config.learning_rate,
+            lr_scheduler_gamma=config.lr_scheduler_gamma,
+            lr_scheduler_freq=config.lr_scheduler_freq
+        )
+    elif config.model_type == 'alphanet':
+        from dinora.models.torchnet.alphanet import AlphaNet
+        return AlphaNet(
+            filters=config.res_channels,
+            res_blocks=config.res_blocks,
+            policy_channels=config.policy_channels,
+            value_channels=config.value_channels,
+            value_fc_hidden=config.value_lin_channels,
+
+            learning_rate=config.learning_rate,
+            lr_scheduler_gamma=config.lr_scheduler_gamma,
+            lr_scheduler_freq=config.lr_scheduler_freq,
+        ) 
 
 
 def fit(config: Config):
@@ -107,17 +137,7 @@ def fit(config: Config):
         )
         callbacks.append(mc)
 
-    model = ResNetLight(
-        res_channels=config.res_channels,
-        res_blocks=config.res_blocks,
-        policy_channels=config.policy_channels,
-        value_channels=config.value_channels,
-        value_lin_channels=config.value_lin_channels,
-
-        learning_rate=config.learning_rate,
-        lr_scheduler_gamma=config.lr_scheduler_gamma,
-        lr_scheduler_freq=config.lr_scheduler_freq
-    )
+    model = get_model(config)
 
     wandb_logger = WandbLogger(
         project='dinora-chess',
@@ -137,13 +157,9 @@ def fit(config: Config):
 
     ccrl = CompactDataModule(
         dataset_folder=dataset_folder,
-        batch_size=config.batch_size
+        batch_size=config.batch_size,
+        value_type='scalar',
     )
-
-    # from dinora.datamodules import CCRLDataModule
-    # ccrl = CCRLDataModule(
-    #     batch_size=config.batch_size,
-    # )
 
     trainer = pl.Trainer(
         max_time=max_time,

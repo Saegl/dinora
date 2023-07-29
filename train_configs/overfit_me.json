@@ -7,7 +7,7 @@
     "batch_size": 2,
 
     "tune_learning_rate": false,
-    "learning_rate": 0.02,
+    "learning_rate": 0.001,
     "lr_scheduler_gamma": 0.5,
     "lr_scheduler_freq": 130000,
 
@@ -24,6 +24,8 @@
 
     "val_check_type": "steps",
     "val_check_steps": 10000,
+
+    "model_type": "alphanet",
 
     "res_channels": 128,
     "res_blocks": 10,
