@@ -5,26 +5,41 @@ import lightning.pytorch as pl
 
 
 class TinyConvNet(pl.LightningModule):
-    def __init__(self, policy_moves):
+    def __init__(self):
         super(TinyConvNet, self).__init__()
         self.features = nn.Sequential(
-            nn.Conv2d(18, 16, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(18, 128, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1),
+            
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2)
-        )
-        self.classifier = nn.Sequential(
+
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+        ) # 128 * 8 * 8
+
+        self.policy = nn.Sequential(
+            nn.Conv2d(8192, 0),
             nn.Flatten(),
-            nn.Linear(128, 128),
+            nn.Linear(8192, 4096),
             nn.ReLU(inplace=True),
-            nn.Linear(128, policy_moves),
+            nn.Linear(4096, 1880),
         )
+
+        print("Features params:", sum(p.numel() for p in self.features.parameters()))
+        print("Policy params:", sum(p.numel() for p in self.policy.parameters()))
+
 
     def forward(self, x):
         x = self.features(x)
-        x = self.classifier(x)
+        print("Features output", x.shape)
+        x = self.policy(x)
         return x
 
     def training_step(self, batch, batch_idx):
@@ -46,3 +61,10 @@ class TinyConvNet(pl.LightningModule):
     def on_fit_end(self):
         metrics = self.trainer.callback_metrics
         print(metrics)
+
+
+if __name__ == '__main__':
+    import torch
+    x = torch.zeros((2, 18, 8, 8))
+    model = TinyConvNet()
+    model(x)

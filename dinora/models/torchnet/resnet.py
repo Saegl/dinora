@@ -1,7 +1,7 @@
-import math
 from collections import OrderedDict
 
 import chess
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -13,6 +13,11 @@ import lightning.pytorch as pl
 
 from dinora.board_representation2 import board_to_tensor
 from dinora.policy2 import extract_prob_from_policy
+
+
+def softmax(x, tau=1.0):
+    e_x = np.exp(x / tau)
+    return e_x / e_x.sum()
 
 
 class ResNet(nn.Module):
@@ -168,7 +173,7 @@ class ResNetLight(pl.LightningModule):
         batch_len = len(x)
 
         y_hat_policy, y_hat_value = self(x)
-        
+
         policy_loss = F.cross_entropy(y_hat_policy, y_policy)
         value_loss = F.cross_entropy(y_hat_value, y_value)
         cumulative_loss = policy_loss + value_loss
@@ -265,31 +270,25 @@ class ResNetLight(pl.LightningModule):
     
     def eval_by_network(self, board: chess.Board):
         board_tensor = board_to_tensor(board)
+        get_prob = extract_prob_from_policy
 
         with torch.no_grad():
             raw_policy, raw_value = self(
                 torch.from_numpy(board_tensor).reshape((1, 18, 8, 8)).to(self.device)
             )
+
+        outcome_logits = raw_value[0].cpu().numpy()
+
+        policy = raw_policy[0].cpu()
+        outcomes_probs = softmax(outcome_logits)
+
+        moves = list(board.legal_moves)
+        move_logits = [get_prob(policy, move, not board.turn) for move in moves]
         
-        # TODO: Refactor this func, write softmax with temp
-        unwrapped_raw_policy = F.softmax(raw_policy[0])
-        outcomes_probs = F.softmax(raw_value[0], dim=-1)
+        move_priors = softmax(np.array(move_logits))
+        priors = dict(zip(moves, move_priors))
 
-        # take only legal moves from policy
-        t = 2.72
-        moves = []
-        policies = []
-        lookup = lambda policy, move: extract_prob_from_policy(policy, move, not board.turn)
-        for move in board.legal_moves:
-            move_prior = lookup(unwrapped_raw_policy, move)
-            moves.append(move)
-            policies.append(math.exp(move_prior.item() / t))
-
-        # map to sum(policies) == 1
-        s = sum(policies)
-        policies_map = map(lambda e: math.exp(e / t) / s, policies)
-
-        return dict(zip(moves, policies_map)), outcomes_probs
+        return priors, outcomes_probs
 
     def evaluate(self, board: chess.Board):
         result = board.result(claim_draw=True)
