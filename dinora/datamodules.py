@@ -1,4 +1,5 @@
 import json
+from typing import Literal
 from pathlib import Path
 
 import numpy as np
@@ -44,8 +45,14 @@ class CCRLDataModule(pl.LightningDataModule):
 
 
 class CompactDataset(TensorDataset):
-    def __init__(self, dataset_folder: Path, data: dict[str, int]) -> None:
+    def __init__(
+            self,
+            dataset_folder: Path,
+            data: dict[str, int],
+            value_type: Literal['scalar', 'wdl'] = 'wdl',
+    ) -> None:
         self.dataset_folder = dataset_folder
+        self.value_type = value_type
         self.data = data
         self.chunks_bounds = []
         self.length = sum(data.values())
@@ -81,9 +88,15 @@ class CompactDataset(TensorDataset):
                     data = np.load(chunk_info['path'])
                     self.current_left_bound = chunk_info['left_bound']
                     self.current_right_bound = chunk_info['right_bound']
+
                     self.current_loaded_boards = data['boards']
                     self.current_loaded_policies = data['policies']
                     self.current_loaded_outcomes = data['outcomes']
+
+                    if self.value_type == 'scalar':
+                        self.current_loaded_outcomes = self.current_loaded_outcomes - 1.0
+                        self.current_loaded_outcomes = self.current_loaded_outcomes.astype(np.float32).reshape(-1, 1)
+                        # TODO: inplace?
                     break
             else:
                 raise IndexError("Index out of bounds")
@@ -96,11 +109,17 @@ class CompactDataset(TensorDataset):
 
 
 class CompactDataModule(pl.LightningDataModule):
-    def __init__(self, dataset_folder: Path, batch_size: int = 128) -> None:
+    def __init__(
+            self,
+            dataset_folder: Path,
+            batch_size: int = 128,
+            value_type: Literal['scalar', 'wdl'] = 'wdl'
+    ) -> None:
         super().__init__()
         self.batch_size = batch_size
         self.hparams.batch_size = batch_size
         self.dataset_folder = dataset_folder
+        self.value_type = value_type
         report_path = dataset_folder / 'report.json'
 
         with open(report_path, 'rt', encoding='utf8') as f:
@@ -111,12 +130,12 @@ class CompactDataModule(pl.LightningDataModule):
     
     def train_dataloader(self):
         return DataLoader(
-            CompactDataset(self.dataset_folder, self.train_info),
+            CompactDataset(self.dataset_folder, self.train_info, self.value_type),
             batch_size=self.batch_size
         )
     
     def val_dataloader(self):
         return DataLoader(
-            CompactDataset(self.dataset_folder, self.val_info),
+            CompactDataset(self.dataset_folder, self.val_info, self.value_type),
             batch_size=self.batch_size
         )
