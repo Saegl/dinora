@@ -21,6 +21,10 @@ def model_selector(model: str) -> BaseModel:
         instance = ResNetLight.load_from_checkpoint("checkpoints\models\epoch=0epoch-step=8101step.ckpt")
         
         # instance = Torchnet()
+    
+    elif model == "alphanet":
+        from dinora.models.torchnet.alphanet import AlphaNet
+        instance = AlphaNet.load_from_checkpoint("models/model.ckpt")
 
     elif model == "handcrafted":
         from dinora.models.handcrafted import DummyModel

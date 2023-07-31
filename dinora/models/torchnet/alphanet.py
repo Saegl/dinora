@@ -260,6 +260,52 @@ class AlphaNet(pl.LightningModule):
 
         return priors, outcomes_probs
 
+    def raw_evaluate(self, board: chess.Board):
+        board_tensor = board_to_tensor(board)
+        get_prob = extract_prob_from_policy
+
+        with torch.no_grad():
+            raw_policy, raw_value = self(
+                torch.from_numpy(board_tensor).reshape((1, 18, 8, 8)).to(self.device)
+            )
+
+        outcome_logits = raw_value[0].cpu().item()
+
+        policy = raw_policy[0].cpu()
+
+        moves = list(board.legal_moves)
+        move_logits = [get_prob(policy, move, not board.turn) for move in moves]
+        
+        move_priors = softmax(np.array(move_logits))
+        priors = dict(zip(moves, move_priors))
+
+        return priors, outcome_logits
+
+    def evaluate(self, board: chess.Board):
+        result = board.result(claim_draw=True)
+        if result == "*":
+            # Game is not ended
+            # evaluate by using ANN
+            priors, value_estimate = self.raw_evaluate(board)
+            value_estimate = 0.0 # TODO remove
+        elif result == "1/2-1/2":
+            # It's already draw
+            # or we can claim draw, anyway `value_estimate` is 0.0
+            # TODO: should I set priors = {}?
+            # It's logical to set it empty because there is no need
+            # to calculate deeper already draw position,
+            # but with low time/nodes search, it leads to
+            # empty node.children bug
+            priors, _ = self.raw_evaluate(board)
+            value_estimate = 0.0
+        else:
+            # result == '1-0' or result == '0-1'
+            # we are checkmated because it's our turn to move
+            # so the `value_estimate` is -1.0
+            priors = {}  # no moves after checkmate
+            value_estimate = -1.0
+        return priors, value_estimate
+
 
 if __name__ == '__main__':
     net = AlphaNet()
