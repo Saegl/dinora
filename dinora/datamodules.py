@@ -97,6 +97,17 @@ class CompactDataset(TensorDataset):
                         self.current_loaded_outcomes = self.current_loaded_outcomes - 1.0
                         self.current_loaded_outcomes = self.current_loaded_outcomes.astype(np.float32).reshape(-1, 1)
                         # TODO: inplace?
+                    
+                    length = chunk_info['right_bound'] - chunk_info['left_bound']
+                    assert length == len(self.current_loaded_boards) \
+                        == len(self.current_loaded_outcomes) \
+                            == len(self.current_loaded_policies)
+                    permutation_index = np.random.permutation(length)
+
+                    self.current_loaded_boards = self.current_loaded_boards[permutation_index]
+                    self.current_loaded_policies = self.current_loaded_policies[permutation_index]
+                    self.current_loaded_outcomes = self.current_loaded_outcomes[permutation_index]
+
                     break
             else:
                 raise IndexError("Index out of bounds")
