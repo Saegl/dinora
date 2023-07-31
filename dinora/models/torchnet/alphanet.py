@@ -287,7 +287,6 @@ class AlphaNet(pl.LightningModule):
             # Game is not ended
             # evaluate by using ANN
             priors, value_estimate = self.raw_evaluate(board)
-            value_estimate = 0.0 # TODO remove
         elif result == "1/2-1/2":
             # It's already draw
             # or we can claim draw, anyway `value_estimate` is 0.0
