@@ -3,8 +3,8 @@ To run you need this deps:
 pip install -e . chess numpy wandb requests tqdm
 """
 import json
+import pathlib
 import concurrent.futures
-from pathlib import Path
 
 import numpy as np
 
@@ -33,7 +33,7 @@ def convert_ccrl_to_bin_dataset(
         'test': {},
     }
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        futures = [executor.submit(convert, pgn, save) for pgn, save in tasks]
+        futures = [executor.submit(convert_pgn_file, pgn, save) for pgn, save in tasks]
         for future in concurrent.futures.as_completed(futures):
             save_path, states_count = future.result()
             print(f"File is converted: {save_path}, states {states_count}")
@@ -48,8 +48,29 @@ def convert_ccrl_to_bin_dataset(
         json.dump(report, f)
 
 
+def convert_dir(pgns_dir: pathlib.Path, save_dir: pathlib.Path):
+    report = {
+        'train': {},
+        'test': {},
+    }
 
-def convert(pgn_path: Path, save_path: Path):
+    pgns_dir = pgns_dir.absolute()
+    save_dir = save_dir.absolute()
+
+    try:
+        for pgn_file in filter(pathlib.Path.is_file, pgns_dir.rglob("*.pgn")):
+            print(f"Processing {pgn_file}")
+            save_as = pgn_file.name + ".npz"
+            save_path, states_count = convert_pgn_file(pgn_file, save_dir / save_as)
+            rel_path = save_path.relative_to(pathlib.Path.cwd())
+            rel_path_str = str(rel_path)
+            report['train'][rel_path_str] = states_count
+    finally:
+        with open(save_dir / 'report.json', 'w') as f:
+            json.dump(report, f)
+
+
+def convert_pgn_file(pgn_path: pathlib.Path, save_path: pathlib.Path):
     boards = []
     policies = []
     outcomes = []
@@ -74,16 +95,35 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Tool to convert ccrl pgns to compact dataset"
+        description='Tool to convert pgns to compact dataset',
+    )
+
+    parser.add_argument(
+        'pgn_dir',
+        help="directory of pgn files",
+        type=pathlib.Path,
     )
     parser.add_argument(
-        "--chunks_count",
-        help="Number of chunks (max 250)",
-        type=int,
-        default=250,
+        'output_dir',
+        help="directory to save compact dataset",
+        type=pathlib.Path,
     )
+
     args = parser.parse_args()
 
-    convert_ccrl_to_bin_dataset(
-        chunks_count=args.chunks_count,
-    )
+    convert_dir(args.pgn_dir, args.output_dir)
+
+    # parser = argparse.ArgumentParser(
+    #     description="Tool to convert ccrl pgns to compact dataset"
+    # )
+    # parser.add_argument(
+    #     "--chunks_count",
+    #     help="Number of chunks (max 250)",
+    #     type=int,
+    #     default=250,
+    # )
+    # args = parser.parse_args()
+
+    # convert_ccrl_to_bin_dataset(
+    #     chunks_count=args.chunks_count,
+    # )
