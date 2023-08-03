@@ -34,6 +34,7 @@ class Config:
     matmul_precision: Literal['highest', 'high', 'medium']
     max_time: dict | None
     max_epochs: int # set -1 to ignore
+    dataset_wandb_label: str
 
     tune_batch: bool
     batch_size: int  # will be overwritten if tune_batch = True
@@ -145,15 +146,12 @@ def fit(config: Config):
         config={'config_file': asdict(config)},
     )
     
-    print("Downloading dataset from wandb")
-    dataset_label = 'saegl/dinora-chess/ccrl-compact:latest'
-    dataset_artifact = wandb.run.use_artifact(dataset_label)
+    dataset_artifact = wandb.run.use_artifact(config.dataset_wandb_label)
     dataset_artifact_dir = dataset_artifact.download()
     if isinstance(dataset_artifact_dir, RunDisabled):
         dataset_folder = PROJECT_ROOT / 'data' / 'converted_dataset'
     else:
         dataset_folder = pathlib.Path(dataset_artifact_dir)
-    print("Download complete")
 
     ccrl = CompactDataModule(
         dataset_folder=dataset_folder,
