@@ -8,72 +8,48 @@ import concurrent.futures
 
 import numpy as np
 
-from dinora import PROJECT_ROOT
 from dinora.pgntools import load_compact_state_tensors
-from dinora.ccrl import download_ccrl_dataset
 
 
-def convert_ccrl_to_bin_dataset(
-    chunks_count: int
+def convert_dir(
+    pgns_dir: pathlib.Path, save_dir: pathlib.Path, files_count: int | None
 ):
-    train_paths, test_paths = download_ccrl_dataset(
-        chunks_count=chunks_count,
-    )
+    pgns_dir = pgns_dir.absolute()
+    save_dir = save_dir.absolute()
 
-    save_dir = PROJECT_ROOT / "data/converted_dataset"
-    save_dir.mkdir(parents=True, exist_ok=True)
+    tasks = [
+        (path, save_dir / (path.name + "train.npz"))
+        for path in pgns_dir.rglob("*.pgn")
+        if path.is_file()
+    ]
 
-    # list[(pgn_path, save_path)]
-    tasks = []
-    tasks += [(path, save_dir / (path.name + "train.npz")) for path in train_paths]
-    tasks += [(path, save_dir / (path.name + "test.npz")) for path in test_paths]
+    run_parallel_convert(tasks[:files_count], save_dir)
 
+
+def run_parallel_convert(
+    tasks: list[tuple[pathlib.Path, pathlib.Path]], save_dir: pathlib.Path
+):
     report = {
-        'train': {},
-        'test': {},
+        "train": {},
+        "test": {},
     }
     with concurrent.futures.ProcessPoolExecutor() as executor:
         futures = [executor.submit(convert_pgn_file, pgn, save) for pgn, save in tasks]
         for future in concurrent.futures.as_completed(futures):
             save_path, states_count = future.result()
-            print(f"File is converted: {save_path}, states {states_count}")
+            print(f"File is converted: {save_path.name}, states {states_count}")
+            report["train"][save_path.name] = states_count
 
-            rel_path = save_path.relative_to(save_dir)
-            rel_path_str = str(rel_path)
-
-            label = 'train' if 'train' in rel_path_str else 'test'
-            report[label][rel_path_str] = states_count
-    
-    with open(save_dir / 'report.json', 'w') as f:
+    with open(save_dir / "report.json", "w") as f:
         json.dump(report, f)
-
-
-def convert_dir(pgns_dir: pathlib.Path, save_dir: pathlib.Path):
-    report = {
-        'train': {},
-        'test': {},
-    }
-
-    pgns_dir = pgns_dir.absolute()
-    save_dir = save_dir.absolute()
-
-    try:
-        for pgn_file in filter(pathlib.Path.is_file, pgns_dir.rglob("*.pgn")):
-            print(f"Processing {pgn_file}")
-            save_as = pgn_file.name + ".npz"
-            save_path, states_count = convert_pgn_file(pgn_file, save_dir / save_as)
-            rel_path = save_path.relative_to(pathlib.Path.cwd())
-            rel_path_str = str(rel_path)
-            report['train'][rel_path_str] = states_count
-    finally:
-        with open(save_dir / 'report.json', 'w') as f:
-            json.dump(report, f)
 
 
 def convert_pgn_file(pgn_path: pathlib.Path, save_path: pathlib.Path):
     boards = []
     policies = []
     outcomes = []
+
+    print("Converting", pgn_path.name)
 
     with open(pgn_path, "r", encoding="utf8", errors="ignore") as pgn:
         for compact_state, (policy, outcome) in load_compact_state_tensors(pgn):
@@ -95,35 +71,25 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description='Tool to convert pgns to compact dataset',
+        description="Tool to convert pgns to compact dataset",
     )
 
     parser.add_argument(
-        'pgn_dir',
+        "pgn_dir",
         help="directory of pgn files",
         type=pathlib.Path,
     )
     parser.add_argument(
-        'output_dir',
+        "output_dir",
         help="directory to save compact dataset",
         type=pathlib.Path,
+    )
+    parser.add_argument(
+        "--files-count",
+        help="number of files to convert",
+        type=int,
     )
 
     args = parser.parse_args()
 
-    convert_dir(args.pgn_dir, args.output_dir)
-
-    # parser = argparse.ArgumentParser(
-    #     description="Tool to convert ccrl pgns to compact dataset"
-    # )
-    # parser.add_argument(
-    #     "--chunks_count",
-    #     help="Number of chunks (max 250)",
-    #     type=int,
-    #     default=250,
-    # )
-    # args = parser.parse_args()
-
-    # convert_ccrl_to_bin_dataset(
-    #     chunks_count=args.chunks_count,
-    # )
+    convert_dir(args.pgn_dir, args.output_dir, args.files_count)
