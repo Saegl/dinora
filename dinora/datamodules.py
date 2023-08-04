@@ -1,18 +1,19 @@
 import json
+import pathlib
 from typing import Literal
-from pathlib import Path
 
 import numpy as np
 import lightning.pytorch as pl
 from torch.utils.data import DataLoader, TensorDataset
 
+from dinora import PROJECT_ROOT
 from dinora.board_representation2 import compact_state_to_board_tensor
 
 
 class CompactDataset(TensorDataset):
     def __init__(
             self,
-            dataset_folder: Path,
+            dataset_folder: pathlib.Path,
             data: dict[str, int],
             value_type: Literal['scalar', 'wdl'] = 'wdl',
     ) -> None:
@@ -87,7 +88,7 @@ class CompactDataset(TensorDataset):
 class CompactDataModule(pl.LightningDataModule):
     def __init__(
             self,
-            dataset_folder: Path,
+            dataset_folder: pathlib.Path,
             batch_size: int = 128,
             value_type: Literal['scalar', 'wdl'] = 'wdl'
     ) -> None:
@@ -115,3 +116,18 @@ class CompactDataModule(pl.LightningDataModule):
             CompactDataset(self.dataset_folder, self.val_info, self.value_type),
             batch_size=self.batch_size
         )
+
+
+class WandbDataModule(CompactDataModule):
+    def __init__(self, dataset_label: str, batch_size: int):
+        import wandb
+
+        folder_name = dataset_label.replace(":", "-").replace("/", "-")
+
+        dataset_folder = PROJECT_ROOT / 'data' / folder_name
+        dataset_folder.mkdir(parents=True, exist_ok=True)
+
+        dataset_artifact = wandb.run.use_artifact(dataset_label)
+        dataset_artifact.download(root=dataset_folder)
+
+        super().__init__(dataset_folder, batch_size, 'scalar')

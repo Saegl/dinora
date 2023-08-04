@@ -2,13 +2,9 @@ import sys
 import json
 import logging
 import warnings
-import pathlib
 from datetime import timedelta
 from dataclasses import dataclass, asdict
 from typing import Literal
-
-import wandb
-from wandb.sdk.lib.disabled import RunDisabled
 
 import torch
 
@@ -18,7 +14,7 @@ from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.tuner import Tuner
 
 from dinora import PROJECT_ROOT
-from dinora.datamodules import CompactDataModule
+from dinora.datamodules import WandbDataModule
 from dinora.train_callbacks import SampleGameGenerator, BoardsEvaluator
 
 
@@ -34,7 +30,7 @@ class Config:
     matmul_precision: Literal['highest', 'high', 'medium']
     max_time: dict | None
     max_epochs: int # set -1 to ignore
-    dataset_wandb_label: str
+    dataset_label: str
 
     tune_batch: bool
     batch_size: int  # will be overwritten if tune_batch = True
@@ -145,18 +141,10 @@ def fit(config: Config):
         log_model="all",  # save model weights to wandb
         config={'config_file': asdict(config)},
     )
-    
-    dataset_artifact = wandb.run.use_artifact(config.dataset_wandb_label)
-    dataset_artifact_dir = dataset_artifact.download()
-    if isinstance(dataset_artifact_dir, RunDisabled):
-        dataset_folder = PROJECT_ROOT / 'data' / 'converted_dataset'
-    else:
-        dataset_folder = pathlib.Path(dataset_artifact_dir)
 
-    ccrl = CompactDataModule(
-        dataset_folder=dataset_folder,
+    datamodule = WandbDataModule(
+        dataset_label=config.dataset_label,
         batch_size=config.batch_size,
-        value_type='scalar',
     )
 
     trainer = pl.Trainer(
@@ -166,7 +154,7 @@ def fit(config: Config):
         log_every_n_steps=config.log_every_n_steps,
         enable_checkpointing=config.enable_checkpointing,
         default_root_dir=PROJECT_ROOT / "checkpoints",
-        val_check_interval=calc_val_check_interval(config),
+        val_check_interval=None,
         callbacks=callbacks,
         limit_train_batches=config.limit_train_batches,
         limit_val_batches=config.limit_val_batches,
@@ -175,16 +163,16 @@ def fit(config: Config):
     tuner = Tuner(trainer)
 
     if config.tune_batch:
-        tuner.scale_batch_size(model, datamodule=ccrl)
-        config.batch_size = ccrl.hparams.batch_size
-        trainer.val_check_interval = calc_val_check_interval(config)
+        tuner.scale_batch_size(model, datamodule=datamodule)
+        config.batch_size = datamodule.hparams.batch_size
+        trainer.val_check_interval = None
 
     if config.tune_learning_rate:
-        tuner.lr_find(model, datamodule=ccrl)
+        tuner.lr_find(model, datamodule=datamodule)
 
     trainer.fit(
         model=model,
-        datamodule=ccrl,
+        datamodule=datamodule,
     )
 
 
