@@ -4,7 +4,7 @@ from chess.pgn import read_game
 from dinora.policy2 import (
     INDEX_TO_MOVE,
     INDEX_TO_FLIPPED_MOVE,
-    policy_index_tensor,
+    policy_index,
     extract_prob_from_policy,
 )
 
@@ -57,11 +57,11 @@ def test_contain_all_moves():
 
 def test_flipped_and_not_flipped():
     move = chess.Move.from_uci("e2e4")
-    assert policy_index_tensor(move, False) != policy_index_tensor(move, True)
+    assert policy_index(move, False) != policy_index(move, True)
 
 
 def test_flipped_and_not_flipped_symmetry():
     move1 = chess.Move.from_uci("e2e4")
     move2 = chess.Move.from_uci("e7e5")
 
-    assert policy_index_tensor(move1, True) == policy_index_tensor(move2, False)
+    assert policy_index(move1, True) == policy_index(move2, False)

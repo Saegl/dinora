@@ -3,22 +3,29 @@ To run you need this deps:
 pip install -e . chess numpy wandb requests tqdm
 """
 import json
+import logging
 import pathlib
 import concurrent.futures
 
+import chess.engine
+from chess.engine import LOGGER as engine_logger
+
 import numpy as np
 
-from dinora.pgntools import load_compact_state_tensors
+from dinora.board_representation2 import board_to_compact_state
+from dinora.pgntools import load_game_states
+from dinora.policy2 import policy_index
+from dinora.outcome import wdl_index, z_value, stockfish_value
 
 
 def convert_dir(
-    pgns_dir: pathlib.Path, save_dir: pathlib.Path, files_count: int | None
+    pgns_dir: pathlib.Path, save_dir: pathlib.Path, files_count: int | None, q_nodes: int
 ):
     pgns_dir = pgns_dir.absolute()
     save_dir = save_dir.absolute()
 
     tasks = [
-        (path, save_dir / (path.name + "train.npz"))
+        (path, save_dir / (path.name + "train.npz"), q_nodes)
         for path in pgns_dir.rglob("*.pgn")
         if path.is_file()
     ]
@@ -34,7 +41,7 @@ def run_parallel_convert(
         "test": {},
     }
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        futures = [executor.submit(convert_pgn_file, pgn, save) for pgn, save in tasks]
+        futures = [executor.submit(convert_pgn_file, *args) for args in tasks]
         for future in concurrent.futures.as_completed(futures):
             save_path, states_count = future.result()
             print(f"File is converted: {save_path.name}, states {states_count}")
@@ -44,27 +51,41 @@ def run_parallel_convert(
         json.dump(report, f)
 
 
-def convert_pgn_file(pgn_path: pathlib.Path, save_path: pathlib.Path):
-    boards = []
-    policies = []
-    outcomes = []
-
+def convert_pgn_file(pgn_path: pathlib.Path, save_path: pathlib.Path, q_nodes: int):
     print("Converting", pgn_path.name)
 
-    with open(pgn_path, "r", encoding="utf8", errors="ignore") as pgn:
-        for compact_state, (policy, outcome) in load_compact_state_tensors(pgn):
-            boards.append(compact_state)
-            policies.append(policy)
-            outcomes.append(outcome)
+    tensors = {name: [] for name in ["boards", "policies", "wdls", "z_values"]}
 
-    boards_np = np.array(boards, dtype=np.int64)
-    policies_np = np.array(policies, dtype=np.int64)
-    outcomes_np = np.array(outcomes, dtype=np.int64)
+    if q_nodes > 0:
+        engine_logger.setLevel(logging.ERROR)
+        # TODO: remove this debug msg = DEBUG:asyncio:Using proactor: IocpProactor
+        engine = chess.engine.SimpleEngine.popen_uci("stockfish")
+        engine.configure({"UCI_ShowWDL": True})
+        tensors['q_values'] = []
+
+    try:
+        with open(pgn_path, "r", encoding="utf8", errors="ignore") as pgn:
+            for game, board, move in load_game_states(pgn):
+                tensors["boards"].append(board_to_compact_state(board))
+                tensors["policies"].append(policy_index(move, not board.turn))
+                tensors["wdls"].append(wdl_index(game, board.turn))
+                tensors["z_values"].append(z_value(game, board.turn))
+
+                if q_nodes > 0:
+                    tensors["q_values"].append(stockfish_value(board, engine, q_nodes))
+    finally:
+        if q_nodes > 0:
+            engine.close()
+    
+    tensors["boards"] = np.array(tensors['boards'], dtype=np.int64)
+    tensors["policies"] = np.array(tensors["policies"], dtype=np.int64)
+    tensors["wdls"] = np.array(tensors["wdls"], dtype=np.int64)
+    tensors["z_values"] = np.array(tensors["z_values"], dtype=np.float32).reshape(-1, 1)
 
     np.savez_compressed(
-        save_path, boards=boards_np, policies=policies_np, outcomes=outcomes_np
+        save_path, **tensors
     )
-    return save_path, len(boards_np)
+    return save_path, len(tensors['boards'])
 
 
 if __name__ == "__main__":
@@ -86,10 +107,16 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--files-count",
-        help="number of files to convert",
+        help="number of files to convert, all if not specified",
         type=int,
+    )
+    parser.add_argument(
+        "--q-nodes",
+        help="pass positive integer to add stockfish q values",
+        type=int,
+        default=0,
     )
 
     args = parser.parse_args()
 
-    convert_dir(args.pgn_dir, args.output_dir, args.files_count)
+    convert_dir(args.pgn_dir, args.output_dir, args.files_count, args.q_nodes)

@@ -170,7 +170,7 @@ FLIPPED_MOVE_TO_INDEX = {
 assert len(INDEX_TO_MOVE) == 1880  # Looks like there is 1880 possible moves
 
 
-def policy_index_tensor(move: chess.Move, flip: bool) -> int:
+def policy_index(move: chess.Move, flip: bool) -> int:
     return FLIPPED_MOVE_TO_INDEX[move] if flip else MOVE_TO_INDEX[move]
 
 
