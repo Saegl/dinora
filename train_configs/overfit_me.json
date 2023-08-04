@@ -2,6 +2,7 @@
     "matmul_precision": "highest",
     "max_time": null,
     "max_epochs": 100,
+    "dataset_wandb_label": "saegl/dinora-chess/elite-compact:latest",
     
     "tune_batch": false,
     "batch_size": 2,
