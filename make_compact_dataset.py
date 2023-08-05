@@ -30,10 +30,20 @@ from dinora.outcome import wdl_index, z_value, stockfish_value
 
 
 def convert_dir(
-    pgns_dir: pathlib.Path, save_dir: pathlib.Path, files_count: int | None, q_nodes: int
+    pgns_dir: pathlib.Path,
+    save_dir: pathlib.Path,
+    files_count: int | None,
+    q_nodes: int,
+    train_percentage: float,
+    val_percentage: float,
+    test_percentage: float,
 ):
+    if not (0.9 <= train_percentage + val_percentage + test_percentage <= 1.1):
+        raise ValueError("Train/val/test percentage doesn't sum to 1.0")
+    
     pgns_dir = pgns_dir.absolute()
     save_dir = save_dir.absolute()
+    save_dir.mkdir(parents=True, exist_ok=True)
 
     tasks = [
         (path, save_dir / (path.name + "train.npz"), q_nodes)
@@ -41,22 +51,68 @@ def convert_dir(
         if path.is_file()
     ]
 
-    run_parallel_convert(tasks[:files_count], save_dir)
+    chunks = run_parallel_convert(tasks[:files_count])
+    generate_report(
+        chunks,
+        save_dir,
+        train_percentage,
+        val_percentage,
+        test_percentage,
+    )
 
 
 def run_parallel_convert(
-    tasks: list[tuple[pathlib.Path, pathlib.Path]], save_dir: pathlib.Path
-):
-    report = {
-        "train": {},
-        "test": {},
-    }
+    tasks: list[tuple[pathlib.Path, pathlib.Path]]
+) -> dict[str, int]:
+
+    chunks: dict[str, int] = {}
     with concurrent.futures.ProcessPoolExecutor() as executor:
         futures = [executor.submit(convert_pgn_file, *args) for args in tasks]
         for future in concurrent.futures.as_completed(futures):
             save_path, states_count = future.result()
             print(f"File is converted: {save_path.name}, states {states_count}")
-            report["train"][save_path.name] = states_count
+            chunks[save_path.name] = states_count
+    return chunks
+
+
+def generate_report(
+    chunks: dict[str, int],
+    save_dir: pathlib.Path,
+    train_percentage: float,
+    val_percentage: float,
+    test_percentage: float,
+):
+    total_states = sum(chunks.values())
+    if not (0.9 <= train_percentage + val_percentage + test_percentage <= 1.1):
+        raise ValueError("Train/val/test percentage doesn't sum to 1.0")
+
+    train_sum = total_states * train_percentage
+    val_sum = total_states * val_percentage
+
+    train_chunks, val_chunks, test_chunks = {}, {}, {}
+    train_current, val_current, test_current = 0, 0, 0
+
+    for name, states in chunks.items():
+        if train_current == 0 or train_current + states <= train_sum:
+            train_chunks[name] = states
+            train_current += states
+        elif val_current == 0 or val_current + states <= val_sum:
+            val_chunks[name] = states
+            val_current += states
+        else:
+            test_chunks[name] = states
+            test_current += states
+    
+    report = {
+        "train": train_chunks,
+        "val": val_chunks,
+        "test": test_chunks,
+        "meta": {
+            "train_percentage": train_current / total_states,
+            "val_percentage": val_current / total_states,
+            "test_percentage": test_current / total_states,
+        }
+    }
 
     with open(save_dir / "report.json", "w") as f:
         json.dump(report, f)
@@ -127,7 +183,33 @@ if __name__ == "__main__":
         type=int,
         default=0,
     )
+    parser.add_argument(
+        "--train",
+        help="train percentage",
+        type=float,
+        default=0.8,
+    )
+    parser.add_argument(
+        "--val",
+        help="val percentage",
+        type=float,
+        default=0.1,
+    )
+    parser.add_argument(
+        "--test",
+        help="test percentage",
+        type=float,
+        default=0.1,
+    )
 
     args = parser.parse_args()
 
-    convert_dir(args.pgn_dir, args.output_dir, args.files_count, args.q_nodes)
+    convert_dir(
+        args.pgn_dir,
+        args.output_dir,
+        args.files_count,
+        args.q_nodes,
+        args.train,
+        args.val,
+        args.test
+    )
