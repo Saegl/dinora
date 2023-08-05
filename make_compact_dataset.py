@@ -1,6 +1,17 @@
 """
-To run you need this deps:
-pip install -e . chess numpy wandb requests tqdm
+Steps to make your own dataset from pgn games:
+1. Download your pgn to data/<folder_name>/<your.pgn>
+2. Split your pgn to smaller parts of 10k games each with 
+`pgn-extract.exe -#10000 <your.pgn>` and place it under
+data/<folder_name2>
+3. Install deps for this script
+`pip install -e . chess numpy wandb requests tqdm`
+4. Run this program with
+`make_compact_dataset.py <folder_name2> <folder_name3>`
+You can append `--q-nodes=10` if you want add stockfish evals to
+the resulting dataset
+5. Now you can train neural network with this dataset, use <folder_name3>
+as `dataset_label` in dinora.train
 """
 import json
 import logging
