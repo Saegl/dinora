@@ -149,6 +149,9 @@ def convert_pgn_file(pgn_path: pathlib.Path, save_path: pathlib.Path, q_nodes: i
     tensors["wdls"] = np.array(tensors["wdls"], dtype=np.int64)
     tensors["z_values"] = np.array(tensors["z_values"], dtype=np.float32).reshape(-1, 1)
 
+    if q_nodes > 0:
+        tensors["q_values"] = np.array(tensors["q_values"], dtype=np.float32).reshape(-1, 1)
+
     np.savez_compressed(
         save_path, **tensors
     )

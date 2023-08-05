@@ -31,6 +31,8 @@ class Config:
     max_time: dict | None
     max_epochs: int # set -1 to ignore
     dataset_label: str
+    z_weight: float
+    q_weight: float
 
     tune_batch: bool
     batch_size: int  # will be overwritten if tune_batch = True
@@ -48,11 +50,11 @@ class Config:
 
     log_every_n_steps: int
 
-    limit_train_batches: int | None
-    limit_val_batches: int | None  # FIXME: we use only first batches for validation
+    val_check_interval: float | int
 
-    val_check_type: Literal['chunk', 'steps']
-    val_check_steps: int  # ignored when type = chunk
+    limit_train_batches: int | None
+    limit_val_batches: int | None
+    limit_test_batches: int | None
 
     model_type: Literal['resnet', 'alphanet']
 
@@ -96,24 +98,6 @@ def fit(config: Config):
     torch.set_float32_matmul_precision(config.matmul_precision)
     max_time = timedelta(**config.max_time) if config.max_time else None
 
-    def calc_val_check_interval(config: Config) -> int | float:
-        if config.val_check_type == 'chunk':
-            # 2 ply in move
-            # 40 moves on average in game
-            # 10k games in each chunk
-            positions_in_chunk = 2 * 40 * 10_000
-            steps = positions_in_chunk // config.batch_size
-
-            return steps
-
-        elif config.val_check_type == 'steps':
-            if config.limit_train_batches:
-                return min(config.val_check_steps, config.limit_train_batches)
-            else:
-                return config.val_check_steps
-        else:
-            raise ValueError("Enexpected val_check_type")
-            
     callbacks = []
 
     if config.enable_sample_game_generator:
@@ -145,6 +129,8 @@ def fit(config: Config):
     datamodule = WandbDataModule(
         dataset_label=config.dataset_label,
         batch_size=config.batch_size,
+        z_weight=config.z_weight,
+        q_weight=config.q_weight,
     )
 
     trainer = pl.Trainer(
@@ -154,10 +140,12 @@ def fit(config: Config):
         log_every_n_steps=config.log_every_n_steps,
         enable_checkpointing=config.enable_checkpointing,
         default_root_dir=PROJECT_ROOT / "checkpoints",
-        val_check_interval=None,
         callbacks=callbacks,
+        val_check_interval=config.val_check_interval,
+
         limit_train_batches=config.limit_train_batches,
         limit_val_batches=config.limit_val_batches,
+        limit_test_batches=config.limit_test_batches,
     )
 
     tuner = Tuner(trainer)
@@ -165,7 +153,6 @@ def fit(config: Config):
     if config.tune_batch:
         tuner.scale_batch_size(model, datamodule=datamodule)
         config.batch_size = datamodule.hparams.batch_size
-        trainer.val_check_interval = None
 
     if config.tune_learning_rate:
         tuner.lr_find(model, datamodule=datamodule)

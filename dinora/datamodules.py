@@ -1,6 +1,7 @@
 import json
 import pathlib
 from typing import Literal
+from lightning.pytorch.utilities.types import EVAL_DATALOADERS
 
 import numpy as np
 import lightning.pytorch as pl
@@ -15,11 +16,14 @@ class CompactDataset(TensorDataset):
             self,
             dataset_folder: pathlib.Path,
             data: dict[str, int],
-            value_type: Literal['scalar', 'wdl'] = 'wdl',
+            z_weight: float,
+            q_weight: float,
     ) -> None:
         self.dataset_folder = dataset_folder
-        self.value_type = value_type
         self.data = data
+        self.z_weight = z_weight
+        self.q_weight = q_weight
+
         self.chunks_bounds = []
         self.length = sum(data.values())
 
@@ -57,17 +61,16 @@ class CompactDataset(TensorDataset):
 
                     self.current_loaded_boards = data['boards']
                     self.current_loaded_policies = data['policies']
-                    self.current_loaded_outcomes = data['outcomes']
+                    self.current_loaded_outcomes = self.z_weight * data['z_values']
 
-                    if self.value_type == 'scalar':
-                        self.current_loaded_outcomes = self.current_loaded_outcomes - 1.0
-                        self.current_loaded_outcomes = self.current_loaded_outcomes.astype(np.float32).reshape(-1, 1)
-                        # TODO: inplace?
+                    if 'q_values' in data:
+                        self.current_loaded_outcomes += self.q_weight * data['q_values']
                     
                     length = chunk_info['right_bound'] - chunk_info['left_bound']
-                    assert length == len(self.current_loaded_boards) \
-                        == len(self.current_loaded_outcomes) \
-                            == len(self.current_loaded_policies)
+                    assert (length 
+                            == len(self.current_loaded_boards)
+                            == len(self.current_loaded_outcomes)
+                            == len(self.current_loaded_policies))
                     permutation_index = np.random.permutation(length)
 
                     self.current_loaded_boards = self.current_loaded_boards[permutation_index]
@@ -89,37 +92,55 @@ class CompactDataModule(pl.LightningDataModule):
     def __init__(
             self,
             dataset_folder: pathlib.Path,
+            z_weight: float,
+            q_weight: float,
             batch_size: int = 128,
-            value_type: Literal['scalar', 'wdl'] = 'wdl'
     ) -> None:
         super().__init__()
-        self.batch_size = batch_size
+        self.hparams.z_weight = z_weight
+        self.hparams.q_weight = q_weight
         self.hparams.batch_size = batch_size
         self.dataset_folder = dataset_folder
-        self.value_type = value_type
-        report_path = dataset_folder / 'report.json'
 
-        with open(report_path, 'rt', encoding='utf8') as f:
-            report = json.load(f)
-
-        self.train_info = report['train']
-        self.val_info = report['test']
+        with open(dataset_folder / 'report.json', 'rt', encoding='utf8') as f:
+            self.report = json.load(f)
     
     def train_dataloader(self):
         return DataLoader(
-            CompactDataset(self.dataset_folder, self.train_info, self.value_type),
-            batch_size=self.batch_size
+            CompactDataset(
+                self.dataset_folder,
+                self.report['train'],
+                self.hparams.z_weight,
+                self.hparams.q_weight,
+            ),
+            batch_size=self.hparams.batch_size
         )
     
     def val_dataloader(self):
         return DataLoader(
-            CompactDataset(self.dataset_folder, self.val_info, self.value_type),
-            batch_size=self.batch_size
+            CompactDataset(
+                self.dataset_folder,
+                self.report['val'],
+                self.hparams.z_weight,
+                self.hparams.q_weight,
+            ),
+            batch_size=self.hparams.batch_size
+        )
+    
+    def test_dataloader(self):
+        return DataLoader(
+            CompactDataset(
+                self.dataset_folder,
+                self.report['test'],
+                self.hparams.z_weight,
+                self.hparams.q_weight,
+            ),
+            batch_size=self.hparams.batch_size
         )
 
 
 class WandbDataModule(CompactDataModule):
-    def __init__(self, dataset_label: str, batch_size: int):
+    def __init__(self, dataset_label: str, batch_size: int, z_weight: float, q_weight: float):
         import wandb
 
         folder_name = dataset_label.replace(":", "-").replace("/", "-")
@@ -130,4 +151,4 @@ class WandbDataModule(CompactDataModule):
         dataset_artifact = wandb.run.use_artifact(dataset_label)
         dataset_artifact.download(root=dataset_folder)
 
-        super().__init__(dataset_folder, batch_size, 'scalar')
+        super().__init__(dataset_folder, z_weight, q_weight, batch_size)
