@@ -1,15 +1,36 @@
 import pathlib
-import wandb
-from dinora import PROJECT_ROOT
 
 
-wandb.init(
-    project='dinora-chess'
-)
+def upload_dataset(dataset_dir: pathlib.Path, wandb_label: str):
+    import wandb
 
-dataset_dir = PROJECT_ROOT / 'data' / 'converted_dataset'
+    wandb.init(
+        project='dinora-chess'
+    )
 
-artifact = wandb.Artifact('ccrl-compact', type='dataset')
-artifact.add_dir(dataset_dir)
+    artifact = wandb.Artifact(wandb_label, type='dataset')
+    artifact.add_dir(dataset_dir)
 
-wandb.log_artifact(artifact)
+    wandb.log_artifact(artifact)
+
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Tool to upload dataset to wandb",
+    )
+
+    parser.add_argument(
+        "dataset_dir",
+        help="Dataset directory",
+        type=pathlib.Path,
+    )
+    parser.add_argument(
+        "wandb_label",
+        help="Wandb dataset label",
+        type=str,
+    )
+
+    args = parser.parse_args()
+    upload_dataset(args.dataset_dir, args.wandb_label)
