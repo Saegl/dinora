@@ -163,6 +163,39 @@ def fit(config: Config):
     )
 
 
+    trainer.save_checkpoint('final-state.ckpt')
+    
+    import wandb
+
+    final_state = wandb.Artifact(
+        'final-state.ckpt', 'final-state',
+        description='Test manul state saving'
+    )
+    final_state.add_file('final-state.ckpt')
+    wandb.log_artifact(final_state)
+
+
+
+def validate(config: Config):
+    model = get_model(config)
+    model.load_from_checkpoint('models/model-eliteq.ckpt')
+
+    import wandb
+    wandb.init()
+
+    datamodule = WandbDataModule(
+        dataset_label=config.dataset_label,
+        batch_size=config.batch_size,
+        z_weight=config.z_weight,
+        q_weight=config.q_weight,
+    )
+
+    trainer = pl.Trainer(
+        limit_val_batches=config.limit_val_batches,
+    )
+    trainer.validate(model, datamodule)
+
+
 if __name__ == "__main__":
     try:
         path = sys.argv[1]
