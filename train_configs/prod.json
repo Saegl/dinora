@@ -19,6 +19,7 @@
 
     "enable_sample_game_generator": true,
     "enable_boards_evaluator": true,
+    "enable_validation_checkpointer": true,
 
     "log_every_n_steps": 15,
     "val_check_interval": 0.33,

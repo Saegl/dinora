@@ -1,3 +1,4 @@
+import pathlib
 from io import BytesIO
 
 import chess
@@ -64,3 +65,23 @@ class BoardsEvaluator(Callback):
             data.append(entry)
         
         trainer.logger.log_text(key='val_positions', columns=COLUMNS, data=data)
+
+
+class ValidationCheckpointer(Callback):
+    def __init__(self):
+        self.saves_counter = 0
+    
+    def on_validation_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
+        self.saves_counter += 1
+        filepath = pathlib.Path(f'valid-state-{self.saves_counter}.ckpt').absolute()
+
+        trainer.save_checkpoint(filepath)
+    
+        import wandb
+
+        final_state = wandb.Artifact(
+            name=f'valid-state-{self.saves_counter}',
+            type='valid-state'
+        )
+        final_state.add_file(filepath)
+        wandb.log_artifact(final_state)

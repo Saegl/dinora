@@ -15,7 +15,7 @@ from lightning.pytorch.tuner import Tuner
 
 from dinora import PROJECT_ROOT
 from dinora.datamodules import WandbDataModule
-from dinora.train_callbacks import SampleGameGenerator, BoardsEvaluator
+from dinora.train_callbacks import SampleGameGenerator, BoardsEvaluator, ValidationCheckpointer
 
 
 warnings.filterwarnings("ignore", message="The dataloader, .* to improve performance.")
@@ -47,6 +47,7 @@ class Config:
 
     enable_sample_game_generator: bool
     enable_boards_evaluator: bool
+    enable_validation_checkpointer: bool
 
     log_every_n_steps: int
 
@@ -105,6 +106,9 @@ def fit(config: Config):
 
     if config.enable_boards_evaluator:
         callbacks.append(BoardsEvaluator())
+    
+    if config.enable_validation_checkpointer:
+        callbacks.append(ValidationCheckpointer())
 
     if config.enable_checkpointing:
         checkpoint_train_time_interval = timedelta(
@@ -161,19 +165,6 @@ def fit(config: Config):
         model=model,
         datamodule=datamodule,
     )
-
-
-    trainer.save_checkpoint('final-state.ckpt')
-    
-    import wandb
-
-    final_state = wandb.Artifact(
-        'final-state.ckpt', 'final-state',
-        description='Test manul state saving'
-    )
-    final_state.add_file('final-state.ckpt')
-    wandb.log_artifact(final_state)
-
 
 
 def validate(config: Config):
