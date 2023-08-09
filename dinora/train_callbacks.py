@@ -4,6 +4,7 @@ from io import BytesIO
 import chess
 import cairosvg
 import wandb
+import torch
 from PIL import Image
 
 import lightning.pytorch as pl
@@ -75,7 +76,7 @@ class ValidationCheckpointer(Callback):
         self.saves_counter += 1
         filepath = pathlib.Path(f'valid-state-{self.saves_counter}.ckpt').absolute()
 
-        trainer.save_checkpoint(filepath)
+        torch.save(pl_module, filepath)
     
         import wandb
 
