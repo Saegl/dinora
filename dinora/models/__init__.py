@@ -23,8 +23,8 @@ def model_selector(model: str) -> BaseModel:
         # instance = Torchnet()
     
     elif model == "alphanet":
-        from dinora.models.torchnet.alphanet import AlphaNet
-        instance = AlphaNet.load_from_checkpoint("models/model.ckpt")
+        import torch
+        instance = torch.load('models/valid-state-5.ckpt')
 
     elif model == "handcrafted":
         from dinora.models.handcrafted import DummyModel
