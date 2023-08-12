@@ -10,15 +10,16 @@ from PIL import Image
 import lightning.pytorch as pl
 from lightning.pytorch.callbacks import Callback
 
-from dinora.models.torchnet.resnet import ResNetLight
-from dinora.handmade_val_dataset.dataset import POSITIONS
+from dinora.train.handmade_val_dataset.dataset import POSITIONS
 
 
 class SampleGameGenerator(Callback):
     def on_fit_start(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
         self.table = wandb.Table(columns=["moves"])
 
-    def on_validation_end(self, trainer: pl.Trainer, pl_module: ResNetLight) -> None:
+    def on_validation_end(
+        self, trainer: pl.Trainer, pl_module: pl.LightningModule
+    ) -> None:
         board = chess.Board()
         while board.result() == "*" and board.ply() != 120:
             policy, _ = pl_module.eval_by_network(board)
@@ -41,7 +42,9 @@ class BoardsEvaluator(Callback):
         image = Image.open(png_out)
         return image
 
-    def on_validation_end(self, trainer: pl.Trainer, pl_module: ResNetLight) -> None:
+    def on_validation_end(
+        self, trainer: pl.Trainer, pl_module: pl.LightningModule
+    ) -> None:
         data = []
         COLUMNS = ["image"] * self.render_image + [
             "fen",
