@@ -1,47 +1,22 @@
 from dinora.models.base import BaseModel, Priors, StateValue
+from dinora.models.cached_model import CachedModel
+from dinora.models.handcrafted import DummyModel
 
 
 def model_selector(model: str) -> BaseModel:
     if model.startswith("cached_"):
         model = model.removeprefix("cached_")
-        cached = True
-    else:
-        cached = False
-
-    instance: BaseModel
-
-    if model == "torchnet":
-        # from dinora.models.torchnet.adapter import Torchnet
-        from dinora.models.torchnet.resnet import ResNetLight
-
-        instance = ResNetLight.load_from_checkpoint(
-            "checkpoints\models\epoch=0epoch-step=8101step.ckpt"
-        )
-
-        # instance = Torchnet()
+        return CachedModel(model_selector(model))
 
     elif model == "alphanet":
-        import torch
+        import torch  # Torch import at the top makes UCI slower
 
-        instance = torch.load("models/valid-state-5.ckpt")
+        return torch.load("models/valid-state-5.ckpt")
 
     elif model == "handcrafted":
-        from dinora.models.handcrafted import DummyModel
-
-        instance = DummyModel()
-    elif model == "badgyal":
-        from dinora.models.badgyal import BadgyalModel
-
-        instance = BadgyalModel()
+        return DummyModel()
     else:
         raise ValueError("Unknown model name")
-
-    if cached:
-        from dinora.models.cached_model import CachedModel
-
-        return CachedModel(instance)
-    else:
-        return instance
 
 
 __all__ = ["BaseModel", "Priors", "StateValue", "model_selector"]

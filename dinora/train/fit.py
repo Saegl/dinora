@@ -61,7 +61,7 @@ class Config:
     limit_val_batches: int | None
     limit_test_batches: int | None
 
-    model_type: Literal["resnet", "alphanet"]
+    model_type: Literal["alphanet"]
 
     res_channels: int
     res_blocks: int
@@ -71,21 +71,8 @@ class Config:
 
 
 def get_model(config: Config):
-    if config.model_type == "resnet":
-        from dinora.models.torchnet.resnet import ResNetLight
-
-        return ResNetLight(
-            res_channels=config.res_channels,
-            res_blocks=config.res_blocks,
-            policy_channels=config.policy_channels,
-            value_channels=config.value_channels,
-            value_lin_channels=config.value_lin_channels,
-            learning_rate=config.learning_rate,
-            lr_scheduler_gamma=config.lr_scheduler_gamma,
-            lr_scheduler_freq=config.lr_scheduler_freq,
-        )
-    elif config.model_type == "alphanet":
-        from dinora.models.torchnet.alphanet import AlphaNet
+    if config.model_type == "alphanet":
+        from dinora.models.alphanet import AlphaNet
 
         return AlphaNet(
             filters=config.res_channels,
@@ -97,6 +84,8 @@ def get_model(config: Config):
             lr_scheduler_gamma=config.lr_scheduler_gamma,
             lr_scheduler_freq=config.lr_scheduler_freq,
         )
+    else:
+        raise ValueError("This model is not supported")
 
 
 def fit(config: Config):
