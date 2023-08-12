@@ -1,6 +1,6 @@
 from typing import Callable
 from dataclasses import dataclass, field
-from dinora.cli.uci_options import FloatString
+from dinora.uci.uci_options import FloatString  # TODO: uncouple uci and mcts
 
 
 @dataclass

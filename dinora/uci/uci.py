@@ -1,5 +1,4 @@
 import sys
-import traceback
 from typing import Iterator, Any
 from dataclasses import fields
 
@@ -16,8 +15,8 @@ from dinora.mcts import (
     NodesCountConstraint,
 )
 from dinora.models import BaseModel, model_selector
-from dinora.cli.uci_parser import parse_go_params
-from dinora.cli.uci_options import UciOptions
+from dinora.uci.uci_parser import parse_go_params
+from dinora.uci.uci_options import UciOptions
 
 
 def send(s: str) -> None:
@@ -27,9 +26,7 @@ def send(s: str) -> None:
 
 
 class UciState:
-    def __init__(self, model_name: str, override_go: str) -> None:
-        self.model_name: str = model_name
-        self.override_go: str = override_go
+    def __init__(self) -> None:
         self.model: BaseModel | None = None  # model initialized after first `go` call
         self.board = chess.Board()
         self.mcts_params = MCTSparams()
@@ -51,7 +48,7 @@ class UciState:
     def load_model(self) -> None:
         if self.model is None:
             send("info string loading nn, it make take a while")
-            self.model = model_selector(self.model_name)
+            self.model = model_selector("alphanet")  # TODO dont hardcode
             send("info string nn is loaded")
 
     def dispatcher(self, line: str) -> None:
@@ -125,9 +122,6 @@ class UciState:
         self.load_model()
         assert self.model  # Model loaded and it's not None
 
-        if self.override_go:
-            tokens = self.override_go.strip().split()
-
         go_params = parse_go_params(tokens)
         send(f"info string parsed params {go_params}")
 
@@ -170,19 +164,6 @@ class UciState:
         send(f"bestmove {move}")
 
 
-def start_uci(model_name: str, override_go: str) -> None:
-    try:
-        uci_state = UciState(model_name, override_go)
-        uci_state.loop()
-    except SystemExit:
-        pass
-    except:
-        with open("dinora.log", "wt", encoding="utf8") as logfile:
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            logfile.write(
-                "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
-            )
-            logfile.write("\n")
-
-        with open("dinora.log", "rt", encoding="utf8") as f:
-            print(f.read())
+def start_uci() -> None:
+    uci_state = UciState()
+    uci_state.loop()
