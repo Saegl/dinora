@@ -2,8 +2,7 @@ import math
 import chess
 import torch
 
-from dinora.models.torchnet.linear_net import LinearNN
-from dinora.models.torchnet.resnet import ResNet, ResNetLight
+from dinora.models.torchnet.resnet import ResNetLight
 from dinora.board_representation import board_to_tensor
 from dinora.policy import extract_prob_from_policy
 from dinora.models import BaseModel, Priors, StateValue
@@ -45,9 +44,10 @@ class Torchnet(BaseModel):
         t = self.softmax_temp
         moves = []
         policies = []
-        lookup = lambda policy, move: extract_prob_from_policy(
-            policy, move, not board.turn
-        )
+
+        def lookup(policy, move):
+            return extract_prob_from_policy(policy, move, not board.turn)
+
         for move in board.legal_moves:
             move_prior = lookup(policy, move)
             moves.append(move)

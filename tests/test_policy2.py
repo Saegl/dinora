@@ -5,7 +5,6 @@ from dinora.policy import (
     INDEX_TO_MOVE,
     INDEX_TO_FLIPPED_MOVE,
     policy_index,
-    extract_prob_from_policy,
 )
 
 

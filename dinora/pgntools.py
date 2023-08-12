@@ -10,7 +10,7 @@ import numpy.typing as npt
 
 from dinora.board_representation import board_to_tensor, board_to_compact_state
 from dinora.policy import policy_index
-from dinora.outcome import wdl_index, z_value
+from dinora.outcome import wdl_index
 
 logging.basicConfig(level=logging.DEBUG)
 

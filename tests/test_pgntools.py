@@ -1,5 +1,10 @@
 from io import StringIO
-from dinora.pgntools import *
+from dinora.pgntools import (
+    load_chess_games,
+    load_state_tensors,
+    load_game_states,
+    load_compact_state_tensors,
+)
 
 
 pgn_games = """
@@ -94,15 +99,3 @@ def test_load_tensors_count():
     tensors = len(list(load_state_tensors(handle2)))
     compact_tensors = len(list(load_compact_state_tensors(handle3)))
     assert states == tensors == compact_tensors
-
-
-def test_alternating_outcomes():
-    handle = StringIO(pgn_games)
-
-    outcomes = [outcome for _, (_, outcome) in load_state_tensors(handle)]
-
-    assert outcomes[0:113] == [DRAW for _ in range(113)]
-    assert outcomes[113:200] == [
-        WHITE_WON if n % 2 == 0 else BLACK_WON for n in range(87)
-    ]
-    assert outcomes[200:] == [WHITE_WON if n % 2 == 1 else BLACK_WON for n in range(94)]

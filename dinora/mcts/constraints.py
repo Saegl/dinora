@@ -75,4 +75,4 @@ class InfiniteConstraint(Constraint):
         return True
 
     def __str__(self) -> str:
-        return f"<InfiniteConstraint 8>"
+        return "<InfiniteConstraint 8>"

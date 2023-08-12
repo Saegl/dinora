@@ -26,6 +26,9 @@ homepage = "https://github.com/DinoraChess/dinora"
 repository = "https://github.com/DinoraChess/dinora"
 documentation = "https://dinora.readthedocs.io/en/latest"
 
+[tool.ruff]
+ignore = ["E501"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

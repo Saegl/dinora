@@ -1,3 +1,6 @@
+from pprint import pprint
+
+
 output = []
 
 with open("human_eval.txt", "r", encoding="utf8") as f:
@@ -18,7 +21,5 @@ with open("human_eval.txt", "r", encoding="utf8") as f:
             )
 
         f.readline()
-
-from pprint import pprint
 
 pprint(output)
