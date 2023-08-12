@@ -1,7 +1,7 @@
 import chess
 from io import StringIO
 from chess.pgn import read_game
-from dinora.policy2 import (
+from dinora.policy import (
     INDEX_TO_MOVE,
     INDEX_TO_FLIPPED_MOVE,
     policy_index,

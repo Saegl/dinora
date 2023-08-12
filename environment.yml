@@ -15,7 +15,7 @@ dependencies:
   - pytorch-cuda
   - matplotlib
   - notebook
-  
+
   # Visualizations
   - pillow
   - cairosvg
@@ -24,10 +24,6 @@ dependencies:
   - pip
   - pip:
       - -e .
-      # TODO migrate fully to torch and remove tf
-      - tensorflow<2.11
-      - tensor-annotations
-      - tensor-annotations-tensorflow-stubs
       - chess
       - pylru
       - click

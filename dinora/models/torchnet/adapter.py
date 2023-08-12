@@ -4,8 +4,8 @@ import torch
 
 from dinora.models.torchnet.linear_net import LinearNN
 from dinora.models.torchnet.resnet import ResNet, ResNetLight
-from dinora.board_representation2 import board_to_tensor
-from dinora.policy2 import extract_prob_from_policy
+from dinora.board_representation import board_to_tensor
+from dinora.policy import extract_prob_from_policy
 from dinora.models import BaseModel, Priors, StateValue
 
 

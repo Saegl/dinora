@@ -1,107 +1,188 @@
-from typing import Any
+"""
+Dinora chess engine uses Deep Neural Network
+to give prior probability of each move.
+
+In NN, prior probabilities represented by one-hot encoding.
+For that reason we need to generate all possible chess moves.
+This module does exactly this
+
+Generated moves are then stored in ALL_UCI_MOVES variable in UCI format
+
+UCI move format is
+    start_position + end_position + optional_promotion_piece_type
+    where start_position = (start letter) + (start number)
+        end_position = (end letter) + (end number)
+        optional_promotion_piece_type = 'q' | 'r' | 'b' | 'n' | ''
+
+Also note, to reduce possible NN inputs and increase training speed,
+NN see board only from white perspective.
+So when we want to make NN inference for black perspective
+-> we have to flip board over horizontal line 
+(white becomes black and black becomes white),
+after this flip, all prior probabilites from NN also comes flipped.
+"""
+from typing import Iterable
+from itertools import product, chain
+
 import chess
 import numpy as np
+import numpy.typing as npt
 
 
-def create_flipped_uci_labels() -> list[str]:
+# rank (letter, horizontal), file (number, vertical)
+Position = tuple[int, int]
+
+LETTERS = list("abcdefgh")
+NUMBERS = list(map(str, range(1, 9)))
+
+
+def every_square() -> Iterable[Position]:
+    "Return indices of 64 squares (position tuples)"
+    for i, j in product(range(8), range(8)):
+        yield i, j
+
+
+def addsq(a: Position, b: Position) -> Position:
+    "Add two position tuples"
+    return a[0] + b[0], a[1] + b[1]
+
+
+def position_to_uci_string(t: Position) -> str:
+    return LETTERS[t[0]] + NUMBERS[t[1]]
+
+
+def valid_tuple(t: Position) -> bool:
+    return 0 <= t[0] <= 7 and 0 <= t[1] <= 7
+
+
+vertical_transitions = [(t, 0) for t in range(-8, 8)]
+horizontal_transitions = [(0, t) for t in range(-8, 8)]
+diagonal_asc_transitions = [(t, t) for t in range(-8, 8)]
+diagonal_desc_transitions = [(t, -t) for t in range(-8, 8)]
+knight_transitions = [
+    (-2, -1),
+    (-1, -2),
+    (-2, 1),
+    (1, -2),
+    (2, -1),
+    (-1, 2),
+    (2, 1),
+    (1, 2),
+]
+
+
+def generate_uci_moves() -> list[str]:
     """
-    Seems to somehow transform the labels used for describing the universal chess interface format, putting
-    them into a returned list.
-    :return:
+    Generate all possible moves for NN policy in UCI format
     """
+    all_moves = []
 
-    def repl(x: str) -> str:
-        return "".join([(str(9 - int(a)) if a.isdigit() else a) for a in x])
-
-    return [repl(x) for x in create_uci_labels()]
-
-
-def create_uci_labels() -> list[str]:
-    """
-    Creates the labels for the UCI into an array and returns them
-    """
-    labels_array = []
-    letters = ["a", "b", "c", "d", "e", "f", "g", "h"]  # horizontal
-    numbers = ["1", "2", "3", "4", "5", "6", "7", "8"]  # vertical
-    promoted_to = ["q", "r", "b", "n"]
-
-    # UCI move is like e2e4 = for pawns
+    # First 'for' cycle
+    # Covers Knight, Rook, Bishop, Queen,
+    # Pawn staight moves, takes, but not promotions
     #
-    # l1 = letter1 index
-    # n1 = number1 index
-    # l2 = letter2 index
-    # n2 = number2 index
-    #
-    for l1 in range(8):
-        for n1 in range(8):
-            destinations = (
-                # horizontal straight moves (for rook and queen)
-                [(t, n1) for t in range(8)]
-                # vertical straight moves (for rook and queen)
-                + [(l1, t) for t in range(8)]
-                # Diagonal moves (for bishop and queen)
-                + [(l1 + t, n1 + t) for t in range(-7, 8)]
-                + [(l1 + t, n1 - t) for t in range(-7, 8)]
-                # Knight moves
-                + [
-                    (l1 + a, n1 + b)
-                    for (a, b) in [
-                        (-2, -1),
-                        (-1, -2),
-                        (-2, 1),
-                        (1, -2),
-                        (2, -1),
-                        (-1, 2),
-                        (2, 1),
-                        (1, 2),
-                    ]
-                ]
-            )
-            for (l2, n2) in destinations:
-                if (l1, n1) != (l2, n2) and l2 in range(8) and n2 in range(8):
-                    move = letters[l1] + numbers[n1] + letters[l2] + numbers[n2]
-                    labels_array.append(move)
-    for l1 in range(8):
-        l = letters[l1]
-        for p in promoted_to:
-            labels_array.append(l + "2" + l + "1" + p)
-            labels_array.append(l + "7" + l + "8" + p)
-            if l1 > 0:
-                l_l = letters[l1 - 1]
-                labels_array.append(l + "2" + l_l + "1" + p)
-                labels_array.append(l + "7" + l_l + "8" + p)
-            if l1 < 7:
-                l_r = letters[l1 + 1]
-                labels_array.append(l + "2" + l_r + "1" + p)
-                labels_array.append(l + "7" + l_r + "8" + p)
-    return labels_array
+    # In UCI we don't specify piece type to move
+    # so e4d5 covers pawn take, queen and bishop move
+    for start_tuple in every_square():
+        start_position = position_to_uci_string(start_tuple)
+
+        for transition in chain(
+            vertical_transitions,
+            horizontal_transitions,
+            diagonal_asc_transitions,
+            diagonal_desc_transitions,
+            knight_transitions,
+        ):
+            end_tuple = addsq(start_tuple, transition)
+
+            if start_tuple == end_tuple:
+                # Staying on the same square is not a valid move
+                continue
+
+            if not valid_tuple(end_tuple):
+                # We are not on the 8*8 board
+                continue
+
+            end_position = position_to_uci_string(end_tuple)
+            uci_move = start_position + end_position
+            all_moves.append(uci_move)
+
+    # Second 'for' cycle
+    # Covers Pawn promotions
+    # Note:
+    #    NN agent always play from white perspective
+    #    (we mirror board otherwise)
+    #    so there is no need to cover promotions from black perspective
+
+    promote_to = ["q", "r", "b", "n"]
+
+    # White can promote only from 7th rank, 6th if we count from 0
+    for start_tuple in [(t, 6) for t in range(8)]:
+        start_position = position_to_uci_string(start_tuple)
+
+        for transition in [(-1, 1), (0, 1), (1, 1)]:
+            end_tuple = addsq(start_tuple, transition)
+
+            if not valid_tuple(end_tuple):
+                # We are not on the 8*8 board
+                continue
+
+            end_position = position_to_uci_string(end_tuple)
+            uci_move = start_position + end_position
+
+            for ptype in promote_to:
+                promotion_move = uci_move + ptype
+                all_moves.append(promotion_move)
+
+    return all_moves
 
 
-uci_labels = create_uci_labels()
-flipped_uci_labels = create_flipped_uci_labels()
-unflipped_index = [uci_labels.index(x) for x in flipped_uci_labels]
+def flip_moves(moves: list[str]) -> list[str]:
+    def flip_move(move: str) -> str:
+        """
+        After horizontal flip of chess board,
+        only vertical components of move affected (files)
+        """
 
-move_lookup = {
-    chess.Move.from_uci(move): i for move, i in zip(uci_labels, range(len(uci_labels)))
-}
-flipped_move_lookup = {
+        def flip_file(file: str) -> str:
+            to_num = int(file)
+            flipped = 9 - to_num
+            return str(flipped)
+
+        return "".join([(flip_file(c) if c.isdigit() else c) for c in move])
+
+    return [flip_move(move) for move in moves]
+
+
+INDEX_TO_MOVE: list[str] = generate_uci_moves()
+INDEX_TO_FLIPPED_MOVE = flip_moves(INDEX_TO_MOVE)
+
+MOVE_TO_INDEX = {
     chess.Move.from_uci(move): i
-    for move, i in zip(flipped_uci_labels, range(len(uci_labels)))
+    for i, move in enumerate(INDEX_TO_MOVE)
+}
+FLIPPED_MOVE_TO_INDEX = {
+    chess.Move.from_uci(move): i
+    for i, move in enumerate(INDEX_TO_FLIPPED_MOVE)
 }
 
 
-def policy_from_move(move: chess.Move) -> Any:
-    policy = np.zeros(len(uci_labels), dtype=np.float32)
-
-    i = move_lookup[move]
-    policy[i] = 1.0
-    return policy
+assert len(INDEX_TO_MOVE) == 1880  # Looks like there is 1880 possible moves
 
 
-def flip_policy(pol: Any) -> Any:
-    """
+def policy_index(move: chess.Move, flip: bool) -> int:
+    return FLIPPED_MOVE_TO_INDEX[move] if flip else MOVE_TO_INDEX[move]
 
-    :param pol policy to flip:
-    :return: the policy, flipped (for switching between black and white it seems)
-    """
-    return np.asarray([pol[ind] for ind in unflipped_index])
+
+def index_to_move(index: int, flip: bool) -> str:
+    return INDEX_TO_FLIPPED_MOVE[index] if flip else INDEX_TO_MOVE[index]
+
+
+def extract_prob_from_policy(
+    policy: npt.NDArray[np.float32],
+    move: chess.Move,
+    flip: bool,
+) -> np.float32:
+    move_to_index_lookup = FLIPPED_MOVE_TO_INDEX if flip else MOVE_TO_INDEX
+    index = move_to_index_lookup[move]
+    return policy[index]

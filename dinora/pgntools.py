@@ -8,8 +8,8 @@ from chess.pgn import Game
 import numpy as np
 import numpy.typing as npt
 
-from dinora.board_representation2 import board_to_tensor, board_to_compact_state
-from dinora.policy2 import policy_index
+from dinora.board_representation import board_to_tensor, board_to_compact_state
+from dinora.policy import policy_index
 from dinora.outcome import wdl_index, z_value
 
 logging.basicConfig(level=logging.DEBUG)

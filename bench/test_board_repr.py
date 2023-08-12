@@ -1,6 +1,5 @@
 import chess
-from dinora.board_representation import canon_input_planes
-from dinora.board_representation2 import board_to_tensor
+from dinora.board_representation import board_to_tensor
 
 
 FENS = [
@@ -16,19 +15,10 @@ FENS = [
 BOARDS = [chess.Board(fen) for fen in FENS]
 
 
-def bulk_boards_old(boards: list[chess.Board]):
-    for board in boards:
-        canon_input_planes(board.fen(), not board.turn)
-
-
-def bulk_boards_new(boards: list[chess.Board]):
+def bulk_boards(boards: list[chess.Board]):
     for board in boards:
         board_to_tensor(board)
 
 
-def test_board_repr_old(benchmark):
-    benchmark(bulk_boards_old, BOARDS)
-
-
 def test_board_repr_new(benchmark):
-    benchmark(bulk_boards_new, BOARDS)
+    benchmark(bulk_boards, BOARDS)

@@ -64,8 +64,8 @@ from torch.optim.lr_scheduler import StepLR
 
 import lightning.pytorch as pl
 
-from dinora.board_representation2 import board_to_tensor
-from dinora.policy2 import extract_prob_from_policy
+from dinora.board_representation import board_to_tensor
+from dinora.policy import extract_prob_from_policy
 
 
 def softmax(x, tau=1.0):

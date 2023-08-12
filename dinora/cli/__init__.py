@@ -29,27 +29,6 @@ def uci(model: str, override_go: str) -> None:
 
 
 @cli.command()
-def healthcheck() -> None:
-    """Check if Dinora is installed properly"""
-    import tensorflow as tf
-
-    ok = True
-    click.secho("Checking gpu...")
-    if tf.config.list_physical_devices("GPU"):
-        click.secho("GPU: Found", fg="green")
-    else:
-        ok = False
-        click.secho("GPU: Not found", fg="red")
-
-    # TODO check that keras model is reachable
-
-    if ok:
-        click.secho("OK: Everything is working", fg="green")
-    else:
-        click.secho("NOT OK: errors above", fg="red")
-
-
-@cli.command()
 def download() -> None:
     """Download model weights"""
     raise UnimplementedCommand("Download is not yet implemented")

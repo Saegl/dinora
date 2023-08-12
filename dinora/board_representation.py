@@ -1,142 +1,151 @@
 """
-The main function here is canon_input_planes.
-It takes board fen, like this: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-and returns a numpy array of shape (18, 8, 8) for keras CNN input in NCHW format.
-
-N is the number of boards (since this func process only one board, it is not in numpy shape for now)
-C [channels] is the number of planes (12 for pieces, 4 for castling, 1 for fifty move, 1 for en passant)
-H [height] and W [width] are the chess board size 8 x 8
-
-More about channels layers:
-    Pieces layers (12), each layer is a 8 x 8 matrix of floats, with 1.0 for a piece and 0.0 for empty cell:
-        0 => white king
-        1 => white queen
-        2 => white rook
-        3 => white bishop
-        4 => white knight
-        5 => white pawn
-        6 => black king
-        7 => black queen
-        8 => black rook
-        9 => black bishop
-        10 => black knight
-        11 => black pawn
-    Castling layers (4), entire layer is filled with 1.0 if castling is available, 0.0 otherwise:
-        12 => white can castle kingside
-        13 => white can castle queenside
-        14 => black can castle kingside
-        15 => black can castle queenside
-    Fifty move layer (1), filled with the number of half moves since the last pawn move or capture:
-        16 => fifty move count
-    En passant layer (1):
-        17 => en passant square
+Board tensor in NCHW format:
+    N is the number of boards = 1
+    C [channels] is the number of planes
+        (12 for pieces, 4 for castling, 1 for fifty move, 1 for en passant)
+        = 12 + 4 + 1 + 1 = 18
+    H [height] of chess board = 8
+    W [width] of chess board = 8
 
 Array weight is 18 * 8 * 8 * 4 = 4608 bytes, where 4 is float32
 """
-
+import chess
 import numpy as np
-
-pieces_order = "KQRBNPkqrbnp"  # 12x8x8
-ind = {pieces_order[i]: i for i in range(12)}
+import numpy.typing as npt
 
 
-def canon_input_planes(fen, flip: bool):
-    """
-    :param fen:
-    :return : (18, 8, 8) representation of the game state
-    """
+PLANE_NAMES = [
+    "WHITE KING",
+    "WHITE QUEEN",
+    "WHITE ROOK",
+    "WHITE BISHOP",
+    "WHITE KNIGHT",
+    "WHITE PAWN",
+    "BLACK KING",
+    "BLACK QUEEN",
+    "BLACK ROOK",
+    "BLACK BISHOP",
+    "BLACK KNIGHT",
+    "BLACK PAWN",
+    "WHITE SHORT CASTLE",
+    "WHITE LONG CASTLE",
+    "BLACK SHORT CASTLE",
+    "BLACK LONG CASTLE",
+    "FIFTY MOVES COUNTER",
+    "CAN EN PASSANT",
+]
+
+assert len(PLANE_NAMES) == 18
+
+PIECE_INDEX = {
+    (chess.KING, chess.WHITE): 0,
+    (chess.QUEEN, chess.WHITE): 1,
+    (chess.ROOK, chess.WHITE): 2,
+    (chess.BISHOP, chess.WHITE): 3,
+    (chess.KNIGHT, chess.WHITE): 4,
+    (chess.PAWN, chess.WHITE): 5,
+    (chess.KING, chess.BLACK): 6,
+    (chess.QUEEN, chess.BLACK): 7,
+    (chess.ROOK, chess.BLACK): 8,
+    (chess.BISHOP, chess.BLACK): 9,
+    (chess.KNIGHT, chess.BLACK): 10,
+    (chess.PAWN, chess.BLACK): 11,
+}
+
+assert len(PIECE_INDEX) == 12
+
+
+def board_to_tensor(board: chess.Board) -> npt.NDArray[np.float32]:
+    "Convert current state (chessboard) to tensor"
+    flip = not board.turn
     if flip:
-        fen = flip_fen(fen)
-    return all_input_planes(fen)
+        board = board.mirror()
+
+    tensor = np.zeros((18, 8, 8), np.float32)
+
+    # Set pieces [0: 12)
+    for square in chess.SQUARES:
+        piece = board.piece_at(square)
+        if piece:
+            index = PIECE_INDEX[piece.piece_type, piece.color]
+            tensor[index][square // 8][(square % 8)] = 1.0
+
+    # Set castling rights [12: 16)
+    if board.castling_rights & chess.BB_H1:
+        tensor[12].fill(1.0)
+    if board.castling_rights & chess.BB_A1:
+        tensor[13].fill(1.0)
+    if board.castling_rights & chess.BB_H8:
+        tensor[14].fill(1.0)
+    if board.castling_rights & chess.BB_A8:
+        tensor[15].fill(1.0)
+
+    # Set fifty move counter [16: 17)
+    tensor[16].fill(float(board.halfmove_clock))
+
+    # Set en passant square [17: 18)
+    if board.has_legal_en_passant():
+        square: chess.Square = board.ep_square
+        tensor[17][square // 8][square % 8] = 1.0
+
+    return tensor
 
 
-def flip_fen(fen):
-    foo = fen.split(" ")
-    rows = foo[0].split("/")
+def board_to_compact_state(board: chess.Board) -> np.ndarray:
+    flip = not board.turn
+    if flip:
+        board = board.mirror()
 
-    def swapcase(a):
-        if a.isalpha():
-            return a.lower() if a.isupper() else a.upper()
-        return a
+    pieces_planes = np.zeros((12, 8, 8), np.uint8)
 
-    def swapall(aa):
-        return "".join([swapcase(a) for a in aa])
+    for square in chess.SQUARES:
+        piece = board.piece_at(square)
+        if piece:
+            index = PIECE_INDEX[piece.piece_type, piece.color]
+            pieces_planes[index][square // 8][square % 8] = 1
 
-    return (
-        "/".join([swapall(row) for row in reversed(rows)])
-        + " "
-        + ("w" if foo[1] == "b" else "b")
-        + " "
-        + "".join(sorted(swapall(foo[2])))
-        + " "
-        + foo[3]
-        + " "
-        + foo[4]
-        + " "
-        + foo[5]
-    )
+    pieces_array = np.packbits(
+        pieces_planes.reshape(-1),
+        axis=0,
+    ).view(np.uint64)
 
+    castling = board.castling_rights
+    en_passant = board.ep_square if board.has_legal_en_passant() else 64
+    halfmove = board.halfmove_clock
+    config = (castling, en_passant, halfmove)
 
-def all_input_planes(fen):
-    history_both = to_planes(fen)  # [12*8*8]
-    current_aux_planes = aux_planes(fen)  # [6*8*8]
+    config_array = np.array(config, dtype=np.uint64)
 
-    ret = np.vstack((history_both, current_aux_planes))
-    assert ret.shape == (18, 8, 8)
-    return ret
+    return np.concatenate((pieces_array, config_array))
 
 
-def aux_planes(fen):
-    foo = fen.split(" ")
+def compact_state_to_board_tensor(array: np.ndarray) -> np.ndarray:
+    pieces_array = np.unpackbits(array[:12].view(np.uint8))
+    pieces_planes = pieces_array.reshape((12, 8, 8)).astype(np.float32)
 
-    en_passant = np.zeros((8, 8), dtype=np.float32)
-    if foo[3] != "-":
-        eps = alg_to_coord(foo[3])
-        en_passant[eps[0]][eps[1]] = 1
+    castling = int(array[-3])
+    en_passant = int(array[-2])
+    halfmove = array[-1]
 
-    fifty_move_count = int(foo[4])
-    fifty_move = np.full((8, 8), fifty_move_count, dtype=np.float32)
+    configs = np.zeros((6, 8, 8), dtype=np.float32)
 
-    castling = foo[2]
-    auxiliary_planes = [
-        np.full((8, 8), int("K" in castling), dtype=np.float32),
-        np.full((8, 8), int("Q" in castling), dtype=np.float32),
-        np.full((8, 8), int("k" in castling), dtype=np.float32),
-        np.full((8, 8), int("q" in castling), dtype=np.float32),
-        fifty_move,
-        en_passant,
-    ]
+    # Set castling rights [12: 16)
+    if castling & chess.BB_H1:
+        configs[0].fill(1.0)
+    if castling & chess.BB_A1:
+        configs[1].fill(1.0)
+    if castling & chess.BB_H8:
+        configs[2].fill(1.0)
+    if castling & chess.BB_A8:
+        configs[3].fill(1.0)
 
-    ret = np.asarray(auxiliary_planes, dtype=np.float32)
-    assert ret.shape == (6, 8, 8)
-    return ret
+    # Set fifty move counter [16: 17)
+    configs[4].fill(float(halfmove))
 
+    # Set en passant square [17: 18)
+    # print(en_passant)
+    if en_passant != 64:
+        square: chess.Square = en_passant
+        configs[5][square // 8][square % 8] = 1.0
 
-def alg_to_coord(alg):
-    rank = 8 - int(alg[1])  # 0-7
-    file = ord(alg[0]) - ord("a")  # 0-7
-    return rank, file
-
-
-def to_planes(fen):
-    board_state = replace_tags_board(fen)
-    pieces_both = np.zeros(shape=(12, 8, 8), dtype=np.float32)
-    for rank in range(8):
-        for file in range(8):
-            v = board_state[rank * 8 + file]
-            if v.isalpha():
-                pieces_both[ind[v]][rank][file] = 1
-    assert pieces_both.shape == (12, 8, 8)
-    return pieces_both
-
-
-def replace_tags_board(board_san):
-    board_san = board_san.split(" ")[0]
-    board_san = board_san.replace("2", "11")
-    board_san = board_san.replace("3", "111")
-    board_san = board_san.replace("4", "1111")
-    board_san = board_san.replace("5", "11111")
-    board_san = board_san.replace("6", "111111")
-    board_san = board_san.replace("7", "1111111")
-    board_san = board_san.replace("8", "11111111")
-    return board_san.replace("/", "")
+    return np.concatenate((pieces_planes, configs))

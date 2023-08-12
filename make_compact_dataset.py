@@ -23,9 +23,9 @@ from chess.engine import LOGGER as engine_logger
 
 import numpy as np
 
-from dinora.board_representation2 import board_to_compact_state
+from dinora.board_representation import board_to_compact_state
 from dinora.pgntools import load_game_states
-from dinora.policy2 import policy_index
+from dinora.policy import policy_index
 from dinora.outcome import wdl_index, z_value, stockfish_value
 
 

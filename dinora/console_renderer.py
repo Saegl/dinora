@@ -1,8 +1,8 @@
 import numpy as np
 
 from dinora import PROJECT_ROOT
-from dinora.board_representation2 import compact_state_to_board_tensor, PLANE_NAMES
-from dinora.policy2 import index_to_move
+from dinora.board_representation import compact_state_to_board_tensor, PLANE_NAMES
+from dinora.policy import index_to_move
 
 
 SHORTER_NAMES = [name.replace('WHITE', 'W').replace("BLACK", "B") for name in PLANE_NAMES]

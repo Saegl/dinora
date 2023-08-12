@@ -9,12 +9,8 @@ def model_selector(model: str) -> BaseModel:
         cached = False
 
     instance: BaseModel
-    if model == "dnn":
-        from dinora.models.dnn import DNNModel
 
-        instance = DNNModel()
-
-    elif model == "torchnet":
+    if model == "torchnet":
         # from dinora.models.torchnet.adapter import Torchnet
         from dinora.models.torchnet.resnet import ResNetLight
 
