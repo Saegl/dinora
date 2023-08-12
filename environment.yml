@@ -7,8 +7,8 @@ channels:
 dependencies:
   - python=3.10
   - numpy
-  - pydantic=1.10.*
   - lightning
+  - pydantic=1.10.*  # Don't use pydantic in dinora, this is for lightning
   - wandb
   - tqdm
   - pytorch
