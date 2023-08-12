@@ -44,12 +44,10 @@ def z_value(game: chess.pgn.Game, turn: bool):
 
 
 def stockfish_value(board: chess.Board, engine: chess.engine.SimpleEngine, nodes: int):
-    info = engine.analyse(
-        board, chess.engine.Limit(nodes=nodes)
-    )
-        
+    info = engine.analyse(board, chess.engine.Limit(nodes=nodes))
+
     # [0:1] scale
-    wdl = info['wdl'].pov(board.turn).expectation()
+    wdl = info["wdl"].pov(board.turn).expectation()
 
     # [-1:1] scale
     wdl_scaled = wdl * 2.0 - 1.0

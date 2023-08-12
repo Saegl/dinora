@@ -167,7 +167,7 @@ class ResNetLight(pl.LightningModule):
         policy = self.policy_head(x)
         value = self.value_head(x)
         return policy, value
-    
+
     def training_step(self, batch, batch_idx):
         x, (y_policy, y_value) = batch
         batch_len = len(x)
@@ -179,29 +179,25 @@ class ResNetLight(pl.LightningModule):
         cumulative_loss = policy_loss + value_loss
 
         policy_accuracy = (
-            (y_hat_policy.argmax(1) == y_policy)
-            .float()
-            .sum()
-            .item()
+            (y_hat_policy.argmax(1) == y_policy).float().sum().item()
         ) / batch_len
 
         value_accuracy = (
-            (y_hat_value.argmax(1) == y_value)
-            .float()
-            .sum()
-            .item()
+            (y_hat_value.argmax(1) == y_value).float().sum().item()
         ) / batch_len
 
-        self.log_dict({
-            'train/policy_accuracy': policy_accuracy,
-            'train/policy_loss': policy_loss,
-            'train/value_accuracy': value_accuracy,
-            'train/value_loss': value_loss,
-            'train/cumulative_loss': cumulative_loss
-        })
-        
+        self.log_dict(
+            {
+                "train/policy_accuracy": policy_accuracy,
+                "train/policy_loss": policy_loss,
+                "train/value_accuracy": value_accuracy,
+                "train/value_loss": value_loss,
+                "train/cumulative_loss": cumulative_loss,
+            }
+        )
+
         return cumulative_loss
-    
+
     def validation_step(self, batch: tuple[Tensor, tuple[Tensor, Tensor]], batch_idx):
         x, (y_policy, y_value) = batch
         batch_len = len(x)
@@ -209,12 +205,9 @@ class ResNetLight(pl.LightningModule):
         y_hat_policy: torch.Tensor
         y_hat_value: torch.Tensor
         y_hat_policy, y_hat_value = self(x)
-        
+
         policy_accuracy = (
-            (y_hat_policy.argmax(1) == y_policy)
-            .float()
-            .sum()
-            .item()
+            (y_hat_policy.argmax(1) == y_policy).float().sum().item()
         ) / batch_len
 
         outcomes_matches = y_hat_value.argmax(1) == y_value
@@ -224,50 +217,52 @@ class ResNetLight(pl.LightningModule):
         win_mask = y_value == 0
         win_count = win_mask.type(torch.float).sum().item()
         if win_count != 0:
-            win_accuracy = (outcomes_matches * win_mask) \
-                .type(torch.float).sum().item() / win_count
+            win_accuracy = (outcomes_matches * win_mask).type(
+                torch.float
+            ).sum().item() / win_count
             self.log("validation/win_accuracy", win_accuracy)
-            
-        
+
         draw_mask = y_value == 1
         draw_count = draw_mask.type(torch.float).sum().item()
         if draw_count != 0:
-            draw_accuracy = (outcomes_matches * draw_mask) \
-                .type(torch.float).sum().item() / draw_count
-            self.log('validation/draw_accuracy', draw_accuracy)
-        
+            draw_accuracy = (outcomes_matches * draw_mask).type(
+                torch.float
+            ).sum().item() / draw_count
+            self.log("validation/draw_accuracy", draw_accuracy)
+
         lose_mask = y_value == 2
         lose_count = lose_mask.type(torch.float).sum().item()
         if lose_count != 0:
-            lose_accuracy = (outcomes_matches * lose_mask) \
-                .type(torch.float).sum().item() / lose_count
+            lose_accuracy = (outcomes_matches * lose_mask).type(
+                torch.float
+            ).sum().item() / lose_count
             self.log("validation/lose_accuracy", lose_accuracy)
 
-        self.log_dict({
-            "validation/policy_accuracy": policy_accuracy,
-            "validation/policy_loss": F.cross_entropy(y_hat_policy, y_policy).item(),
-            "validation/value_accuracy": value_accuracy,
-            "validation/value_loss": F.cross_entropy(y_hat_value, y_value).item(),
-        })
+        self.log_dict(
+            {
+                "validation/policy_accuracy": policy_accuracy,
+                "validation/policy_loss": F.cross_entropy(
+                    y_hat_policy, y_policy
+                ).item(),
+                "validation/value_accuracy": value_accuracy,
+                "validation/value_loss": F.cross_entropy(y_hat_value, y_value).item(),
+            }
+        )
 
-    
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
         scheduler = StepLR(
-            optimizer,
-            step_size=1,
-            gamma=self.lr_scheduler_gamma,
-            verbose=True
+            optimizer, step_size=1, gamma=self.lr_scheduler_gamma, verbose=True
         )
         return {
-            'optimizer': optimizer,
-            'lr_scheduler': {
-                'scheduler': scheduler,
-                'interval': 'step',
-                'frequency': self.lr_scheduler_freq,
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "interval": "step",
+                "frequency": self.lr_scheduler_freq,
             },
         }
-    
+
     def eval_by_network(self, board: chess.Board):
         board_tensor = board_to_tensor(board)
         get_prob = extract_prob_from_policy
@@ -284,7 +279,7 @@ class ResNetLight(pl.LightningModule):
 
         moves = list(board.legal_moves)
         move_logits = [get_prob(policy, move, not board.turn) for move in moves]
-        
+
         move_priors = softmax(np.array(move_logits))
         priors = dict(zip(moves, move_priors))
 

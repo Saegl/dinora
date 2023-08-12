@@ -17,7 +17,6 @@ logging.basicConfig(level=logging.DEBUG)
 npf32 = npt.NDArray[np.float32]
 
 
-
 def load_chess_games(pgn: TextIO) -> Iterator[chess.pgn.Game]:
     def is_supported_variant(game):
         return game.headers.get("Variant", "Standard") == "Standard"
@@ -26,7 +25,7 @@ def load_chess_games(pgn: TextIO) -> Iterator[chess.pgn.Game]:
     while game:
         if is_supported_variant(game):
             yield game
-        
+
         game = chess.pgn.read_game(pgn)
 
 
@@ -35,7 +34,7 @@ def load_game_states(pgn: TextIO) -> Iterator[tuple[Game, Board, Move]]:
         board = game.board()
         for move in game.mainline_moves():
             yield game, board, move
-            
+
             try:
                 board.push(move)
             except AssertionError:
@@ -57,7 +56,9 @@ def load_state_tensors(pgn: TextIO) -> Iterator[tuple[npf32, tuple[npf32, npf32]
         )
 
 
-def load_compact_state_tensors(pgn: TextIO) -> Iterator[tuple[npf32, tuple[npf32, npf32]]]:
+def load_compact_state_tensors(
+    pgn: TextIO,
+) -> Iterator[tuple[npf32, tuple[npf32, npf32]]]:
     for game, board, move in load_game_states(pgn):
         flip = not board.turn
         yield (

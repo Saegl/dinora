@@ -102,5 +102,7 @@ def test_alternating_outcomes():
     outcomes = [outcome for _, (_, outcome) in load_state_tensors(handle)]
 
     assert outcomes[0:113] == [DRAW for _ in range(113)]
-    assert outcomes[113:200] == [WHITE_WON if n % 2 == 0 else BLACK_WON for n in range(87)]
+    assert outcomes[113:200] == [
+        WHITE_WON if n % 2 == 0 else BLACK_WON for n in range(87)
+    ]
     assert outcomes[200:] == [WHITE_WON if n % 2 == 1 else BLACK_WON for n in range(94)]

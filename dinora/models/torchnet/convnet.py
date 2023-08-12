@@ -10,19 +10,15 @@ class TinyConvNet(pl.LightningModule):
         self.features = nn.Sequential(
             nn.Conv2d(18, 128, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            
             nn.Conv2d(128, 128, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-
             nn.Conv2d(128, 128, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-
             nn.Conv2d(128, 128, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-
             nn.Conv2d(128, 128, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-        ) # 128 * 8 * 8
+        )  # 128 * 8 * 8
 
         self.policy = nn.Sequential(
             nn.Conv2d(8192, 0),
@@ -34,7 +30,6 @@ class TinyConvNet(pl.LightningModule):
 
         print("Features params:", sum(p.numel() for p in self.features.parameters()))
         print("Policy params:", sum(p.numel() for p in self.policy.parameters()))
-
 
     def forward(self, x):
         x = self.features(x)
@@ -48,9 +43,11 @@ class TinyConvNet(pl.LightningModule):
 
         policy_loss = F.cross_entropy(y_hat_policy, y_policy)
 
-        self.log_dict({
-            'train/policy_loss': policy_loss,
-        })
+        self.log_dict(
+            {
+                "train/policy_loss": policy_loss,
+            }
+        )
 
         return policy_loss
 
@@ -63,8 +60,9 @@ class TinyConvNet(pl.LightningModule):
         print(metrics)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import torch
+
     x = torch.zeros((2, 18, 8, 8))
     model = TinyConvNet()
     model(x)

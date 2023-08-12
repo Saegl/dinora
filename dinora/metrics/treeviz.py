@@ -147,7 +147,6 @@ def build_graph(
     format: Literal["png", "svg"] = "png",
     params: RenderParams = RenderParams(),
 ) -> graphviz.Digraph:
-
     graph = graphviz.Digraph(
         "search-tree",
         format=format,

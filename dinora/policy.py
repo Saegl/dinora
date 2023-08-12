@@ -157,13 +157,9 @@ def flip_moves(moves: list[str]) -> list[str]:
 INDEX_TO_MOVE: list[str] = generate_uci_moves()
 INDEX_TO_FLIPPED_MOVE = flip_moves(INDEX_TO_MOVE)
 
-MOVE_TO_INDEX = {
-    chess.Move.from_uci(move): i
-    for i, move in enumerate(INDEX_TO_MOVE)
-}
+MOVE_TO_INDEX = {chess.Move.from_uci(move): i for i, move in enumerate(INDEX_TO_MOVE)}
 FLIPPED_MOVE_TO_INDEX = {
-    chess.Move.from_uci(move): i
-    for i, move in enumerate(INDEX_TO_FLIPPED_MOVE)
+    chess.Move.from_uci(move): i for i, move in enumerate(INDEX_TO_FLIPPED_MOVE)
 }
 
 

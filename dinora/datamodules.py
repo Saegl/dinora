@@ -11,11 +11,11 @@ from dinora.board_representation import compact_state_to_board_tensor
 
 class CompactDataset(TensorDataset):
     def __init__(
-            self,
-            dataset_folder: pathlib.Path,
-            data: dict[str, int],
-            z_weight: float,
-            q_weight: float,
+        self,
+        dataset_folder: pathlib.Path,
+        data: dict[str, int],
+        z_weight: float,
+        q_weight: float,
     ) -> None:
         self.dataset_folder = dataset_folder
         self.data = data
@@ -30,11 +30,13 @@ class CompactDataset(TensorDataset):
             right_bound = left_bound + size
 
             # [left_bound, right_bound)
-            self.chunks_bounds.append({
-                'left_bound': left_bound,
-                'right_bound': right_bound,
-                'path': self.dataset_folder / rel_path
-            })
+            self.chunks_bounds.append(
+                {
+                    "left_bound": left_bound,
+                    "right_bound": right_bound,
+                    "path": self.dataset_folder / rel_path,
+                }
+            )
 
             left_bound = right_bound
 
@@ -43,37 +45,45 @@ class CompactDataset(TensorDataset):
         self.current_loaded_boards = np.array([])
         self.current_loaded_policies = np.array([])
         self.current_loaded_outcomes = np.array([])
-    
+
     def __len__(self) -> int:
         return self.length
-    
+
     def __getitem__(self, index):
         if not (self.current_left_bound <= index < self.current_right_bound):
             for chunk_info in self.chunks_bounds:
-                if chunk_info['left_bound'] <= index < chunk_info['right_bound']:
-                    print('Swith to', chunk_info['path'])
+                if chunk_info["left_bound"] <= index < chunk_info["right_bound"]:
+                    print("Swith to", chunk_info["path"])
 
-                    data = np.load(chunk_info['path'])
-                    self.current_left_bound = chunk_info['left_bound']
-                    self.current_right_bound = chunk_info['right_bound']
+                    data = np.load(chunk_info["path"])
+                    self.current_left_bound = chunk_info["left_bound"]
+                    self.current_right_bound = chunk_info["right_bound"]
 
-                    self.current_loaded_boards = data['boards']
-                    self.current_loaded_policies = data['policies']
-                    self.current_loaded_outcomes = self.z_weight * data['z_values']
+                    self.current_loaded_boards = data["boards"]
+                    self.current_loaded_policies = data["policies"]
+                    self.current_loaded_outcomes = self.z_weight * data["z_values"]
 
-                    if 'q_values' in data:
-                        self.current_loaded_outcomes += self.q_weight * data['q_values']
-                    
-                    length = chunk_info['right_bound'] - chunk_info['left_bound']
-                    assert (length 
-                            == len(self.current_loaded_boards)
-                            == len(self.current_loaded_outcomes)
-                            == len(self.current_loaded_policies))
+                    if "q_values" in data:
+                        self.current_loaded_outcomes += self.q_weight * data["q_values"]
+
+                    length = chunk_info["right_bound"] - chunk_info["left_bound"]
+                    assert (
+                        length
+                        == len(self.current_loaded_boards)
+                        == len(self.current_loaded_outcomes)
+                        == len(self.current_loaded_policies)
+                    )
                     permutation_index = np.random.permutation(length)
 
-                    self.current_loaded_boards = self.current_loaded_boards[permutation_index]
-                    self.current_loaded_policies = self.current_loaded_policies[permutation_index]
-                    self.current_loaded_outcomes = self.current_loaded_outcomes[permutation_index]
+                    self.current_loaded_boards = self.current_loaded_boards[
+                        permutation_index
+                    ]
+                    self.current_loaded_policies = self.current_loaded_policies[
+                        permutation_index
+                    ]
+                    self.current_loaded_outcomes = self.current_loaded_outcomes[
+                        permutation_index
+                    ]
 
                     break
             else:
@@ -88,11 +98,11 @@ class CompactDataset(TensorDataset):
 
 class CompactDataModule(pl.LightningDataModule):
     def __init__(
-            self,
-            dataset_folder: pathlib.Path,
-            z_weight: float,
-            q_weight: float,
-            batch_size: int = 128,
+        self,
+        dataset_folder: pathlib.Path,
+        z_weight: float,
+        q_weight: float,
+        batch_size: int = 128,
     ) -> None:
         super().__init__()
         self.hparams.z_weight = z_weight
@@ -100,50 +110,52 @@ class CompactDataModule(pl.LightningDataModule):
         self.hparams.batch_size = batch_size
         self.dataset_folder = dataset_folder
 
-        with open(dataset_folder / 'report.json', 'rt', encoding='utf8') as f:
+        with open(dataset_folder / "report.json", "rt", encoding="utf8") as f:
             self.report = json.load(f)
-    
+
     def train_dataloader(self):
         return DataLoader(
             CompactDataset(
                 self.dataset_folder,
-                self.report['train'],
+                self.report["train"],
                 self.hparams.z_weight,
                 self.hparams.q_weight,
             ),
-            batch_size=self.hparams.batch_size
+            batch_size=self.hparams.batch_size,
         )
-    
+
     def val_dataloader(self):
         return DataLoader(
             CompactDataset(
                 self.dataset_folder,
-                self.report['val'],
+                self.report["val"],
                 self.hparams.z_weight,
                 self.hparams.q_weight,
             ),
-            batch_size=self.hparams.batch_size
+            batch_size=self.hparams.batch_size,
         )
-    
+
     def test_dataloader(self):
         return DataLoader(
             CompactDataset(
                 self.dataset_folder,
-                self.report['test'],
+                self.report["test"],
                 self.hparams.z_weight,
                 self.hparams.q_weight,
             ),
-            batch_size=self.hparams.batch_size
+            batch_size=self.hparams.batch_size,
         )
 
 
 class WandbDataModule(CompactDataModule):
-    def __init__(self, dataset_label: str, batch_size: int, z_weight: float, q_weight: float):
+    def __init__(
+        self, dataset_label: str, batch_size: int, z_weight: float, q_weight: float
+    ):
         import wandb
 
         folder_name = dataset_label.replace(":", "-").replace("/", "-")
 
-        dataset_folder = PROJECT_ROOT / 'data' / folder_name
+        dataset_folder = PROJECT_ROOT / "data" / folder_name
         dataset_folder.mkdir(parents=True, exist_ok=True)
 
         dataset_artifact = wandb.run.use_artifact(dataset_label)

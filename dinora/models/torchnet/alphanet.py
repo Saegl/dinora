@@ -101,7 +101,7 @@ class ResBlock(nn.Module):
             nn.BatchNorm2d(num_features=filters),
         )
         self.relu = nn.ReLU()
-    
+
     def forward(self, x):
         return self.relu(self.body(x) + x)
 
@@ -135,9 +135,7 @@ class AlphaNet(pl.LightningModule):
             nn.ReLU(),
         )
 
-        self.res_blocks = nn.Sequential(
-            *(ResBlock(filters) for _ in range(res_blocks))
-        )
+        self.res_blocks = nn.Sequential(*(ResBlock(filters) for _ in range(res_blocks)))
 
         self.policy_head = nn.Sequential(
             nn.Conv2d(
@@ -162,20 +160,17 @@ class AlphaNet(pl.LightningModule):
             nn.BatchNorm2d(num_features=value_channels),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(
-                in_features=value_channels * 8 * 8,
-                out_features=value_fc_hidden
-            ),
+            nn.Linear(in_features=value_channels * 8 * 8, out_features=value_fc_hidden),
             nn.ReLU(),
             nn.Linear(in_features=value_fc_hidden, out_features=1),
             nn.Tanh(),
         )
-    
+
     def forward(self, x):
         x = self.convblock(x)
         x = self.res_blocks(x)
         return self.policy_head(x), self.value_head(x)
-    
+
     def training_step(self, batch, batch_idx):
         x, (y_policy, y_value) = batch
         batch_len = len(x)
@@ -187,57 +182,53 @@ class AlphaNet(pl.LightningModule):
         cumulative_loss = policy_loss + value_loss
 
         policy_accuracy = (
-            (y_hat_policy.argmax(1) == y_policy)
-            .float()
-            .sum()
-            .item()
+            (y_hat_policy.argmax(1) == y_policy).float().sum().item()
         ) / batch_len
 
-        self.log_dict({
-            'train/policy_accuracy': policy_accuracy,
-            'train/policy_loss': policy_loss,
-            'train/value_loss': value_loss,
-            'train/cumulative_loss': cumulative_loss
-        })
-        
+        self.log_dict(
+            {
+                "train/policy_accuracy": policy_accuracy,
+                "train/policy_loss": policy_loss,
+                "train/value_loss": value_loss,
+                "train/cumulative_loss": cumulative_loss,
+            }
+        )
+
         return cumulative_loss
-    
+
     def validation_step(self, batch, batch_idx):
         x, (y_policy, y_value) = batch
         batch_len = len(x)
         y_hat_policy, y_hat_value = self(x)
-        
+
         policy_accuracy = (
-            (y_hat_policy.argmax(1) == y_policy)
-            .float()
-            .sum()
-            .item()
+            (y_hat_policy.argmax(1) == y_policy).float().sum().item()
         ) / batch_len
 
-        self.log_dict({
-            "validation/policy_accuracy": policy_accuracy,
-            "validation/policy_loss": F.cross_entropy(y_hat_policy, y_policy).item(),
-            "validation/value_loss": F.mse_loss(y_hat_value, y_value).item(),
-        })
+        self.log_dict(
+            {
+                "validation/policy_accuracy": policy_accuracy,
+                "validation/policy_loss": F.cross_entropy(
+                    y_hat_policy, y_policy
+                ).item(),
+                "validation/value_loss": F.mse_loss(y_hat_value, y_value).item(),
+            }
+        )
 
-    
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         scheduler = StepLR(
-            optimizer,
-            step_size=1,
-            gamma=self.lr_scheduler_gamma,
-            verbose=True
+            optimizer, step_size=1, gamma=self.lr_scheduler_gamma, verbose=True
         )
         return {
-            'optimizer': optimizer,
-            'lr_scheduler': {
-                'scheduler': scheduler,
-                'interval': 'step',
-                'frequency': self.lr_scheduler_freq,
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "interval": "step",
+                "frequency": self.lr_scheduler_freq,
             },
         }
-    
+
     def eval_by_network(self, board: chess.Board):
         board_tensor = board_to_tensor(board)
         get_prob = extract_prob_from_policy
@@ -254,7 +245,7 @@ class AlphaNet(pl.LightningModule):
 
         moves = list(board.legal_moves)
         move_logits = [get_prob(policy, move, not board.turn) for move in moves]
-        
+
         move_priors = softmax(np.array(move_logits))
         priors = dict(zip(moves, move_priors))
 
@@ -275,7 +266,7 @@ class AlphaNet(pl.LightningModule):
 
         moves = list(board.legal_moves)
         move_logits = [get_prob(policy, move, not board.turn) for move in moves]
-        
+
         move_priors = softmax(np.array(move_logits))
         priors = dict(zip(moves, move_priors))
 
@@ -306,7 +297,7 @@ class AlphaNet(pl.LightningModule):
         return priors, value_estimate
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     net = AlphaNet()
 
     x = torch.zeros((6, 18, 8, 8))

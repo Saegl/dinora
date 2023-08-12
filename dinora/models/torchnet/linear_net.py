@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 import lightning.pytorch as pl
 
+
 class LinearNN(pl.LightningModule):
     def __init__(self) -> None:
         super().__init__()
@@ -31,19 +32,20 @@ class LinearNN(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, (y_policy, y_value) = batch
         y_hat_policy, y_hat_value = self(x)
-        
+
         policy_loss = F.cross_entropy(y_hat_policy, y_policy)
         value_loss = F.cross_entropy(y_hat_value, y_value)
         cumulative_loss = policy_loss + value_loss
 
-        self.log_dict({
-            'train/policy_loss': policy_loss,
-            'train/value_loss': value_loss,
-            'train/cumulative_loss': cumulative_loss
-        })
-        
+        self.log_dict(
+            {
+                "train/policy_loss": policy_loss,
+                "train/value_loss": value_loss,
+                "train/cumulative_loss": cumulative_loss,
+            }
+        )
+
         return cumulative_loss
-    
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=0.001)

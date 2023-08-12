@@ -20,9 +20,9 @@ for pos in POSITIONS:
     draw = wdl.drawing_chance()
     loss = wdl.losing_chance()
     pos["stockfish_wdl"] = f"{win:.2f} | {draw:.2f} | {loss:.2f}"
-    pos["stockfish_top3_lines"] = "\n".join([
-        f'{[e.uci() for e in line["pv"][:3]]}' for line in info[:3]
-    ])
+    pos["stockfish_top3_lines"] = "\n".join(
+        [f'{[e.uci() for e in line["pv"][:3]]}' for line in info[:3]]
+    )
 
 engine.quit()
 pprint.pprint(POSITIONS)

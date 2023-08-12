@@ -18,7 +18,9 @@ class Torchnet(BaseModel):
         #     value_channels = 16,
         #     value_lin_channels = 64,
         # ).to("cuda")
-        self.model = ResNetLight.load_from_checkpoint("checkpoints\models\epoch=0epoch-step=8101step.ckpt")
+        self.model = ResNetLight.load_from_checkpoint(
+            "checkpoints\models\epoch=0epoch-step=8101step.ckpt"
+        )
         # self.model.load_state_dict(torch.load("models/model-1epoch-75chunk.pth"))
         self.model.eval()
         self.softmax_temp = 1.6
@@ -43,7 +45,9 @@ class Torchnet(BaseModel):
         t = self.softmax_temp
         moves = []
         policies = []
-        lookup = lambda policy, move: extract_prob_from_policy(policy, move, not board.turn)
+        lookup = lambda policy, move: extract_prob_from_policy(
+            policy, move, not board.turn
+        )
         for move in board.legal_moves:
             move_prior = lookup(policy, move)
             moves.append(move)

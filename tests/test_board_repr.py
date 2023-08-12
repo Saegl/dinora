@@ -1,7 +1,11 @@
 import pytest
 import chess
 import numpy as np
-from dinora.board_representation import board_to_tensor, board_to_compact_state, compact_state_to_board_tensor
+from dinora.board_representation import (
+    board_to_tensor,
+    board_to_compact_state,
+    compact_state_to_board_tensor,
+)
 
 
 FENS = [
@@ -13,6 +17,7 @@ FENS = [
     "rnbqkbnr/1pp1pppp/p7/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 3",  # White can en passant
     "rnbqkbnr/1pp1pp1p/p7/3pP3/6pP/3P4/PPP1BPP1/RNBQK1NR b KQkq h3 0 5",  # Black can en passant
 ]
+
 
 def test_shape_and_type():
     tensor = board_to_tensor(chess.Board())

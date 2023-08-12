@@ -15,7 +15,11 @@ from lightning.pytorch.tuner import Tuner
 
 from dinora import PROJECT_ROOT
 from dinora.datamodules import WandbDataModule
-from dinora.train_callbacks import SampleGameGenerator, BoardsEvaluator, ValidationCheckpointer
+from dinora.train_callbacks import (
+    SampleGameGenerator,
+    BoardsEvaluator,
+    ValidationCheckpointer,
+)
 
 
 warnings.filterwarnings("ignore", message="The dataloader, .* to improve performance.")
@@ -27,9 +31,9 @@ logging.getLogger("fsspec").setLevel(logging.WARNING)
 
 @dataclass
 class Config:
-    matmul_precision: Literal['highest', 'high', 'medium']
+    matmul_precision: Literal["highest", "high", "medium"]
     max_time: dict | None
-    max_epochs: int # set -1 to ignore
+    max_epochs: int  # set -1 to ignore
     dataset_label: str
     z_weight: float
     q_weight: float
@@ -40,7 +44,7 @@ class Config:
     tune_learning_rate: bool
     learning_rate: float  # will be overwritten if tune_learning_rate = True
     lr_scheduler_gamma: float  # Multiplicative factor for StepLR
-    lr_scheduler_freq: int   # change each steps
+    lr_scheduler_freq: int  # change each steps
 
     enable_checkpointing: bool
     checkpoint_train_time_interval: dict
@@ -57,7 +61,7 @@ class Config:
     limit_val_batches: int | None
     limit_test_batches: int | None
 
-    model_type: Literal['resnet', 'alphanet']
+    model_type: Literal["resnet", "alphanet"]
 
     res_channels: int
     res_blocks: int
@@ -67,32 +71,32 @@ class Config:
 
 
 def get_model(config: Config):
-    if config.model_type == 'resnet':
+    if config.model_type == "resnet":
         from dinora.models.torchnet.resnet import ResNetLight
+
         return ResNetLight(
             res_channels=config.res_channels,
             res_blocks=config.res_blocks,
             policy_channels=config.policy_channels,
             value_channels=config.value_channels,
             value_lin_channels=config.value_lin_channels,
-
             learning_rate=config.learning_rate,
             lr_scheduler_gamma=config.lr_scheduler_gamma,
-            lr_scheduler_freq=config.lr_scheduler_freq
+            lr_scheduler_freq=config.lr_scheduler_freq,
         )
-    elif config.model_type == 'alphanet':
+    elif config.model_type == "alphanet":
         from dinora.models.torchnet.alphanet import AlphaNet
+
         return AlphaNet(
             filters=config.res_channels,
             res_blocks=config.res_blocks,
             policy_channels=config.policy_channels,
             value_channels=config.value_channels,
             value_fc_hidden=config.value_lin_channels,
-
             learning_rate=config.learning_rate,
             lr_scheduler_gamma=config.lr_scheduler_gamma,
             lr_scheduler_freq=config.lr_scheduler_freq,
-        ) 
+        )
 
 
 def fit(config: Config):
@@ -106,7 +110,7 @@ def fit(config: Config):
 
     if config.enable_boards_evaluator:
         callbacks.append(BoardsEvaluator())
-    
+
     if config.enable_validation_checkpointer:
         callbacks.append(ValidationCheckpointer())
 
@@ -125,9 +129,9 @@ def fit(config: Config):
     model = get_model(config)
 
     wandb_logger = WandbLogger(
-        project='dinora-chess',
+        project="dinora-chess",
         log_model="all",  # save model weights to wandb
-        config={'config_file': asdict(config)},
+        config={"config_file": asdict(config)},
     )
 
     datamodule = WandbDataModule(
@@ -146,7 +150,6 @@ def fit(config: Config):
         default_root_dir=PROJECT_ROOT / "checkpoints",
         callbacks=callbacks,
         val_check_interval=config.val_check_interval,
-
         limit_train_batches=config.limit_train_batches,
         limit_val_batches=config.limit_val_batches,
         limit_test_batches=config.limit_test_batches,
@@ -169,9 +172,10 @@ def fit(config: Config):
 
 def validate(config: Config):
     model = get_model(config)
-    model.load_from_checkpoint('models/model-eliteq.ckpt')
+    model.load_from_checkpoint("models/model-eliteq.ckpt")
 
     import wandb
+
     wandb.init()
 
     datamodule = WandbDataModule(

@@ -40,7 +40,7 @@ def convert_dir(
 ):
     if not (0.9 <= train_percentage + val_percentage + test_percentage <= 1.1):
         raise ValueError("Train/val/test percentage doesn't sum to 1.0")
-    
+
     pgns_dir = pgns_dir.absolute()
     save_dir = save_dir.absolute()
     save_dir.mkdir(parents=True, exist_ok=True)
@@ -64,7 +64,6 @@ def convert_dir(
 def run_parallel_convert(
     tasks: list[tuple[pathlib.Path, pathlib.Path]]
 ) -> dict[str, int]:
-
     chunks: dict[str, int] = {}
     with concurrent.futures.ProcessPoolExecutor() as executor:
         futures = [executor.submit(convert_pgn_file, *args) for args in tasks]
@@ -102,7 +101,7 @@ def generate_report(
         else:
             test_chunks[name] = states
             test_current += states
-    
+
     report = {
         "train": train_chunks,
         "val": val_chunks,
@@ -111,7 +110,7 @@ def generate_report(
             "train_percentage": train_current / total_states,
             "val_percentage": val_current / total_states,
             "test_percentage": test_current / total_states,
-        }
+        },
     }
 
     with open(save_dir / "report.json", "w") as f:
@@ -128,7 +127,7 @@ def convert_pgn_file(pgn_path: pathlib.Path, save_path: pathlib.Path, q_nodes: i
         # TODO: remove this debug msg = DEBUG:asyncio:Using proactor: IocpProactor
         engine = chess.engine.SimpleEngine.popen_uci("stockfish")
         engine.configure({"UCI_ShowWDL": True})
-        tensors['q_values'] = []
+        tensors["q_values"] = []
 
     try:
         with open(pgn_path, "r", encoding="utf8", errors="ignore") as pgn:
@@ -143,19 +142,19 @@ def convert_pgn_file(pgn_path: pathlib.Path, save_path: pathlib.Path, q_nodes: i
     finally:
         if q_nodes > 0:
             engine.close()
-    
-    tensors["boards"] = np.array(tensors['boards'], dtype=np.int64)
+
+    tensors["boards"] = np.array(tensors["boards"], dtype=np.int64)
     tensors["policies"] = np.array(tensors["policies"], dtype=np.int64)
     tensors["wdls"] = np.array(tensors["wdls"], dtype=np.int64)
     tensors["z_values"] = np.array(tensors["z_values"], dtype=np.float32).reshape(-1, 1)
 
     if q_nodes > 0:
-        tensors["q_values"] = np.array(tensors["q_values"], dtype=np.float32).reshape(-1, 1)
+        tensors["q_values"] = np.array(tensors["q_values"], dtype=np.float32).reshape(
+            -1, 1
+        )
 
-    np.savez_compressed(
-        save_path, **tensors
-    )
-    return save_path, len(tensors['boards'])
+    np.savez_compressed(save_path, **tensors)
+    return save_path, len(tensors["boards"])
 
 
 if __name__ == "__main__":
@@ -214,5 +213,5 @@ if __name__ == "__main__":
         args.q_nodes,
         args.train,
         args.val,
-        args.test
+        args.test,
     )

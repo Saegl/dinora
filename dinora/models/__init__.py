@@ -14,13 +14,16 @@ def model_selector(model: str) -> BaseModel:
         # from dinora.models.torchnet.adapter import Torchnet
         from dinora.models.torchnet.resnet import ResNetLight
 
-        instance = ResNetLight.load_from_checkpoint("checkpoints\models\epoch=0epoch-step=8101step.ckpt")
-        
+        instance = ResNetLight.load_from_checkpoint(
+            "checkpoints\models\epoch=0epoch-step=8101step.ckpt"
+        )
+
         # instance = Torchnet()
-    
+
     elif model == "alphanet":
         import torch
-        instance = torch.load('models/valid-state-5.ckpt')
+
+        instance = torch.load("models/valid-state-5.ckpt")
 
     elif model == "handcrafted":
         from dinora.models.handcrafted import DummyModel
