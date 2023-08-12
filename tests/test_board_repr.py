@@ -1,7 +1,7 @@
 import pytest
 import chess
 import numpy as np
-from dinora.board_representation import (
+from dinora.encoders.board_representation import (
     board_to_tensor,
     board_to_compact_state,
     compact_state_to_board_tensor,

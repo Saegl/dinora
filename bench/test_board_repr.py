@@ -1,5 +1,5 @@
 import chess
-from dinora.board_representation import board_to_tensor
+from dinora.encoders.board_representation import board_to_tensor
 
 
 FENS = [

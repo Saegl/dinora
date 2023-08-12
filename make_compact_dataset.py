@@ -23,10 +23,10 @@ from chess.engine import LOGGER as engine_logger
 
 import numpy as np
 
-from dinora.board_representation import board_to_compact_state
+from dinora.encoders.board_representation import board_to_compact_state
 from dinora.pgntools import load_game_states
-from dinora.policy import policy_index
-from dinora.outcome import wdl_index, z_value, stockfish_value
+from dinora.encoders.policy import policy_index
+from dinora.encoders.outcome import wdl_index, z_value, stockfish_value
 
 
 def convert_dir(

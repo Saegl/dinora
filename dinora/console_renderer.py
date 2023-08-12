@@ -1,8 +1,11 @@
 import numpy as np
 
 from dinora import PROJECT_ROOT
-from dinora.board_representation import compact_state_to_board_tensor, PLANE_NAMES
-from dinora.policy import index_to_move
+from dinora.encoders.board_representation import (
+    compact_state_to_board_tensor,
+    PLANE_NAMES,
+)
+from dinora.encoders.policy import index_to_move
 
 
 SHORTER_NAMES = [

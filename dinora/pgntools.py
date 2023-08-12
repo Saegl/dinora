@@ -8,9 +8,9 @@ from chess.pgn import Game
 import numpy as np
 import numpy.typing as npt
 
-from dinora.board_representation import board_to_tensor, board_to_compact_state
-from dinora.policy import policy_index
-from dinora.outcome import wdl_index
+from dinora.encoders.board_representation import board_to_tensor, board_to_compact_state
+from dinora.encoders.policy import policy_index
+from dinora.encoders.outcome import wdl_index
 
 logging.basicConfig(level=logging.DEBUG)
 

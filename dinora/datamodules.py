@@ -6,7 +6,7 @@ import lightning.pytorch as pl
 from torch.utils.data import DataLoader, TensorDataset
 
 from dinora import PROJECT_ROOT
-from dinora.board_representation import compact_state_to_board_tensor
+from dinora.encoders.board_representation import compact_state_to_board_tensor
 
 
 class CompactDataset(TensorDataset):
