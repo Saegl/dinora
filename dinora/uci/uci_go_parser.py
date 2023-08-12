@@ -1,4 +1,14 @@
+import chess
+
 from dataclasses import dataclass
+
+from dinora.mcts import (
+    Constraint,
+    InfiniteConstraint,
+    TimeConstraint,
+    MoveTimeConstraint,
+    NodesCountConstraint,
+)
 
 
 @dataclass
@@ -23,13 +33,34 @@ class UciGoParams:
         engine_inc = (self.winc if turn else self.binc) or 0
         return engine_time, engine_inc
 
+    def get_search_constraint(self, board: chess.Board) -> Constraint:
+        constraint: Constraint
+        if self.infinite:
+            constraint = InfiniteConstraint()
+
+        elif time := self.movetime:
+            constraint = MoveTimeConstraint(self.movetime)
+
+        elif time := self.is_time(board.turn):
+            engine_time, engine_inc = time
+            constraint = TimeConstraint(
+                moves_number=board.fullmove_number,
+                engine_time=engine_time,
+                engine_inc=engine_inc,
+            )
+
+        elif nodes := self.nodes:
+            constraint = NodesCountConstraint(nodes)
+
+        else:
+            constraint = InfiniteConstraint()
+        
+        return constraint
+
 
 def parse_go_params(tokens: list[str]) -> UciGoParams:
     params = UciGoParams()
-
-    # Skip go
-    assert tokens[0] == "go"
-    i = 1
+    i = 0
 
     def end() -> bool:
         return i >= len(tokens)

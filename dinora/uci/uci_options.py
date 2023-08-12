@@ -38,4 +38,4 @@ class FloatString:
         return float(val)
 
 
-UciOptions = Check | Spin | String | FloatString
+UciOption = Check | Spin | String | FloatString
