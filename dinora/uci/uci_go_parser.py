@@ -54,7 +54,7 @@ class UciGoParams:
 
         else:
             constraint = InfiniteConstraint()
-        
+
         return constraint
 
 

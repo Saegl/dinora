@@ -11,14 +11,14 @@ class Engine:
         self._model_name = model_name
         self._model: BaseModel | None = None
         self.mcts_params = MCTSparams()
-    
+
     def loaded(self) -> bool:
-        return not self._model is None
-    
+        return self._model is not None
+
     def load_model(self) -> None:
         if self._model is None:
             self._model = model_selector(self._model_name)
-    
+
     def set_config_param(self, name, value):
         for field in dataclasses.fields(MCTSparams):
             if field.name == name:
@@ -38,6 +38,6 @@ class Engine:
         return root_node.get_most_visited_node().move
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     engine = Engine("alphanet")
-    engine.set_config_param('cpuct', 4.0)
+    engine.set_config_param("cpuct", 4.0)

@@ -112,7 +112,7 @@ def start_uci() -> None:
         uci_state.loop()
     except SystemExit:
         pass
-    except:
+    except:  # noqa: E722
         with open("dinora.log", "wt", encoding="utf8") as logfile:
             exc_type, exc_value, exc_tb = sys.exc_info()
             logfile.write(
