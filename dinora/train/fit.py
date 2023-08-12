@@ -14,8 +14,8 @@ from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.tuner import Tuner
 
 from dinora import PROJECT_ROOT
-from dinora.datamodules import WandbDataModule
-from dinora.train_callbacks import (
+from dinora.train.datamodules import WandbDataModule
+from dinora.train.train_callbacks import (
     SampleGameGenerator,
     BoardsEvaluator,
     ValidationCheckpointer,
