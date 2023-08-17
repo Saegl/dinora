@@ -1,0 +1,15 @@
+{
+    "teacher_player": {
+        "class": "StockfishPlayer",
+        "init": {
+            "command": "stockfish",
+            "nodes_limit": 100000
+        }
+    },
+    "student_player": {
+        "class": "DinoraPlayer",
+        "init": {
+            "nodes_limit": 100
+        }
+    }
+}

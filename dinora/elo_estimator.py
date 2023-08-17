@@ -1,6 +1,10 @@
+import abc
 import datetime
 import itertools
 import random
+import typing
+import pathlib
+import json
 
 import chess
 import chess.pgn
@@ -20,12 +24,13 @@ def clip(minval: int, x: int, maxval: int) -> int:
     return min(maxval, max(minval, x))
 
 
-class RatedPlayer:
+class RatedPlayer(abc.ABC):
     name: str
 
     def init_rating(self, env: Glicko2) -> None:
         self.rating = env.create_rating()
 
+    @abc.abstractmethod
     def play(self, board: chess.Board) -> chess.Move:
         pass
 
@@ -33,7 +38,8 @@ class RatedPlayer:
         pass
 
 
-class TeacherPlayer(RatedPlayer):
+class TeacherPlayer(RatedPlayer, abc.ABC):
+    @abc.abstractmethod
     def set_similar_strength(self, other: RatedPlayer, env: Glicko2) -> None:
         pass
 
@@ -42,27 +48,39 @@ class StockfishPlayer(TeacherPlayer):
     STOCKFISH_MIN_ELO: int = 1320
     STOCKFISH_MAX_ELO: int = 3190
 
-    def __init__(self, env: Glicko2, command: str, limit: chess.engine.Limit):
+    def __init__(
+        self, env: Glicko2, command: str, nodes_limit: int, elo: int | None = None
+    ):
         self.init_rating(env)
-        self.limit = limit
+        self.nodes_limit = nodes_limit
         self.uci_engine = chess.engine.SimpleEngine.popen_uci(command)
-        self.uci_engine.configure({"UCI_LimitStrength": True})
-        self.name = command
+        self.name = "stockfish"
+
+        if elo:
+            self.set_elo(elo)
 
     def play(self, board: chess.Board) -> chess.Move:
-        playres = self.uci_engine.play(board, limit=self.limit)
+        playres = self.uci_engine.play(
+            board, limit=chess.engine.Limit(nodes=self.nodes_limit)
+        )
         assert playres.move
         return playres.move
 
-    def set_elo(self, target_elo: int) -> None:
-        self.uci_engine.configure({"UCI_Elo": target_elo})
-
-    def set_similar_strength(self, other: RatedPlayer, env: Glicko2) -> None:
-        target_elo = clip(
+    @staticmethod
+    def clip_elo(target_elo: int) -> int:
+        return clip(
             StockfishPlayer.STOCKFISH_MIN_ELO,
-            int(other.rating.mu),
+            target_elo,
             StockfishPlayer.STOCKFISH_MAX_ELO,
         )
+
+    def set_elo(self, target_elo: int) -> None:
+        self.uci_engine.configure(
+            {"UCI_LimitStrength": True, "UCI_Elo": StockfishPlayer.clip_elo(target_elo)}
+        )
+
+    def set_similar_strength(self, other: RatedPlayer, env: Glicko2) -> None:
+        target_elo = StockfishPlayer.clip_elo(int(other.rating.mu))
         self.rating = env.create_rating(target_elo)
         self.set_elo(target_elo)
 
@@ -79,7 +97,7 @@ class DinoraPlayer(RatedPlayer):
         self.nodes_limit = nodes_limit
         ############# CPU FIX
         assert self.engine._model
-        self.engine._model = self.engine._model.to("cpu")
+        # self.engine._model = self.engine._model.to("cpu")
         self.engine.mcts_params.send_func = lambda _: None
 
     def play(self, board: chess.Board) -> chess.Move:
@@ -89,8 +107,7 @@ class DinoraPlayer(RatedPlayer):
 def play_game(
     white_player: RatedPlayer,
     black_player: RatedPlayer,
-    players: tuple[RatedPlayer, RatedPlayer],
-    dinora_player: RatedPlayer,
+    student_player: RatedPlayer,
     game_ind: int,
 ) -> chess.pgn.Game:
     board = chess.Board()
@@ -98,7 +115,7 @@ def play_game(
         headers={
             "Event": "Elo estimate",
             "Site": "Dinora elo_estimator.py",
-            "Stage": f"Dinora phi: {int(dinora_player.rating.phi)}",
+            "Stage": f"{student_player.name} phi: {int(student_player.rating.phi)}",
             "Date": datetime.date.today().strftime(r"%Y.%m.%d"),
             "White": white_player.name,
             "Black": black_player.name,
@@ -109,7 +126,7 @@ def play_game(
     )
     node: chess.pgn.GameNode = game
 
-    for player in itertools.cycle(players):
+    for player in itertools.cycle([white_player, black_player]):
         if not board.outcome(claim_draw=True):
             move = player.play(board)
             node = node.add_variation(move)
@@ -129,19 +146,17 @@ def play_match(
     teacher_player: TeacherPlayer,
     max_games: int = DEFAULT_MAX_GAMES,
     min_phi: float = DEFAULT_MIN_PHI,
-) -> None:
+) -> typing.Iterator[chess.pgn.Game]:
     game_ind = 0
 
     while student_player.rating.phi > min_phi and game_ind < max_games:
         teacher_player.set_similar_strength(student_player, env)
 
-        players = random.choice(
+        white_player, black_player = random.choice(
             [(student_player, teacher_player), (teacher_player, student_player)]
         )
-        white_player = players[0]
-        black_player = players[1]
 
-        game = play_game(white_player, black_player, players, student_player, game_ind)
+        game = play_game(white_player, black_player, student_player, game_ind)
         result = game.headers["Result"]
 
         if (
@@ -150,35 +165,60 @@ def play_match(
             or result == "0-1"
             and black_player == student_player
         ):
-            dinora_outcome = glicko2.WIN
+            student_outcome = glicko2.WIN
         elif result == "1/2-1/2":
-            dinora_outcome = glicko2.DRAW
+            student_outcome = glicko2.DRAW
         else:
-            dinora_outcome = glicko2.LOSS
+            student_outcome = glicko2.LOSS
 
         student_player.rating = env.rate(
-            student_player.rating, [(dinora_outcome, teacher_player.rating)]
+            student_player.rating, [(student_outcome, teacher_player.rating)]
         )
-
-        print(game, end="\n\n", flush=True)
+        yield game
 
         game_ind += 1
 
-    for player in players:
+    for player in [teacher_player, student_player]:
         player.close()
 
 
-if __name__ == "__main__":
+def load_players(
+    env: Glicko2, config_path: pathlib.Path
+) -> tuple[TeacherPlayer, RatedPlayer]:
+    with config_path.open(encoding="utf8") as f:
+        config = json.load(f)
+
+    Teacher = globals()[config["teacher_player"]["class"]]
+    teacher_init = config["teacher_player"]["init"]
+    teacher_player: TeacherPlayer = Teacher(env, **teacher_init)
+    teacher_player.rating.phi = 75.0
+
+    Student = globals()[config["student_player"]["class"]]
+    student_init = config["student_player"]["init"]
+    student_player = Student(env, **student_init)
+
+    return teacher_player, student_player
+
+
+def init_cli(parser):
+    parser.add_argument(
+        "config",
+        help="Path to config, look to configs/elo_match",
+        type=pathlib.Path,
+    )
+
+
+def run_cli(args):
     env = Glicko2()
-    # student_player = DinoraPlayer(env, limit=NodesCountConstraint(3))
+    teacher_player, student_player = load_players(env, args.config)
 
-    student_player = StockfishPlayer(
-        env, "stockfish", limit=chess.engine.Limit(nodes=3)
-    )
-    student_player.set_elo(2000)
+    for game in play_match(env, student_player, teacher_player):
+        print(game, end="\n\n", flush=True)
 
-    teacher_player = StockfishPlayer(
-        env, "stockfish", limit=chess.engine.Limit(nodes=3)
-    )
 
-    play_match(env, student_player, teacher_player)
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    init_cli(parser)
+    run_cli(parser.parse_args())
