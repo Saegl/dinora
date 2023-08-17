@@ -9,7 +9,7 @@ import chess.engine
 from dinora import glicko2
 from dinora.glicko2 import Glicko2
 from dinora.engine import Engine
-from dinora.mcts.constraints import Constraint, NodesCountConstraint
+from dinora.mcts.constraints import NodesCountConstraint
 
 
 DEFAULT_MAX_GAMES = 100
@@ -71,19 +71,19 @@ class StockfishPlayer(TeacherPlayer):
 
 
 class DinoraPlayer(RatedPlayer):
-    def __init__(self, env: Glicko2, limit: Constraint) -> None:
+    def __init__(self, env: Glicko2, nodes_limit: int) -> None:
         self.init_rating(env)
         self.engine = Engine("alphanet")
         self.engine.load_model()
         self.name = "dinora"
-        self.limit = limit
+        self.nodes_limit = nodes_limit
         ############# CPU FIX
         assert self.engine._model
         self.engine._model = self.engine._model.to("cpu")
         self.engine.mcts_params.send_func = lambda _: None
 
     def play(self, board: chess.Board) -> chess.Move:
-        return self.engine.get_best_move(board, self.limit)
+        return self.engine.get_best_move(board, NodesCountConstraint(self.nodes_limit))
 
 
 def play_game(
