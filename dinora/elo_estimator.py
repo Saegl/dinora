@@ -17,6 +17,7 @@ from dinora.mcts.constraints import NodesCountConstraint
 
 DEFAULT_MAX_GAMES = 100
 DEFAULT_MIN_PHI = 75.0
+DEFAULT_MIN_MU = 1200
 
 
 def clip(minval: int, x: int, maxval: int) -> int:
@@ -147,10 +148,15 @@ def play_match(
     teacher_player: TeacherPlayer,
     max_games: int = DEFAULT_MAX_GAMES,
     min_phi: float = DEFAULT_MIN_PHI,
+    min_mu: float = DEFAULT_MIN_MU,
 ) -> typing.Iterator[chess.pgn.Game]:
     game_ind = 0
 
-    while student_player.rating.phi > min_phi and game_ind < max_games:
+    while (
+        student_player.rating.mu > min_mu
+        and student_player.rating.phi > min_phi
+        and game_ind < max_games
+    ):
         teacher_player.set_similar_strength(student_player)
 
         white_player, black_player = random.choice(
@@ -183,12 +189,7 @@ def play_match(
         player.close()
 
 
-def load_players(
-    env: glicko2.Glicko2, config_path: pathlib.Path
-) -> tuple[TeacherPlayer, RatedPlayer]:
-    with config_path.open(encoding="utf8") as f:
-        config = json.load(f)
-
+def load_players(config: dict) -> tuple[TeacherPlayer, RatedPlayer]:
     if "mu" in config["teacher_player"]["start_rating"]:
         raise ValueError("Cannot set teacher `mu`, it will be similar to student")
 
@@ -217,10 +218,20 @@ def init_cli(parser):
 
 
 def run_cli(args):
-    env = glicko2.Glicko2()
-    teacher_player, student_player = load_players(env, args.config)
+    with args.config.open(encoding="utf8") as f:
+        config = json.load(f)
 
-    for game in play_match(env, student_player, teacher_player):
+    env = glicko2.Glicko2()
+    teacher_player, student_player = load_players(config)
+
+    for game in play_match(
+        env,
+        student_player,
+        teacher_player,
+        max_games=config["max_games"],
+        min_phi=config["min_phi"],
+        min_mu=config["min_mu"],
+    ):
         print(game, end="\n\n", flush=True)
 
 

@@ -1,8 +1,11 @@
 {
+    "max_games": 200,
+    "min_phi": 50.0,
+    "min_mu": 1200,
     "teacher_player": {
         "class": "StockfishPlayer",
         "start_rating": {
-            "phi": 75
+            "phi": 100
         },
         "init": {
             "command": "stockfish",
