@@ -107,9 +107,9 @@ class UciState:
         sys.exit(0)
 
 
-def start_uci(model: str, weights: pathlib.Path) -> None:
+def start_uci(model: str, weights: pathlib.Path, device: str) -> None:
     try:
-        engine = Engine(model, weights)
+        engine = Engine(model, weights, device)
         uci_state = UciState(engine)
         uci_state.loop()
     except SystemExit:

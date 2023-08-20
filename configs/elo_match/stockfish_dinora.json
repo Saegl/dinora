@@ -10,7 +10,8 @@
         "class": "DinoraPlayer",
         "init": {
             "nodes_limit": 100,
-            "weights": "models/model020.ckpt"
+            "weights": "models/model020.ckpt",
+            "device": "cuda"
         }
     }
 }

@@ -5,15 +5,17 @@ from dinora.models.cached_model import CachedModel
 from dinora.models.handcrafted import DummyModel
 
 
-def model_selector(model: str, weights_path: pathlib.Path) -> BaseModel:
+def model_selector(model: str, weights_path: pathlib.Path, device: str) -> BaseModel:
     if model.startswith("cached_"):
         model = model.removeprefix("cached_")
-        return CachedModel(model_selector(model))
+        return CachedModel(model_selector(model, weights_path, device))
 
     elif model == "alphanet":
         import torch  # Torch import at the top makes UCI slower
 
-        return torch.load(weights_path)
+        alphanet = torch.load(weights_path, map_location=device)
+        alphanet = alphanet.to(device)
+        return alphanet
 
     elif model == "handcrafted":
         return DummyModel()

@@ -20,6 +20,10 @@ def cli():
         default="models/model020.ckpt",
         type=pathlib.Path,
     )
+    parser.add_argument(
+        "--device",
+        default="cuda",
+    )
 
     subparsers = parser.add_subparsers(title="Subcommands", dest="subcommand")
 
@@ -33,4 +37,4 @@ def cli():
     if args.subcommand == "elo_estimator":
         dinora.elo_estimator.run_cli(args)
     else:
-        start_uci(args.model, args.weights)
+        start_uci(args.model, args.weights, args.device)

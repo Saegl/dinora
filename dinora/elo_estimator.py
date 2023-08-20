@@ -89,15 +89,15 @@ class StockfishPlayer(TeacherPlayer):
 
 
 class DinoraPlayer(RatedPlayer):
-    def __init__(self, env: Glicko2, nodes_limit: int, weights: str) -> None:
+    def __init__(
+        self, env: Glicko2, nodes_limit: int, weights: str, device: str
+    ) -> None:
         self.init_rating(env)
-        self.engine = Engine("alphanet", pathlib.Path(weights))
+        self.engine = Engine("alphanet", pathlib.Path(weights), device)
         self.engine.load_model()
         self.name = "dinora"
         self.nodes_limit = nodes_limit
-        ############# CPU FIX
         assert self.engine._model
-        # self.engine._model = self.engine._model.to("cpu")
         self.engine.mcts_params.send_func = lambda _: None
 
     def play(self, board: chess.Board) -> chess.Move:
