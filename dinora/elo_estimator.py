@@ -219,6 +219,10 @@ def run_cli(args):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        "elo_estimator",
+        description="Estimate elo of chess engines",
+    )
+
     init_cli(parser)
     run_cli(parser.parse_args())
