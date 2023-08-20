@@ -4,6 +4,9 @@ from typing import Callable
 from dinora.mcts.node import Node
 
 
+NONZERO = 0.001
+
+
 def cp(q: float) -> int:
     """Convert UCT Q values to Stockfish like centipawns"""
     return int(295 * q / (1 - 0.976953125 * q**14))
@@ -24,7 +27,7 @@ def send_info(
     if send is not None:
         send(
             "info score cp {} nodes {} nps {} pv {}".format(
-                score, count, int(round(count / delta, 0)), pv
+                score, count, int(round(count / (delta + NONZERO), 0)), pv
             )
         )
 
