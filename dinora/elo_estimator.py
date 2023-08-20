@@ -89,9 +89,9 @@ class StockfishPlayer(TeacherPlayer):
 
 
 class DinoraPlayer(RatedPlayer):
-    def __init__(self, env: Glicko2, nodes_limit: int) -> None:
+    def __init__(self, env: Glicko2, nodes_limit: int, weights: str) -> None:
         self.init_rating(env)
-        self.engine = Engine("alphanet")
+        self.engine = Engine("alphanet", pathlib.Path(weights))
         self.engine.load_model()
         self.name = "dinora"
         self.nodes_limit = nodes_limit

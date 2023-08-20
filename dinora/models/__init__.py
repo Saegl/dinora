@@ -1,9 +1,11 @@
+import pathlib
+
 from dinora.models.base import BaseModel, Priors, StateValue
 from dinora.models.cached_model import CachedModel
 from dinora.models.handcrafted import DummyModel
 
 
-def model_selector(model: str) -> BaseModel:
+def model_selector(model: str, weights_path: pathlib.Path) -> BaseModel:
     if model.startswith("cached_"):
         model = model.removeprefix("cached_")
         return CachedModel(model_selector(model))
@@ -11,7 +13,7 @@ def model_selector(model: str) -> BaseModel:
     elif model == "alphanet":
         import torch  # Torch import at the top makes UCI slower
 
-        return torch.load("models/valid-state-5.ckpt")
+        return torch.load(weights_path)
 
     elif model == "handcrafted":
         return DummyModel()

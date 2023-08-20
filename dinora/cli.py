@@ -1,3 +1,4 @@
+import pathlib
 import argparse
 
 import dinora.elo_estimator
@@ -8,6 +9,16 @@ def cli():
     parser = argparse.ArgumentParser(
         prog="dinora",
         description="Chess engine",
+    )
+    parser.add_argument(
+        "--model",
+        default="alphanet",
+        help="Name of the model to use",
+    )
+    parser.add_argument(
+        "--weights",
+        default="models/model020.ckpt",
+        type=pathlib.Path,
     )
 
     subparsers = parser.add_subparsers(title="Subcommands", dest="subcommand")
@@ -22,4 +33,4 @@ def cli():
     if args.subcommand == "elo_estimator":
         dinora.elo_estimator.run_cli(args)
     else:
-        start_uci()
+        start_uci(args.model, args.weights)

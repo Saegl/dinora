@@ -1,3 +1,4 @@
+import pathlib
 import traceback
 import sys
 
@@ -24,9 +25,9 @@ UCI_OPTIONS = [
 
 
 class UciState:
-    def __init__(self) -> None:
+    def __init__(self, engine: Engine) -> None:
         self.board = chess.Board()
-        self.engine = Engine("alphanet")  # TODO dont hardcode
+        self.engine = engine
 
     def load_model(self) -> None:
         if not self.engine.loaded():
@@ -106,9 +107,10 @@ class UciState:
         sys.exit(0)
 
 
-def start_uci() -> None:
+def start_uci(model: str, weights: pathlib.Path) -> None:
     try:
-        uci_state = UciState()
+        engine = Engine(model, weights)
+        uci_state = UciState(engine)
         uci_state.loop()
     except SystemExit:
         pass

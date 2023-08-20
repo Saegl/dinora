@@ -9,7 +9,8 @@
     "student_player": {
         "class": "DinoraPlayer",
         "init": {
-            "nodes_limit": 100
+            "nodes_limit": 100,
+            "weights": "models/model020.ckpt"
         }
     }
 }
