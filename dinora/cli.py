@@ -17,7 +17,7 @@ def cli():
     )
     parser.add_argument(
         "--weights",
-        default="models/model020.ckpt",
+        default="models/model021.ckpt",
         type=pathlib.Path,
     )
     parser.add_argument(
