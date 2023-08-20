@@ -11,7 +11,6 @@ import chess.pgn
 import chess.engine
 
 from dinora import glicko2
-from dinora.glicko2 import Glicko2
 from dinora.engine import Engine
 from dinora.mcts.constraints import NodesCountConstraint
 
@@ -26,9 +25,7 @@ def clip(minval: int, x: int, maxval: int) -> int:
 
 class RatedPlayer(abc.ABC):
     name: str
-
-    def init_rating(self, env: Glicko2) -> None:
-        self.rating = env.create_rating()
+    rating: glicko2.Rating
 
     @abc.abstractmethod
     def play(self, board: chess.Board) -> chess.Move:
@@ -40,7 +37,7 @@ class RatedPlayer(abc.ABC):
 
 class TeacherPlayer(RatedPlayer, abc.ABC):
     @abc.abstractmethod
-    def set_similar_strength(self, other: RatedPlayer, env: Glicko2) -> None:
+    def set_similar_strength(self, other: RatedPlayer) -> None:
         pass
 
 
@@ -49,9 +46,13 @@ class StockfishPlayer(TeacherPlayer):
     STOCKFISH_MAX_ELO: int = 3190
 
     def __init__(
-        self, env: Glicko2, command: str, nodes_limit: int, elo: int | None = None
+        self,
+        rating: glicko2.Rating,
+        command: str,
+        nodes_limit: int,
+        elo: int | None = None,
     ):
-        self.init_rating(env)
+        self.rating = rating
         self.nodes_limit = nodes_limit
         self.uci_engine = chess.engine.SimpleEngine.popen_uci(command)
         self.name = "stockfish"
@@ -79,9 +80,9 @@ class StockfishPlayer(TeacherPlayer):
             {"UCI_LimitStrength": True, "UCI_Elo": StockfishPlayer.clip_elo(target_elo)}
         )
 
-    def set_similar_strength(self, other: RatedPlayer, env: Glicko2) -> None:
+    def set_similar_strength(self, other: RatedPlayer) -> None:
         target_elo = StockfishPlayer.clip_elo(int(other.rating.mu))
-        self.rating = env.create_rating(target_elo)
+        self.rating.mu = target_elo
         self.set_elo(target_elo)
 
     def close(self) -> None:
@@ -90,9 +91,9 @@ class StockfishPlayer(TeacherPlayer):
 
 class DinoraPlayer(RatedPlayer):
     def __init__(
-        self, env: Glicko2, nodes_limit: int, weights: str, device: str
+        self, rating: glicko2.Rating, nodes_limit: int, weights: str, device: str
     ) -> None:
-        self.init_rating(env)
+        self.rating = rating
         self.engine = Engine("alphanet", pathlib.Path(weights), device)
         self.engine.load_model()
         self.name = "dinora"
@@ -141,7 +142,7 @@ def play_game(
 
 
 def play_match(
-    env: Glicko2,
+    env: glicko2.Glicko2,
     student_player: RatedPlayer,
     teacher_player: TeacherPlayer,
     max_games: int = DEFAULT_MAX_GAMES,
@@ -150,7 +151,7 @@ def play_match(
     game_ind = 0
 
     while student_player.rating.phi > min_phi and game_ind < max_games:
-        teacher_player.set_similar_strength(student_player, env)
+        teacher_player.set_similar_strength(student_player)
 
         white_player, black_player = random.choice(
             [(student_player, teacher_player), (teacher_player, student_player)]
@@ -183,19 +184,26 @@ def play_match(
 
 
 def load_players(
-    env: Glicko2, config_path: pathlib.Path
+    env: glicko2.Glicko2, config_path: pathlib.Path
 ) -> tuple[TeacherPlayer, RatedPlayer]:
     with config_path.open(encoding="utf8") as f:
         config = json.load(f)
 
+    if "mu" in config["teacher_player"]["start_rating"]:
+        raise ValueError("Cannot set teacher `mu`, it will be similar to student")
+
     Teacher = globals()[config["teacher_player"]["class"]]
     teacher_init = config["teacher_player"]["init"]
-    teacher_player: TeacherPlayer = Teacher(env, **teacher_init)
-    teacher_player.rating.phi = 75.0
+    teacher_rating = glicko2.Rating(phi=config["teacher_player"]["start_rating"]["phi"])
+    teacher_player: TeacherPlayer = Teacher(teacher_rating, **teacher_init)
 
     Student = globals()[config["student_player"]["class"]]
     student_init = config["student_player"]["init"]
-    student_player = Student(env, **student_init)
+    student_start_rating = config["student_player"]["start_rating"]
+    student_rating = glicko2.Rating(
+        mu=student_start_rating["mu"], phi=student_start_rating["phi"]
+    )
+    student_player = Student(student_rating, **student_init)
 
     return teacher_player, student_player
 
@@ -209,7 +217,7 @@ def init_cli(parser):
 
 
 def run_cli(args):
-    env = Glicko2()
+    env = glicko2.Glicko2()
     teacher_player, student_player = load_players(env, args.config)
 
     for game in play_match(env, student_player, teacher_player):

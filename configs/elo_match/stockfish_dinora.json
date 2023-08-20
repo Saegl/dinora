@@ -1,6 +1,9 @@
 {
     "teacher_player": {
         "class": "StockfishPlayer",
+        "start_rating": {
+            "phi": 75
+        },
         "init": {
             "command": "stockfish",
             "nodes_limit": 100000
@@ -8,6 +11,10 @@
     },
     "student_player": {
         "class": "DinoraPlayer",
+        "start_rating": {
+            "mu": 1500,
+            "phi": 350
+        },
         "init": {
             "nodes_limit": 100,
             "weights": "models/model020.ckpt",

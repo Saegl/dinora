@@ -1,6 +1,9 @@
 {
     "teacher_player": {
         "class": "StockfishPlayer",
+        "start_rating": {
+            "phi": 75
+        },
         "init": {
             "command": "stockfish",
             "nodes_limit": 10000
@@ -8,6 +11,10 @@
     },
     "student_player": {
         "class": "StockfishPlayer",
+        "start_rating": {
+            "mu": 1500,
+            "phi": 350
+        },
         "init": {
             "command": "stockfish",
             "nodes_limit": 10000,
