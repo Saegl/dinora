@@ -155,7 +155,7 @@ class WandbDataModule(CompactDataModule):
 
         folder_name = dataset_label.replace(":", "-").replace("/", "-")
 
-        dataset_folder = PROJECT_ROOT / "data" / folder_name
+        dataset_folder = PROJECT_ROOT / "data/datasets" / folder_name
         dataset_folder.mkdir(parents=True, exist_ok=True)
 
         dataset_artifact = wandb.run.use_artifact(dataset_label)
