@@ -3,7 +3,6 @@ models/*
 !models/.gitkeep
 /jupyter/generated/
 /jupyter/data/
-data/*
 wandb/*
 artifacts/*
 lightning_logs/*

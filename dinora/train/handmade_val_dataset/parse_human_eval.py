@@ -1,4 +1,4 @@
-from pprint import pprint
+import json
 
 
 output = []
@@ -22,4 +22,6 @@ with open("human_eval.txt", "r", encoding="utf8") as f:
 
         f.readline()
 
-pprint(output)
+
+with open("handmade.json", "w", encoding="utf8") as f:
+    json.dump(output, f)

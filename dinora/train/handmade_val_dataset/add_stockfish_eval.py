@@ -1,7 +1,7 @@
 import pprint
 import chess
 import chess.engine
-from dinora.handmade_val_dataset.dataset import POSITIONS
+from dinora.train.handmade_val_dataset.dataset import POSITIONS
 
 
 engine = chess.engine.SimpleEngine.popen_uci("stockfish")
