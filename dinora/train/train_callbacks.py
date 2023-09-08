@@ -87,18 +87,20 @@ class ValidationCheckpointer(Callback):
     def __init__(self):
         self.saves_counter = 0
 
-    def on_validation_end(
-        self, trainer: pl.Trainer, pl_module: pl.LightningModule
-    ) -> None:
+    def save_model(self, pl_module: pl.LightningModule, label: str):
         self.saves_counter += 1
-        filepath = pathlib.Path(f"valid-state-{self.saves_counter}.ckpt").absolute()
+        filepath = pathlib.Path(f"{label}.ckpt").absolute()
 
         torch.save(pl_module, filepath)
 
         import wandb
 
-        final_state = wandb.Artifact(
-            name=f"valid-state-{self.saves_counter}", type="valid-state"
-        )
+        final_state = wandb.Artifact(name=label, type="model-checkpoint")
         final_state.add_file(filepath)
         wandb.log_artifact(final_state)
+
+    def on_validation_end(self, _: pl.Trainer, pl_module: pl.LightningModule) -> None:
+        self.save_model(pl_module, f"valid-state-{self.saves_counter}")
+
+    def on_train_end(self, _: pl.Trainer, pl_module: pl.LightningModule) -> None:
+        self.save_model(pl_module, "final-state")
