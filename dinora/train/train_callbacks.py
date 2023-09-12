@@ -95,7 +95,7 @@ class ValidationCheckpointer(Callback):
 
         import wandb
 
-        final_state = wandb.Artifact(name=label, type="model-checkpoint")
+        final_state = wandb.Artifact(name=label, type="valid-state")
         final_state.add_file(filepath)
         wandb.log_artifact(final_state)
 
@@ -103,4 +103,4 @@ class ValidationCheckpointer(Callback):
         self.save_model(pl_module, f"valid-state-{self.saves_counter}")
 
     def on_train_end(self, _: pl.Trainer, pl_module: pl.LightningModule) -> None:
-        self.save_model(pl_module, "final-state")
+        self.save_model(pl_module, "valid-state-final")
