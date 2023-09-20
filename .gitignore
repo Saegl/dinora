@@ -9,6 +9,8 @@ lightning_logs/*
 checkpoints/*
 !checkpoints/.gitkeep
 data/datasets/
+data/treeviz/*
+!data/treeviz/.gitkeep
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python

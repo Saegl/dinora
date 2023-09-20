@@ -7,13 +7,15 @@ from dataclasses import dataclass
 from time import sleep
 
 import graphviz
-import cairosvg
 
 import chess.svg
+from dinora import PROJECT_ROOT
 from dinora.mcts import run_mcts, MCTSparams, Node, NodesCountConstraint
 from dinora.models.base import BaseModel
 
 NodeID = str
+SVG_PREFIX = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
+OUTPUT_DIR = PROJECT_ROOT / "data/treeviz"
 
 
 def node_id(node: object) -> NodeID:
@@ -98,9 +100,12 @@ def build_info_node(graph: graphviz.Digraph, root: Node) -> None:
 
 def build_root_node(graph: graphviz.Digraph, fen: str) -> None:
     """Save root node in digraph and attach board preview"""
-    # FIXME: cairo is big dependency, is there better way to convert svg to png?
-    cairosvg.svg2png(chess.svg.board(chess.Board(fen)), write_to="generated/cboard.png")
-    graph.node("root", label="", image="cboard.png", imagescale="false", shape="box")
+    svg = SVG_PREFIX + chess.svg.board(chess.Board(fen))
+    svg_filename = "svg_board.svg"
+    board_path = OUTPUT_DIR / svg_filename
+    with open(board_path, "wt", encoding="utf8") as f:
+        f.write(svg)
+    graph.node("root", label="", image=svg_filename, imagescale="false", shape="box")
 
 
 def build_children_nodes(
@@ -154,7 +159,8 @@ def build_graph(
         graph_attr={
             "rankdir": "LR",
             # "bgcolor": "#00000000",
-            # "splines": "line",  # FIXME: can you make beautiful straight lines?
+            "splines": "line",  # FIXME: can you make beautiful straight lines?
+            "size": "150,150",
         },
     )
 
@@ -182,7 +188,7 @@ def render_search_process(
         root = run_mcts(chess.Board(fen), NodesCountConstraint(i), model, mcts_params)
         graph = build_graph(root, params=render_params, fen=fen)
         graph.render(
-            directory="generated", filename=str(i), view=render_params.open_default_gui
+            directory=OUTPUT_DIR, filename=str(i), view=render_params.open_default_gui
         )
         sleep(sleep_between_states)
 
@@ -195,9 +201,10 @@ def render_state(
     mcts_params: MCTSparams = MCTSparams(),
     render_params: RenderParams = RenderParams(),
 ) -> Node:
-    root = run_mcts(chess.Board(fen), NodesCountConstraint(nodes), model, mcts_params)
+    board = chess.Board(fen)
+    root = run_mcts(board, NodesCountConstraint(nodes), model, mcts_params)
     graph = build_graph(root, params=render_params, fen=fen, format=format)
     graph.render(
-        directory="generated", filename="state", view=render_params.open_default_gui
+        directory=OUTPUT_DIR, filename="state", view=render_params.open_default_gui
     )
     return root
