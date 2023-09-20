@@ -3,6 +3,7 @@ import argparse
 
 from dinora.uci import start_uci
 import dinora.elo_estimator.cli as elo_estimator_cli
+import dinora.viz.cli as treeviz_cli
 
 
 def run_cli():
@@ -11,6 +12,8 @@ def run_cli():
 
     if args.subcommand == "elo_estimator":
         elo_estimator_cli.run_cli(args)
+    elif args.subcommand == "treeviz":
+        treeviz_cli.run_cli(args)
     else:
         start_uci(args.model, args.weights, args.device)
 
@@ -19,6 +22,7 @@ def build_root_cli():
     parser = build_uci_cli_parser()
     subparsers = parser.add_subparsers(title="Subcommands", dest="subcommand")
     elo_estimator_cli.build_parser(subparsers)
+    treeviz_cli.build_parser(subparsers)
     return parser
 
 
