@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-from glicko2 import Glicko2, WIN, DRAW, LOSS
+from glicko2 import Glicko2, WIN, LOSS
 
 
 class almost(object):
-
     def __init__(self, val, precision=3):
         self.val = val
         self.precision = precision
@@ -11,8 +10,11 @@ class almost(object):
     def almost_equals(self, val1, val2):
         if round(val1, self.precision) == round(val2, self.precision):
             return True
-        fmt = '%.{0}f'.format(self.precision)
-        mantissa = lambda f: int((fmt % f).replace('.', ''))
+        fmt = "%.{0}f".format(self.precision)
+
+        def mantissa(f):
+            return int((fmt % f).replace(".", ""))
+
         return abs(mantissa(val1) - mantissa(val2)) <= 1
 
     def __eq__(self, other):
@@ -21,8 +23,9 @@ class almost(object):
                 return False
         except AttributeError:
             pass
-        return (self.almost_equals(self.val.mu, other.mu) and
-                self.almost_equals(self.val.sigma, other.sigma))
+        return self.almost_equals(self.val.mu, other.mu) and self.almost_equals(
+            self.val.sigma, other.sigma
+        )
 
     def __repr__(self):
         return repr(self.val)

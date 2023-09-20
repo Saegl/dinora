@@ -4,13 +4,12 @@ import itertools
 import random
 import typing
 import pathlib
-import json
 
 import chess
 import chess.pgn
 import chess.engine
 
-from dinora import glicko2
+from dinora.elo_estimator.glicko2 import glicko2
 from dinora.engine import Engine
 from dinora.mcts.constraints import NodesCountConstraint
 
@@ -207,41 +206,3 @@ def load_players(config: dict) -> tuple[TeacherPlayer, RatedPlayer]:
     student_player = Student(student_rating, **student_init)
 
     return teacher_player, student_player
-
-
-def init_cli(parser):
-    parser.add_argument(
-        "config",
-        help="Path to config, look to configs/elo_match",
-        type=pathlib.Path,
-    )
-
-
-def run_cli(args):
-    with args.config.open(encoding="utf8") as f:
-        config = json.load(f)
-
-    env = glicko2.Glicko2()
-    teacher_player, student_player = load_players(config)
-
-    for game in play_match(
-        env,
-        student_player,
-        teacher_player,
-        max_games=config["max_games"],
-        min_phi=config["min_phi"],
-        min_mu=config["min_mu"],
-    ):
-        print(game, end="\n\n", flush=True)
-
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(
-        "elo_estimator",
-        description="Estimate elo of chess engines",
-    )
-
-    init_cli(parser)
-    run_cli(parser.parse_args())

@@ -1,11 +1,28 @@
 import pathlib
 import argparse
 
-import dinora.elo_estimator
 from dinora.uci import start_uci
+import dinora.elo_estimator.cli as elo_estimator_cli
 
 
-def cli():
+def run_cli():
+    parser = build_root_cli()
+    args = parser.parse_args()
+
+    if args.subcommand == "elo_estimator":
+        elo_estimator_cli.run_cli(args)
+    else:
+        start_uci(args.model, args.weights, args.device)
+
+
+def build_root_cli():
+    parser = build_uci_cli_parser()
+    subparsers = parser.add_subparsers(title="Subcommands", dest="subcommand")
+    elo_estimator_cli.build_parser(subparsers)
+    return parser
+
+
+def build_uci_cli_parser():
     parser = argparse.ArgumentParser(
         prog="dinora",
         description="Chess engine",
@@ -24,17 +41,4 @@ def cli():
         "--device",
         default="cuda",
     )
-
-    subparsers = parser.add_subparsers(title="Subcommands", dest="subcommand")
-
-    elo_estimator = subparsers.add_parser(
-        name="elo_estimator", help="Estimate elo of chess engines"
-    )
-    dinora.elo_estimator.init_cli(elo_estimator)
-
-    args = parser.parse_args()
-
-    if args.subcommand == "elo_estimator":
-        dinora.elo_estimator.run_cli(args)
-    else:
-        start_uci(args.model, args.weights, args.device)
+    return parser

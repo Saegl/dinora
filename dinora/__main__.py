@@ -1,3 +1,3 @@
-from dinora.cli import cli
+from dinora.cli import run_cli
 
-cli()
+run_cli()
