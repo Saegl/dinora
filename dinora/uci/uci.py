@@ -1,5 +1,3 @@
-import pathlib
-import traceback
 import sys
 
 import chess
@@ -105,22 +103,3 @@ class UciState:
 
     def quit(self, tokens: list[str]):
         sys.exit(0)
-
-
-def start_uci(model: str, weights: pathlib.Path, device: str) -> None:
-    try:
-        engine = Engine(model, weights, device)
-        uci_state = UciState(engine)
-        uci_state.loop()
-    except SystemExit:
-        pass
-    except:  # noqa: E722
-        with open("dinora.log", "wt", encoding="utf8") as logfile:
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            logfile.write(
-                "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
-            )
-            logfile.write("\n")
-
-        with open("dinora.log", "rt", encoding="utf8") as f:
-            print(f.read())
