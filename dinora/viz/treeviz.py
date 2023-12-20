@@ -9,8 +9,8 @@ import graphviz
 
 import chess.svg
 from dinora import PROJECT_ROOT
-from dinora.mcts import run_mcts, MCTSparams, Node, NodesCountConstraint
-from dinora.models.base import BaseModel
+from dinora.mcts import Node, NodesCountConstraint
+from dinora.engine import Engine
 
 NodeID = str
 SVG_PREFIX = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
@@ -176,15 +176,14 @@ def build_graph(
 
 
 def render_state(
-    model: BaseModel,
+    engine: Engine,
     fen: str,
     nodes: int,
     format: Literal["png", "svg"] = "svg",
-    mcts_params: MCTSparams = MCTSparams(),
     render_params: RenderParams = RenderParams(),
 ) -> Node:
     board = chess.Board(fen)
-    root = run_mcts(board, NodesCountConstraint(nodes), model, mcts_params)
+    root = engine.get_best_node(board, NodesCountConstraint(nodes))
     graph = build_graph(root, params=render_params, fen=fen, format=format)
     graph.render(
         directory=OUTPUT_DIR, filename="state", view=render_params.open_default_gui

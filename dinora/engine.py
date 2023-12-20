@@ -4,6 +4,7 @@ import dataclasses
 import chess
 
 from dinora.mcts import MCTSparams, run_mcts, Constraint
+from dinora.mcts.node import Node
 from dinora.models import model_selector, BaseModel
 
 
@@ -32,7 +33,7 @@ class Engine:
         else:
             raise ValueError("Field is not found")
 
-    def get_best_move(self, board: chess.Board, constraint: Constraint) -> chess.Move:
+    def get_best_node(self, board: chess.Board, constraint: Constraint) -> Node:
         self.load_model()
         root_node = run_mcts(
             state=board,
@@ -40,7 +41,10 @@ class Engine:
             evaluator=self._model,
             params=self.mcts_params,
         )
-        return root_node.get_most_visited_node().move
+        return root_node.get_most_visited_node()
+
+    def get_best_move(self, board: chess.Board, constraint: Constraint) -> chess.Move:
+        return self.get_best_node(board, constraint).move
 
 
 if __name__ == "__main__":

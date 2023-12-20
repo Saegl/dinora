@@ -3,6 +3,7 @@ import traceback
 import pathlib
 import argparse
 
+from dinora import DEFAULT_WEIGHTS
 from dinora.engine import Engine
 from dinora.uci.uci import UciState
 
@@ -19,7 +20,8 @@ def build_parser():
     )
     parser.add_argument(
         "--weights",
-        default="models/model021.ckpt",
+        default=DEFAULT_WEIGHTS,
+        help="Path to model weights",
         type=pathlib.Path,
     )
     parser.add_argument(
