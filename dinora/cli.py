@@ -1,6 +1,9 @@
 import dinora.elo_estimator.cli as elo_estimator_cli
+
 import dinora.viz.cli as treeviz_cli
 import dinora.uci.cli as uci_cli
+import dinora.train.compact_dataset.make_cli as make_dataset_cli
+import dinora.train.compact_dataset.upload_cli as upload_dataset_cli
 
 
 def run_cli():
@@ -11,6 +14,10 @@ def run_cli():
         elo_estimator_cli.run_cli(args)
     elif args.subcommand == "treeviz":
         treeviz_cli.run_cli(args)
+    elif args.subcommand == "make_dataset":
+        make_dataset_cli.run_cli(args)
+    elif args.subcommand == "upload_dataset":
+        upload_dataset_cli.run_cli(args)
     else:
         uci_cli.run_cli(args)
 
@@ -21,5 +28,7 @@ def build_root_cli():
 
     elo_estimator_cli.build_parser(subparsers)
     treeviz_cli.build_parser(subparsers)
+    make_dataset_cli.build_parser(subparsers)
+    upload_dataset_cli.build_parser(subparsers)
 
     return parser
