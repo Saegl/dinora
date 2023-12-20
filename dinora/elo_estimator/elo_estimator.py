@@ -70,16 +70,17 @@ class StockfishPlayer(TeacherPlayer):
             output += f"_{self.time_limit}sec_move"
         return output
 
-    def play(self, board: chess.Board) -> chess.Move:
+    def play(self, board: chess.Board) -> tuple[chess.Move, int]:
         playres = self.uci_engine.play(
             board,
+            info=chess.engine.INFO_BASIC,
             limit=chess.engine.Limit(
                 time=self.time_limit,
                 nodes=self.nodes_limit,
             ),
         )
         assert playres.move
-        return playres.move
+        return playres.move, playres.info["nodes"]
 
     @staticmethod
     def clip_elo(target_elo: int) -> int:
@@ -140,15 +141,16 @@ class DinoraPlayer(RatedPlayer):
 
     def play(self, board: chess.Board) -> chess.Move:
         if self.nodes_limit:
-            return self.engine.get_best_move(
+            node = self.engine.get_best_node(
                 board, NodesCountConstraint(self.nodes_limit)
             )
         elif self.time_limit:
-            return self.engine.get_best_move(
+            node = self.engine.get_best_node(
                 board, MoveTimeConstraint(int(self.time_limit * 1000))
             )
         else:
             raise ValueError("Unreachable state")
+        return node.move, node.number_visits
 
 
 def play_game(
@@ -156,6 +158,7 @@ def play_game(
     black_player: RatedPlayer,
     student_player: RatedPlayer,
     game_ind: int,
+    game_tick: bool,
 ) -> chess.pgn.Game:
     board = chess.Board()
     current_datetime = datetime.datetime.now()
@@ -180,9 +183,11 @@ def play_game(
 
     for player in itertools.cycle([white_player, black_player]):
         if not board.outcome(claim_draw=True):
-            move = player.play(board)
+            move, nodes = player.play(board)
             node = node.add_variation(move)
             board.push(move)
+            if game_tick:
+                print(move.uci(), nodes)
         else:
             break
 
@@ -199,6 +204,7 @@ def play_match(
     max_games: int = DEFAULT_MAX_GAMES,
     min_phi: float = DEFAULT_MIN_PHI,
     min_mu: float = DEFAULT_MIN_MU,
+    game_tick: bool = False,
 ) -> typing.Iterator[chess.pgn.Game]:
     game_ind = 0
 
@@ -213,7 +219,9 @@ def play_match(
             [(student_player, teacher_player), (teacher_player, student_player)]
         )
 
-        game = play_game(white_player, black_player, student_player, game_ind)
+        game = play_game(
+            white_player, black_player, student_player, game_ind, game_tick
+        )
         result = game.headers["Result"]
 
         if (

@@ -1,5 +1,5 @@
 {
-    "max_games": 100,
+    "max_games": 50,
     "min_phi": 50.0,
     "min_mu": 1200,
     "teacher_player": {
