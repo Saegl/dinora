@@ -4,7 +4,6 @@ Look at jupyter/treeviz.ipynb for an example of using this module
 """
 from typing import Iterator, Literal
 from dataclasses import dataclass
-from time import sleep
 
 import graphviz
 
@@ -174,23 +173,6 @@ def build_graph(
     build_children_nodes(graph, root, "root", selected_nodes, pv_set, params)
 
     return graph
-
-
-def render_search_process(
-    model: BaseModel,
-    fen: str,
-    nodes: int = 10,
-    sleep_between_states: float = 0.0,
-    mcts_params: MCTSparams = MCTSparams(),
-    render_params: RenderParams = RenderParams(),
-) -> None:
-    for i in range(1, nodes):
-        root = run_mcts(chess.Board(fen), NodesCountConstraint(i), model, mcts_params)
-        graph = build_graph(root, params=render_params, fen=fen)
-        graph.render(
-            directory=OUTPUT_DIR, filename=str(i), view=render_params.open_default_gui
-        )
-        sleep(sleep_between_states)
 
 
 def render_state(
