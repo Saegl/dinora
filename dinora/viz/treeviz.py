@@ -1,7 +1,7 @@
 """
 Visualization of MCTS
-Look at jupyter/treeviz.ipynb for an example of using this module
 """
+import pathlib
 from typing import Iterator, Literal
 from dataclasses import dataclass
 
@@ -14,7 +14,7 @@ from dinora.engine import Engine
 
 NodeID = str
 SVG_PREFIX = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
-OUTPUT_DIR = PROJECT_ROOT / "data/treeviz"
+DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "data/treeviz"
 
 
 def node_id(node: object) -> NodeID:
@@ -23,10 +23,12 @@ def node_id(node: object) -> NodeID:
 
 @dataclass
 class RenderParams:
-    max_number_of_nodes: int = 150
+    render_nodes: int = 150  # Number of nodes to render
     show_other_node: bool = True
     show_prior: bool = True
-    open_default_gui: bool = False
+    open_default_gui: bool = True
+    output_dir: pathlib.Path = DEFAULT_OUTPUT_DIR
+    imgformat: Literal["png", "svg"] = "svg"
 
 
 def get_all_nodes(node: Node) -> Iterator[Node]:
@@ -97,11 +99,13 @@ def build_info_node(graph: graphviz.Digraph, root: Node) -> None:
     graph.node("info", label=info, shape="box")
 
 
-def build_root_node(graph: graphviz.Digraph, fen: str) -> None:
+def build_root_node(
+    output_dir: pathlib.Path, graph: graphviz.Digraph, fen: str
+) -> None:
     """Save root node in digraph and attach board preview"""
     svg = SVG_PREFIX + chess.svg.board(chess.Board(fen))
     svg_filename = "svg_board.svg"
-    board_path = OUTPUT_DIR / svg_filename
+    board_path = output_dir / svg_filename
     with open(board_path, "wt", encoding="utf8") as f:
         f.write(svg)
     graph.node("root", label="", image=svg_filename, imagescale="false", shape="box")
@@ -148,12 +152,11 @@ def build_children_nodes(
 def build_graph(
     root: Node,
     fen: str = chess.STARTING_BOARD_FEN,
-    format: Literal["png", "svg"] = "png",
     params: RenderParams = RenderParams(),
 ) -> graphviz.Digraph:
     graph = graphviz.Digraph(
         "search-tree",
-        format=format,
+        format=params.imgformat,
         comment="Monte Carlo Search Tree",
         graph_attr={
             "rankdir": "LR",
@@ -164,12 +167,10 @@ def build_graph(
     )
 
     pv_set = get_pv_set(root)
-    selected_nodes = select_most_visited_nodes(root, params.max_number_of_nodes).union(
-        pv_set
-    )
+    selected_nodes = select_most_visited_nodes(root, params.render_nodes).union(pv_set)
 
     build_info_node(graph, root)
-    build_root_node(graph, fen)
+    build_root_node(params.output_dir, graph, fen)
     build_children_nodes(graph, root, "root", selected_nodes, pv_set, params)
 
     return graph
@@ -179,13 +180,14 @@ def render_state(
     engine: Engine,
     fen: str,
     nodes: int,
-    format: Literal["png", "svg"] = "svg",
     render_params: RenderParams = RenderParams(),
 ) -> Node:
     board = chess.Board(fen)
     root = engine.get_best_node(board, NodesCountConstraint(nodes))
-    graph = build_graph(root, params=render_params, fen=fen, format=format)
+    graph = build_graph(root, params=render_params, fen=fen)
     graph.render(
-        directory=OUTPUT_DIR, filename="state", view=render_params.open_default_gui
+        directory=render_params.output_dir,
+        filename="state",
+        view=render_params.open_default_gui,
     )
     return root
