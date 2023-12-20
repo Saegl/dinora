@@ -1,0 +1,27 @@
+{
+    "max_games": 100,
+    "min_phi": 50.0,
+    "min_mu": 1200,
+    "teacher_player": {
+        "class": "StockfishPlayer",
+        "start_rating": {
+            "phi": 100
+        },
+        "init": {
+            "command": "stockfish",
+            "time_limit": 1.0
+        }
+    },
+    "student_player": {
+        "class": "DinoraPlayer",
+        "start_rating": {
+            "mu": 1500,
+            "phi": 350
+        },
+        "init": {
+            "weights": "models/alphanet_classic.ckpt",
+            "device": "cuda",
+            "time_limit": 1.0
+        }
+    }
+}

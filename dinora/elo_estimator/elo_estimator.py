@@ -11,7 +11,7 @@ import chess.engine
 
 from dinora.elo_estimator.glicko2 import glicko2
 from dinora.engine import Engine
-from dinora.mcts.constraints import NodesCountConstraint
+from dinora.mcts.constraints import NodesCountConstraint, MoveTimeConstraint
 
 
 DEFAULT_MAX_GAMES = 100
@@ -49,20 +49,34 @@ class StockfishPlayer(TeacherPlayer):
         self,
         rating: glicko2.Rating,
         command: str,
-        nodes_limit: int,
+        nodes_limit: int | None = None,
+        time_limit: float | None = None,  # seconds per move
         elo: int | None = None,
     ):
         self.rating = rating
+        self.time_limit = time_limit
         self.nodes_limit = nodes_limit
         self.uci_engine = chess.engine.SimpleEngine.popen_uci(command)
-        self.name = "stockfish"
 
         if elo:
             self.set_elo(elo)
 
+    @property
+    def name(self) -> str:
+        output = "Stockfish"
+        if self.nodes_limit:
+            output += f"_{self.nodes_limit}nodes"
+        if self.time_limit:
+            output += f"_{self.time_limit}sec_move"
+        return output
+
     def play(self, board: chess.Board) -> chess.Move:
         playres = self.uci_engine.play(
-            board, limit=chess.engine.Limit(nodes=self.nodes_limit)
+            board,
+            limit=chess.engine.Limit(
+                time=self.time_limit,
+                nodes=self.nodes_limit,
+            ),
         )
         assert playres.move
         return playres.move
@@ -91,18 +105,50 @@ class StockfishPlayer(TeacherPlayer):
 
 class DinoraPlayer(RatedPlayer):
     def __init__(
-        self, rating: glicko2.Rating, nodes_limit: int, weights: str, device: str
+        self,
+        rating: glicko2.Rating,
+        weights: str,
+        device: str,
+        nodes_limit: int | None = None,
+        time_limit: float | None = None,
     ) -> None:
+        self.weights = weights
         self.rating = rating
         self.engine = Engine("alphanet", pathlib.Path(weights), device)
         self.engine.load_model()
-        self.name = "dinora"
         self.nodes_limit = nodes_limit
+        self.time_limit = time_limit
         assert self.engine._model
         self.engine.mcts_params.send_func = lambda _: None
 
+        if self.nodes_limit and self.time_limit:
+            raise ValueError(
+                "Cannot set both nodes_limit and time_limit for DinoraPlayer"
+            )
+        if self.nodes_limit is None and self.time_limit is None:
+            raise ValueError("Configure nodes_limit or time_limit for DinoraPlayer")
+
+    @property
+    def name(self) -> str:
+        filename = pathlib.Path(self.weights).name
+        output = f"Dinora_{filename}"
+        if self.nodes_limit:
+            output += f"_{self.nodes_limit}nodes"
+        if self.time_limit:
+            output += f"_{self.time_limit}sec_move"
+        return output
+
     def play(self, board: chess.Board) -> chess.Move:
-        return self.engine.get_best_move(board, NodesCountConstraint(self.nodes_limit))
+        if self.nodes_limit:
+            return self.engine.get_best_move(
+                board, NodesCountConstraint(self.nodes_limit)
+            )
+        elif self.time_limit:
+            return self.engine.get_best_move(
+                board, MoveTimeConstraint(int(self.time_limit * 1000))
+            )
+        else:
+            raise ValueError("Unreachable state")
 
 
 def play_game(
@@ -112,12 +158,17 @@ def play_game(
     game_ind: int,
 ) -> chess.pgn.Game:
     board = chess.Board()
+    current_datetime = datetime.datetime.now()
+    utc_datetime = datetime.datetime.utcnow()
     game = chess.pgn.Game(
         headers={
             "Event": "Elo estimate",
             "Site": "Dinora elo_estimator.py",
             "Stage": f"{student_player.name} phi: {int(student_player.rating.phi)}",
-            "Date": datetime.date.today().strftime(r"%Y.%m.%d"),
+            "Date": current_datetime.date().strftime(r"%Y.%m.%d"),
+            "UTCDate": utc_datetime.date().strftime(r"%Y.%m.%d"),
+            "Time": current_datetime.strftime("%H:%M:%S"),
+            "UTCTime": utc_datetime.strftime("%H:%M:%S"),
             "White": white_player.name,
             "Black": black_player.name,
             "Round": str(game_ind),
