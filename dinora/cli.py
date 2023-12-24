@@ -5,6 +5,7 @@ import dinora.uci.cli as uci_cli
 import dinora.train.compact_dataset.make_cli as make_dataset_cli
 import dinora.train.compact_dataset.upload_cli as upload_dataset_cli
 import dinora.bench.cli as bench_cli
+import dinora.onnx.cli as onnx_cli
 
 
 def run_cli():
@@ -21,6 +22,8 @@ def run_cli():
         upload_dataset_cli.run_cli(args)
     elif args.subcommand == "bench":
         bench_cli.run_cli(args)
+    elif args.subcommand == "export_onnx":
+        onnx_cli.run_cli(args)
     else:
         uci_cli.run_cli(args)
 
@@ -34,5 +37,6 @@ def build_root_cli():
     make_dataset_cli.build_parser(subparsers)
     upload_dataset_cli.build_parser(subparsers)
     bench_cli.build_parser(subparsers)
+    onnx_cli.build_parser(subparsers)
 
     return parser

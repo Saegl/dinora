@@ -17,6 +17,11 @@ def model_selector(model: str, weights_path: pathlib.Path, device: str) -> BaseM
         alphanet = alphanet.to(device)
         return alphanet
 
+    elif model == "onnx":
+        from dinora.models.onnxmodel import OnnxModel
+
+        return OnnxModel(weights_path, device)
+
     elif model == "handcrafted":
         return DummyModel()
     else:
