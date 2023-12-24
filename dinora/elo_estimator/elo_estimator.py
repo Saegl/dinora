@@ -31,7 +31,12 @@ class RatedPlayer(abc.ABC):
     def play(self, board: chess.Board) -> chess.Move:
         pass
 
+    @abc.abstractmethod
     def close(self) -> None:
+        pass
+
+    @abc.abstractmethod
+    def reset(self) -> None:
         pass
 
 
@@ -103,6 +108,9 @@ class StockfishPlayer(TeacherPlayer):
     def close(self) -> None:
         self.uci_engine.close()
 
+    def reset(self) -> None:
+        pass
+
 
 class DinoraPlayer(RatedPlayer):
     def __init__(
@@ -153,6 +161,12 @@ class DinoraPlayer(RatedPlayer):
             raise ValueError("Unreachable state")
         return node.move, node.number_visits
 
+    def close(self) -> None:
+        pass
+
+    def reset(self) -> None:
+        self.engine.reset()
+
 
 def play_game(
     white_player: RatedPlayer,
@@ -194,6 +208,9 @@ def play_game(
 
     result = board.result(claim_draw=True)
     game.headers["Result"] = result
+
+    white_player.reset()
+    black_player.reset()
 
     return game
 

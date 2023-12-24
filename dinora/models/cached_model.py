@@ -30,3 +30,7 @@ class CachedModel(BaseModel):
             policy, value = self.model.evaluate(board)
             self.cache[epd] = [policy, value]
             return policy, value
+
+    def reset(self):
+        self.clear()
+        self.model.reset()

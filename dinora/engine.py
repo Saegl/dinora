@@ -25,6 +25,9 @@ class Engine:
                 self._model_name, self.weights_path, self.device
             )
 
+    def reset(self) -> None:
+        self._model.reset()
+
     def set_config_param(self, name, value):
         for field in dataclasses.fields(MCTSparams):
             if field.name == name:

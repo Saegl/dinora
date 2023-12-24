@@ -296,6 +296,9 @@ class AlphaNet(pl.LightningModule):
             value_estimate = -1.0
         return priors, value_estimate
 
+    def reset(self):
+        pass
+
 
 if __name__ == "__main__":
     net = AlphaNet()
