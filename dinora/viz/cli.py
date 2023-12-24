@@ -1,9 +1,10 @@
 import pathlib
 import chess
 
-from dinora import DEFAULT_WEIGHTS
-from dinora.viz.treeviz import render_state, RenderParams, DEFAULT_OUTPUT_DIR
+from dinora import DEFAULT_WEIGHTS, PROJECT_ROOT
 from dinora.engine import Engine
+
+DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "data/treeviz"
 
 
 def build_parser(subparsers):
@@ -70,6 +71,8 @@ def build_parser(subparsers):
 
 
 def run_cli(args):
+    from dinora.viz.treeviz import render_state, RenderParams
+
     engine = Engine(args.model, args.weights, args.device)
 
     render_state(
