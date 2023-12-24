@@ -110,12 +110,13 @@ class DinoraPlayer(RatedPlayer):
         rating: glicko2.Rating,
         weights: str,
         device: str,
+        model: str = "alphanet",
         nodes_limit: int | None = None,
         time_limit: float | None = None,
     ) -> None:
         self.weights = weights
         self.rating = rating
-        self.engine = Engine("alphanet", pathlib.Path(weights), device)
+        self.engine = Engine(model, pathlib.Path(weights), device)
         self.engine.load_model()
         self.nodes_limit = nodes_limit
         self.time_limit = time_limit
