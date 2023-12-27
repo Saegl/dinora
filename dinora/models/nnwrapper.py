@@ -41,7 +41,7 @@ class NNWrapper(BaseModel, ABC):
     def evaluate(self, board: chess.Board) -> tuple[IsTerminal, Priors, StateValue]:
         outcome = board.outcome()
 
-        if outcome is not None and outcome.winner:
+        if outcome is not None and outcome.winner is not None:
             # There is a winner, but is is our turn to move
             # means we lost
             return True, {}, -1.0
