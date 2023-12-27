@@ -51,7 +51,7 @@ def run_mcts(
         print(root)
     else:
         root = Node(params.fpu_at_root, lazyboard=state)
-        child_priors, value_estimate = evaluator.evaluate(root.board)
+        is_terminal, child_priors, value_estimate = evaluator.evaluate(root.board)
         root.board_value_estimate_info = value_estimate
         child_priors = apply_noise(
             child_priors,
@@ -63,7 +63,8 @@ def run_mcts(
 
     while constraint.meet():
         leaf = selection(root, params.cpuct)
-        child_priors, value_estimate = evaluator.evaluate(leaf.board)
+        is_terminal, child_priors, value_estimate = evaluator.evaluate(leaf.board)
+        leaf.is_terminal = is_terminal
         leaf.board_value_estimate_info = value_estimate
         expansion(leaf, child_priors, params.fpu)
         backpropagation(leaf, value_estimate)

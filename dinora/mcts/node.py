@@ -19,6 +19,7 @@ class Node:
     children: OrderedDict[chess.Move, "Node"] = field(default_factory=OrderedDict)
     number_visits: int = 0
     is_expanded: bool = False
+    is_terminal: bool = False
 
     @property
     def board(self) -> chess.Board:
