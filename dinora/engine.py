@@ -44,7 +44,7 @@ class Engine:
             evaluator=self._model,
             params=self.mcts_params,
         )
-        return root_node.get_most_visited_node()
+        return root_node.best()
 
     def get_best_move(self, board: chess.Board, constraint: Constraint) -> chess.Move:
         return self.get_best_node(board, constraint).move

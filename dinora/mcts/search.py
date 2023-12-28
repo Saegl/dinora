@@ -17,6 +17,70 @@ def selection(root: Node, c: float) -> Node:
     return current
 
 
+def reduction(node: Node):
+    current = node
+    while current.is_terminal and current.parent:
+        current = current.parent
+        if current.is_terminal:
+            continue
+
+        # Current is not terminal, Can we make it terminal?
+        #### Try to prove win: there is at least one child lost
+
+        loss_child = None
+
+        for move, child in current.terminals.items():
+            if (
+                child.value_estimate == -1.0
+                and
+                # Find fastest way to win
+                (loss_child is None or loss_child.til_end < child.til_end)
+            ):
+                loss_child = child
+
+        if loss_child:
+            current.to_terminal()
+            current.til_end = loss_child.til_end + 1
+            current.value_estimate = 1.0
+            current.children.clear()
+            current.terminals.clear()
+            current.terminals[loss_child.move] = loss_child
+            continue
+
+        #### Try to prove loss: all chilren are won
+
+        if len(current.children) > 0:
+            continue  # cannot prove loss if there is non terminals
+
+        if len(current.terminals) == 0:
+            raise Exception(
+                "logical error: at this state current must be terminal "
+                "all have at least one terminal child"
+            )
+
+        all_won = True
+        win_child = None
+        for move, child in current.terminals.items():
+            if child.value_estimate == 1.0:
+                # Find slowest way to lost
+                if win_child is None or win_child.til_end > child.til_end:
+                    win_child = child
+            else:
+                all_won = False
+                break
+
+        if all_won:
+            current.to_terminal()
+            current.til_end = win_child.til_end + 1
+            current.value_estimate = -1.0
+            current.children.clear()
+            current.terminals.clear()
+            current.terminals[win_child.move] = win_child
+            continue
+
+    return node
+
+
 def expansion(node: Node, child_priors: Priors, fpu: float) -> None:
     node.is_expanded = True
 
@@ -51,24 +115,35 @@ def run_mcts(
         print(root)
     else:
         root = Node(params.fpu_at_root, lazyboard=state)
-        is_terminal, child_priors, value_estimate = evaluator.evaluate(root.board)
-        root.board_value_estimate_info = value_estimate
+        root.is_terminal, child_priors, root.value_estimate = evaluator.evaluate(
+            root.board
+        )
         child_priors = apply_noise(
             child_priors,
             params.dirichlet_alpha,
             params.noise_eps,
         )
         expansion(root, child_priors, params.fpu)
-        backpropagation(root, value_estimate)
+        backpropagation(root, root.value_estimate)
 
     while constraint.meet():
         leaf = selection(root, params.cpuct)
-        is_terminal, child_priors, value_estimate = evaluator.evaluate(leaf.board)
-        leaf.is_terminal = is_terminal
-        leaf.board_value_estimate_info = value_estimate
-        expansion(leaf, child_priors, params.fpu)
-        backpropagation(leaf, value_estimate)
+
+        is_terminal, child_priors, leaf.value_estimate = evaluator.evaluate(leaf.board)
+
+        if is_terminal:
+            leaf.to_terminal()
+            leaf.til_end = 0
+            leaf = reduction(leaf)
+
+        if not leaf.is_terminal and not leaf.is_expanded:
+            expansion(leaf, child_priors, params.fpu)
+
+        backpropagation(leaf, leaf.value_estimate)
         uci_info.after_iteration(root, params.send_func)
+
+        if root.is_terminal:
+            break
 
     uci_info.at_mcts_end(root, params.send_func)
     return root

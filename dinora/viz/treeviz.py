@@ -2,6 +2,7 @@
 Visualization of MCTS
 """
 import pathlib
+from itertools import chain
 from typing import Iterator, Literal
 from dataclasses import dataclass
 
@@ -68,7 +69,7 @@ def get_pv_set(root: Node) -> set[NodeID]:
 
     curr = root
     while len(curr.children) != 0:
-        bestchild = curr.best_child(0.0)
+        bestchild = curr.best()
         ans.add(node_id(bestchild))
         curr = bestchild
     return ans
@@ -88,13 +89,16 @@ def build_info_node(graph: graphviz.Digraph, root: Node) -> None:
     ]
     top_q = "\n".join(top_q_highest_labels)
 
-    bestchild = root.best_child(0.0)
+    bestchild = root.best()
     info = (
         f"Side to move: {'white' if root.board.turn else 'black'} \n"
         f"Q at bestchild {bestchild.Q():.3f} \n\n"
         f"TOP 5 most visited nodes at root: \n{top_visited} \n\n"
         f"TOP 5 highest Q nodes at root: \n{top_q} \n\n"
-        f"Tree Shape: {tree_shape(root)}"
+        f"Tree Shape: {tree_shape(root)}\n"
+        f"PV line: {root.get_pv_line()}\n"
+        f"Ply til end: {root.til_end if root.is_terminal else 'inf'}\n"
+        f"Best move: {root.best().move}"
     )
     graph.node("info", label=info, shape="box")
 
@@ -122,18 +126,21 @@ def build_children_nodes(
     others_visits = 0
     others_id = node_id(node.children)
     others_prior = 0.0
-    for move, child in node.children.items():
+    for move, child in chain(node.children.items(), node.terminals.items()):
         child_id = node_id(child)
 
-        if child_id not in selected_nodes or child.number_visits == 0:
+        if not child.is_terminal and (
+            child_id not in selected_nodes or child.number_visits == 0
+        ):
             others_visits += child.number_visits
             others_prior += child.prior
             continue
 
-        label = f"{{ {str(move)} | Q:{child.Q():.3f} N:{child.number_visits} VE: {child.board_value_estimate_info:.3f} }}"
-
+        label = f"{{ {str(move)} | Q:{child.Q():.3f} N:{child.number_visits} VE: {child.value_estimate:.3f} }}"
         if child_id in pv_set:
             color = "red"
+        elif child.is_terminal:
+            color = "blue"
         else:
             color = None
         graph.node(child_id, label, shape="record", color=color)
@@ -141,9 +148,8 @@ def build_children_nodes(
         graph.edge(parent_id, child_id, **prior_props)
         build_children_nodes(graph, child, child_id, selected_nodes, pv_set, params)
 
-    others_label = f"{{ othr | Q:?.?? N:{others_visits} }}"
-
-    if params.show_other_node:
+    if params.show_other_node and others_visits > 0:
+        others_label = f"{{ othr | Q:?.?? N:{others_visits} }}"
         graph.node(others_id, others_label, shape="record", color="orange")
         prior_props = {"label": f"{others_prior:.2f}"} if params.show_prior else {}
         graph.edge(parent_id, others_id, **prior_props)

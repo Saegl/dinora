@@ -69,7 +69,7 @@ class UciInfo:
             )
 
     def at_mcts_end(self, root: Node, send_func: Callable[[str], None]) -> None:
-        bestnode = root.get_most_visited_node()
+        bestnode = root.best()
         delta = time() - self.start_time
         score = calc_score(bestnode)
 
