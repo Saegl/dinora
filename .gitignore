@@ -10,6 +10,7 @@ checkpoints/*
 !checkpoints/.gitkeep
 data/datasets/
 data/treeviz/*
+data/elo_estimator/
 !data/treeviz/.gitkeep
 
 # Created by https://www.toptal.com/developers/gitignore/api/python

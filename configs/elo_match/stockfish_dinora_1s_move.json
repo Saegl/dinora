@@ -5,7 +5,7 @@
     "teacher_player": {
         "class": "StockfishPlayer",
         "start_rating": {
-            "phi": 100
+            "phi": 50
         },
         "init": {
             "command": "stockfish",
@@ -15,8 +15,8 @@
     "student_player": {
         "class": "DinoraPlayer",
         "start_rating": {
-            "mu": 1500,
-            "phi": 350
+            "mu": 2200,
+            "phi": 65
         },
         "init": {
             "weights": "models/alphanet_classic.ckpt",
