@@ -159,7 +159,7 @@ class DinoraPlayer(RatedPlayer):
             )
         else:
             raise ValueError("Unreachable state")
-        return node.move, node.number_visits
+        return node.move, node.parent.number_visits
 
     def close(self) -> None:
         pass

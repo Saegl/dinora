@@ -21,11 +21,12 @@ def selfplay(model_name, weights, device):
         while not board.is_game_over(claim_draw=True):
             node = engine.get_best_node(board, MoveTimeConstraint(1000))
             print(
-                f"{total_moves}. Move {node.move.uci()}" f"\tnodes {node.number_visits}"
+                f"{total_moves}. Move {node.move.uci()}"
+                f"\tnodes {node.parent.number_visits}"
             )
 
             total_moves += 1
-            total_visits += node.number_visits
+            total_visits += node.parent.number_visits
             board.push(node.move)
     except KeyboardInterrupt:
         print("Bench canceled by keyboard interrupt")
