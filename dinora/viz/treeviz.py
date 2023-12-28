@@ -178,13 +178,13 @@ def build_graph(
 
 def render_state(
     engine: Engine,
-    fen: str,
+    board: chess.Board,
     nodes: int,
     render_params: RenderParams = RenderParams(),
 ) -> Node:
-    board = chess.Board(fen)
-    root = engine.get_best_node(board, NodesCountConstraint(nodes))
-    graph = build_graph(root, params=render_params, fen=fen)
+    root = engine.get_best_node(board, NodesCountConstraint(nodes)).parent
+
+    graph = build_graph(root, params=render_params, fen=board.fen())
     graph.render(
         directory=render_params.output_dir,
         filename="state",

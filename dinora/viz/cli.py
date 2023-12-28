@@ -74,10 +74,11 @@ def run_cli(args):
     from dinora.viz.treeviz import render_state, RenderParams
 
     engine = Engine(args.model, args.weights, args.device)
+    board = chess.Board(fen=args.fen)
 
     render_state(
         engine,
-        fen=args.fen,
+        board=board,
         nodes=args.nodes,
         render_params=RenderParams(
             render_nodes=args.render_nodes,
