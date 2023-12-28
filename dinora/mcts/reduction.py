@@ -59,7 +59,7 @@ def reduction(node: Node):
             continue
 
         if child := reduce_to_draw(current):
-            reduce_to_draw(current, child)
+            reduce_parent(current, child)
             continue
 
     return node
