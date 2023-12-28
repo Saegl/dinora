@@ -6,6 +6,7 @@ from dinora.mcts.noise import apply_noise
 from dinora.mcts.constraints import Constraint
 from dinora.mcts.params import MCTSparams
 from dinora.models import BaseModel, Priors
+from dinora.mcts.reduction import reduction
 
 
 def selection(root: Node, c: float) -> Node:
@@ -15,70 +16,6 @@ def selection(root: Node, c: float) -> Node:
         current = current.best_child(c)
 
     return current
-
-
-def reduction(node: Node):
-    current = node
-    while current.is_terminal and current.parent:
-        current = current.parent
-        if current.is_terminal:
-            continue
-
-        # Current is not terminal, Can we make it terminal?
-        #### Try to prove win: there is at least one child lost
-
-        loss_child = None
-
-        for child in current.terminals.values():
-            if (
-                child.value_estimate == -1.0
-                and
-                # Find fastest way to win
-                (loss_child is None or child.til_end < loss_child.til_end)
-            ):
-                loss_child = child
-
-        if loss_child:
-            current.to_terminal()
-            current.til_end = loss_child.til_end + 1
-            current.value_estimate = 1.0
-            current.children.clear()
-            current.terminals.clear()
-            current.terminals[loss_child.move] = loss_child
-            continue
-
-        #### Try to prove loss: all chilren are won
-
-        if len(current.children) > 0:
-            continue  # cannot prove loss if there is non terminals
-
-        if len(current.terminals) == 0:
-            raise Exception(
-                "logical error: at this state, current must be terminal "
-                "and have at least one terminal child"
-            )
-
-        all_won = True
-        win_child = None
-        for child in current.terminals.values():
-            if child.value_estimate == 1.0:
-                # Find slowest way to lost
-                if win_child is None or child.til_end > win_child.til_end:
-                    win_child = child
-            else:
-                all_won = False
-                break
-
-        if all_won:
-            current.to_terminal()
-            current.til_end = win_child.til_end + 1
-            current.value_estimate = -1.0
-            current.children.clear()
-            current.terminals.clear()
-            current.terminals[win_child.move] = win_child
-            continue
-
-    return node
 
 
 def expansion(node: Node, child_priors: Priors, fpu: float) -> None:

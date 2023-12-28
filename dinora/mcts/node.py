@@ -35,6 +35,15 @@ class Node:
     def is_root(self) -> bool:
         return self.parent is None
 
+    def is_loss(self) -> bool:
+        return self.value_estimate == -1.0
+
+    def is_win(self) -> bool:
+        return self.value_estimate == 1.0
+
+    def is_draw(self) -> bool:
+        return self.value_estimate == 0.0
+
     def to_root(self) -> None:
         if not self.lazyboard:
             self.lazyboard = self.parent.board.copy()
