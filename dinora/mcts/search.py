@@ -54,8 +54,8 @@ def reduction(node: Node):
 
         if len(current.terminals) == 0:
             raise Exception(
-                "logical error: at this state current must be terminal "
-                "all have at least one terminal child"
+                "logical error: at this state, current must be terminal "
+                "and have at least one terminal child"
             )
 
         all_won = True
