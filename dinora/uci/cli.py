@@ -26,7 +26,6 @@ def build_parser():
     )
     parser.add_argument(
         "--device",
-        default="cuda",
     )
     return parser
 

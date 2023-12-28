@@ -9,7 +9,12 @@ from dinora.models import model_selector, BaseModel
 
 
 class Engine:
-    def __init__(self, model_name: str, weights_path: pathlib.Path, device: str):
+    def __init__(
+        self,
+        model_name: str = "alphanet",
+        weights_path: pathlib.Path | None = None,
+        device: str | None = None,
+    ):
         self._model_name = model_name
         self._model: BaseModel | None = None
         self.mcts_params = MCTSparams()

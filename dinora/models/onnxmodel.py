@@ -1,24 +1,29 @@
+import pathlib
+
 import chess
-import numpy as np
 import onnxruntime
 
+from dinora import PROJECT_ROOT
 from dinora.models.nnwrapper import NNWrapper
 from dinora.encoders.board_representation import board_to_tensor
 
 
-def softmax(x, tau=1.0):
-    e_x = np.exp(x / tau)
-    return e_x / e_x.sum()
+DEFAULT_ONNX_WEIGHTS = PROJECT_ROOT / "models/alphanet_classic.ckpt.onnx"
 
 
 class OnnxModel(NNWrapper):
-    def __init__(self, weights, device: str):
-        if device == "cpu":
+    def __init__(self, weights: pathlib.Path | None, device: str | None):
+        if device is None:
+            providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
+        elif device == "cpu":
             providers = ["CPUExecutionProvider"]
         elif device == "cuda":
             providers = ["CUDAExecutionProvider"]
         else:
             raise ValueError(f"Device '{device}' is not supported")
+
+        if weights is None:
+            weights = DEFAULT_ONNX_WEIGHTS
 
         self.ort_session = onnxruntime.InferenceSession(weights, providers=providers)
 
