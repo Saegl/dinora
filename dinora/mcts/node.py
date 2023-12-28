@@ -54,7 +54,7 @@ class Node:
     def get_pv_line(self) -> str:
         curr = self
         line = []
-        while len(curr.children) > 0:
+        while len(curr.children) > 0 or len(curr.terminals) > 0:
             curr = curr.best()
             line.append(curr.move.uci())
 
