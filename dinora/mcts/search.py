@@ -29,12 +29,12 @@ def reduction(node: Node):
 
         loss_child = None
 
-        for move, child in current.terminals.items():
+        for child in current.terminals.values():
             if (
                 child.value_estimate == -1.0
                 and
                 # Find fastest way to win
-                (loss_child is None or loss_child.til_end < child.til_end)
+                (loss_child is None or child.til_end < loss_child.til_end)
             ):
                 loss_child = child
 
@@ -60,10 +60,10 @@ def reduction(node: Node):
 
         all_won = True
         win_child = None
-        for move, child in current.terminals.items():
+        for child in current.terminals.values():
             if child.value_estimate == 1.0:
                 # Find slowest way to lost
-                if win_child is None or win_child.til_end > child.til_end:
+                if win_child is None or child.til_end > win_child.til_end:
                     win_child = child
             else:
                 all_won = False
