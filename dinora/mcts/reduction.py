@@ -1,6 +1,7 @@
 from operator import attrgetter
 
 import chess
+
 from dinora.mcts import Node
 
 

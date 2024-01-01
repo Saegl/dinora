@@ -1,14 +1,13 @@
 import pathlib
-import numpy as np
-import numpy.typing as npt
 
 import chess
+import numpy as np
+import numpy.typing as npt
 import onnxruntime
 
 from dinora import PROJECT_ROOT
-from dinora.models.nnwrapper import NNWrapper
 from dinora.encoders.board_representation import board_to_tensor
-
+from dinora.models.nnwrapper import NNWrapper
 
 npf32 = npt.NDArray[np.float32]
 DEFAULT_ONNX_WEIGHTS = PROJECT_ROOT / "models/alphanet_classic.ckpt.onnx"

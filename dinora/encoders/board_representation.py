@@ -13,7 +13,6 @@ import chess
 import numpy as np
 import numpy.typing as npt
 
-
 npf32 = npt.NDArray[np.float32]
 npuint64 = npt.NDArray[np.uint64]
 

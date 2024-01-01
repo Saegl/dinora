@@ -4,14 +4,14 @@ from typing import TextIO
 
 import chess
 import chess.pgn
-from chess import Board, Move
-from chess.pgn import Game
 import numpy as np
 import numpy.typing as npt
+from chess import Board, Move
+from chess.pgn import Game
 
-from dinora.encoders.board_representation import board_to_tensor, board_to_compact_state
-from dinora.encoders.policy import policy_index
+from dinora.encoders.board_representation import board_to_compact_state, board_to_tensor
 from dinora.encoders.outcome import wdl_index
+from dinora.encoders.policy import policy_index
 
 logging.basicConfig(level=logging.DEBUG)
 

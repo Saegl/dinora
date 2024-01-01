@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import argparse
-import typing
 import pathlib
+import typing
+
 import chess
 
 from dinora import DEFAULT_WEIGHTS, PROJECT_ROOT
@@ -80,7 +81,7 @@ def build_parser(subparsers: Subparsers) -> None:
 
 
 def run_cli(args: Args) -> None:
-    from dinora.viz.treeviz import render_state, RenderParams
+    from dinora.viz.treeviz import RenderParams, render_state
 
     engine = Engine(args.model, args.weights, args.device)
     board = chess.Board(fen=args.fen)

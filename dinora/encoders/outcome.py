@@ -1,6 +1,6 @@
-import chess.pgn
 import chess.engine
-from chess import WHITE, BLACK
+import chess.pgn
+from chess import BLACK, WHITE
 
 WIN, DRAW, LOSS = range(3)
 

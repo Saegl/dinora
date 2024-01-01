@@ -1,13 +1,12 @@
-import pathlib
 import dataclasses
-
+import pathlib
 from typing import Any
 
 import chess
 
-from dinora.mcts import MCTSparams, run_mcts, Constraint
+from dinora.mcts import Constraint, MCTSparams, run_mcts
 from dinora.mcts.node import Node
-from dinora.models import model_selector, BaseModel
+from dinora.models import BaseModel, model_selector
 
 
 class Engine:

@@ -1,9 +1,11 @@
-import chess
 from io import StringIO
+
+import chess
 from chess.pgn import read_game
+
 from dinora.encoders.policy import (
-    INDEX_TO_MOVE,
     INDEX_TO_FLIPPED_MOVE,
+    INDEX_TO_MOVE,
     policy_index,
 )
 

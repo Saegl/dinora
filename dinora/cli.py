@@ -1,13 +1,12 @@
 import argparse
 
+import dinora.bench.cli as bench_cli
 import dinora.elo_estimator.cli as elo_estimator_cli
-
-import dinora.viz.cli as treeviz_cli
-import dinora.uci.cli as uci_cli
+import dinora.onnx.cli as onnx_cli
 import dinora.train.compact_dataset.make_cli as make_dataset_cli
 import dinora.train.compact_dataset.upload_cli as upload_dataset_cli
-import dinora.bench.cli as bench_cli
-import dinora.onnx.cli as onnx_cli
+import dinora.uci.cli as uci_cli
+import dinora.viz.cli as treeviz_cli
 
 
 def run_cli() -> None:

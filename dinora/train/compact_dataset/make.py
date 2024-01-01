@@ -1,17 +1,16 @@
+import concurrent.futures
 import json
 import logging
 import pathlib
-import concurrent.futures
 
 import chess.engine
+import numpy as np
 from chess.engine import LOGGER as engine_logger
 
-import numpy as np
-
 from dinora.encoders.board_representation import board_to_compact_state
-from dinora.pgntools import load_game_states
+from dinora.encoders.outcome import stockfish_value, wdl_index, z_value
 from dinora.encoders.policy import policy_index
-from dinora.encoders.outcome import wdl_index, z_value, stockfish_value
+from dinora.pgntools import load_game_states
 
 
 def convert_dir(

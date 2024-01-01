@@ -1,7 +1,8 @@
 from __future__ import annotations
-import typing
-import pathlib
+
 import argparse
+import pathlib
+import typing
 
 from dinora import DEFAULT_WEIGHTS
 from dinora.bench.selfplay import selfplay

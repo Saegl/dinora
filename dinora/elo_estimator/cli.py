@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+import argparse
 import json
 import pathlib
+import typing
 
 from dinora.elo_estimator import glicko2
 from dinora.elo_estimator.elo_estimator import load_players, play_match
-
-import typing
-import argparse
 
 if typing.TYPE_CHECKING:
     Subparsers = argparse._SubParsersAction[argparse.ArgumentParser]

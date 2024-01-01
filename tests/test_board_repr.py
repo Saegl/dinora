@@ -1,12 +1,12 @@
-import pytest
 import chess
 import numpy as np
+import pytest
+
 from dinora.encoders.board_representation import (
-    board_to_tensor,
     board_to_compact_state,
+    board_to_tensor,
     compact_state_to_board_tensor,
 )
-
 
 FENS = [
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",

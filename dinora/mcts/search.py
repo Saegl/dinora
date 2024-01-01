@@ -1,12 +1,12 @@
 import chess
 
-from dinora.mcts.node import Node
-from dinora.mcts.uci_info import UciInfo
-from dinora.mcts.noise import apply_noise
 from dinora.mcts.constraints import Constraint
+from dinora.mcts.node import Node
+from dinora.mcts.noise import apply_noise
 from dinora.mcts.params import MCTSparams
-from dinora.models import BaseModel, Priors
 from dinora.mcts.reduction import reduction, terminal_val
+from dinora.mcts.uci_info import UciInfo
+from dinora.models import BaseModel, Priors
 
 
 def selection(root: Node, c: float) -> Node:

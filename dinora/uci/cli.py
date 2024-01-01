@@ -1,9 +1,10 @@
 from __future__ import annotations
-import typing
+
+import argparse
+import pathlib
 import sys
 import traceback
-import pathlib
-import argparse
+import typing
 
 from dinora import DEFAULT_WEIGHTS
 from dinora.engine import Engine

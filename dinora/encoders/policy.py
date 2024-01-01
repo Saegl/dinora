@@ -22,12 +22,11 @@ So when we want to make NN inference for black perspective
 after this flip, all prior probabilites from NN also comes flipped.
 """
 from collections.abc import Iterable
-from itertools import product, chain
+from itertools import chain, product
 
 import chess
 import numpy as np
 import numpy.typing as npt
-
 
 # rank (letter, horizontal), file (number, vertical)
 Position = tuple[int, int]

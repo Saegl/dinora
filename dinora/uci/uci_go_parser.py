@@ -1,13 +1,13 @@
-import chess
-
 from dataclasses import dataclass
+
+import chess
 
 from dinora.mcts import (
     Constraint,
     InfiniteConstraint,
-    TimeConstraint,
     MoveTimeConstraint,
     NodesCountConstraint,
+    TimeConstraint,
 )
 
 

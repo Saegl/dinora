@@ -1,5 +1,6 @@
 import chess
 import pylru
+
 from dinora.models.base import BaseModel, Priors, StateValue
 
 

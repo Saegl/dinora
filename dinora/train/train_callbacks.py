@@ -1,15 +1,14 @@
 import pathlib
 from io import BytesIO
 
-import chess
 import cairosvg
-import wandb
+import chess
+import lightning.pytorch as pl
 import torch
+from lightning.pytorch.callbacks import Callback
 from PIL import Image
 
-import lightning.pytorch as pl
-from lightning.pytorch.callbacks import Callback
-
+import wandb
 from dinora.train.handmade_val_dataset.dataset import POSITIONS
 
 

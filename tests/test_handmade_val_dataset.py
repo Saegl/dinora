@@ -1,4 +1,5 @@
 import chess
+
 from dinora.train.handmade_val_dataset.dataset import POSITIONS
 
 

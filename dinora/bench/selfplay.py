@@ -1,6 +1,8 @@
 import pathlib
 import time
+
 import chess
+
 from dinora.engine import Engine
 from dinora.mcts import MoveTimeConstraint
 

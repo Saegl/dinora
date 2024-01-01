@@ -1,4 +1,5 @@
 import math
+
 import chess
 
 from dinora.models.base import BaseModel, Priors, StateValue

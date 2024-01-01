@@ -1,26 +1,24 @@
-import sys
 import json
 import logging
+import sys
 import warnings
+from dataclasses import asdict, dataclass
 from datetime import timedelta
-from dataclasses import dataclass, asdict
 from typing import Literal
 
-import torch
-
 import lightning.pytorch as pl
+import torch
+from lightning.pytorch.callbacks import Callback, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger  # type: ignore
-from lightning.pytorch.callbacks import ModelCheckpoint, Callback
 from lightning.pytorch.tuner import Tuner  # type: ignore
 
 from dinora import PROJECT_ROOT
 from dinora.train.datamodules import WandbDataModule
 from dinora.train.train_callbacks import (
-    SampleGameGenerator,
     BoardsEvaluator,
+    SampleGameGenerator,
     ValidationCheckpointer,
 )
-
 
 warnings.filterwarnings("ignore", message="The dataloader, .* to improve performance.")
 logging.getLogger("wandb").setLevel(logging.WARNING)

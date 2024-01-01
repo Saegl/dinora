@@ -1,6 +1,5 @@
 import json
 
-
 output = []
 
 with open("human_eval.txt", encoding="utf8") as f:

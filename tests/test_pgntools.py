@@ -1,11 +1,11 @@
 from io import StringIO
+
 from dinora.pgntools import (
     load_chess_games,
-    load_state_tensors,
-    load_game_states,
     load_compact_state_tensors,
+    load_game_states,
+    load_state_tensors,
 )
-
 
 pgn_games = """
 [Event "CCRL 40/4"]

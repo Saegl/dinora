@@ -44,7 +44,6 @@ ignore = [
     "T203", # pprint
     "RET505", # Unnecessary `elif` after `return` statement
     "RET504", # Unnecessary assignment to {name} before return statement
-    "I001", # TODO enable
     "SIM108", # Use ternary operator {contents} instead of if-else-block
     "A003", # Class attribute {name} is shadowing a Python builtin
     "C417", # map

@@ -7,6 +7,7 @@ These tests are useful to check `reduction` for nodes,
 but if they fails, it could be false positive
 """
 import chess
+
 from dinora.engine import Engine
 from dinora.mcts import NodesCountConstraint
 

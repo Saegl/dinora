@@ -2,17 +2,17 @@
 Visualization of MCTS
 """
 import pathlib
-from itertools import chain
 from collections.abc import Iterator
-from typing import Literal
 from dataclasses import dataclass
-
-import graphviz
+from itertools import chain
+from typing import Literal
 
 import chess.svg
+import graphviz
+
 from dinora import PROJECT_ROOT
-from dinora.mcts import Node, NodesCountConstraint
 from dinora.engine import Engine
+from dinora.mcts import Node, NodesCountConstraint
 
 NodeID = str
 SVG_PREFIX = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'

@@ -1,7 +1,7 @@
-from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-from time import time
+from dataclasses import dataclass, field
 from math import cos
+from time import time
 
 extra_time = 0.5
 

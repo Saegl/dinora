@@ -4,11 +4,10 @@ import numpy as np
 
 from dinora import PROJECT_ROOT
 from dinora.encoders.board_representation import (
-    compact_state_to_board_tensor,
     PLANE_NAMES,
+    compact_state_to_board_tensor,
 )
 from dinora.encoders.policy import index_to_move
-
 
 SHORTER_NAMES = [
     name.replace("WHITE", "W").replace("BLACK", "B") for name in PLANE_NAMES
@@ -56,6 +55,7 @@ def load_from_compact_dataset():
 
 def load_from_pgn_string():
     import io
+
     from dinora.pgntools import load_compact_state_tensors
 
     pgn_string = """

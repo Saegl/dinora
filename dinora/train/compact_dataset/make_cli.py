@@ -15,9 +15,9 @@ as `dataset_label` in dinora.train
 """
 from __future__ import annotations
 
+import argparse
 import pathlib
 import typing
-import argparse
 
 if typing.TYPE_CHECKING:
     Subparsers = argparse._SubParsersAction[argparse.ArgumentParser]

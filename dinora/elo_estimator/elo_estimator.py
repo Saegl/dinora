@@ -1,18 +1,17 @@
 import abc
 import datetime
 import itertools
+import pathlib
 import random
 import typing
-import pathlib
 
 import chess
-import chess.pgn
 import chess.engine
+import chess.pgn
 
 from dinora.elo_estimator.glicko2 import glicko2
 from dinora.engine import Engine
-from dinora.mcts.constraints import NodesCountConstraint, MoveTimeConstraint
-
+from dinora.mcts.constraints import MoveTimeConstraint, NodesCountConstraint
 
 DEFAULT_MAX_GAMES = 100
 DEFAULT_MIN_PHI = 75.0

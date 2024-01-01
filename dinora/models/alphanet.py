@@ -57,20 +57,16 @@ since more data was available.'
 from typing import Any
 
 import chess
-
+import lightning.pytorch as pl
 import numpy as np
 import numpy.typing as npt
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import StepLR
 
-import lightning.pytorch as pl
-
 from dinora.encoders.board_representation import board_to_tensor
 from dinora.models.nnwrapper import NNWrapper
-
 
 npf32 = npt.NDArray[np.float32]
 

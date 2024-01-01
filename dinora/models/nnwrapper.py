@@ -1,11 +1,11 @@
-import numpy as np
-import numpy.typing as npt
-import chess
 from abc import ABC, abstractmethod
 
-from dinora.models.base import BaseModel, Evaluation
-from dinora.encoders.policy import extract_prob_from_policy
+import chess
+import numpy as np
+import numpy.typing as npt
 
+from dinora.encoders.policy import extract_prob_from_policy
+from dinora.models.base import BaseModel, Evaluation
 
 npf32 = npt.NDArray[np.float32]
 

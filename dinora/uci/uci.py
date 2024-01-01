@@ -2,8 +2,8 @@ import sys
 
 import chess
 
-from dinora.uci.uci_go_parser import parse_go_params
 from dinora.engine import Engine
+from dinora.uci.uci_go_parser import parse_go_params
 
 
 def send(s: str) -> None:

@@ -3,6 +3,7 @@ Noise can be applied at root
 to change engine behavior in each game
 """
 import numpy as np
+
 from dinora.models.base import Priors
 
 

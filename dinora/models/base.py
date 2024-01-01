@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-import chess
 
+import chess
 
 Priors = dict[chess.Move, float]
 StateValue = float
