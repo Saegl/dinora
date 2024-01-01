@@ -1,7 +1,7 @@
 import pathlib
 
 from dinora import DEFAULT_WEIGHTS
-from dinora.models.base import BaseModel, IsTerminal, Priors, StateValue
+from dinora.models.base import BaseModel, Priors, StateValue
 from dinora.models.cached_model import CachedModel
 from dinora.models.handcrafted import DummyModel
 
@@ -40,4 +40,4 @@ def model_selector(
         raise ValueError("Unknown model name")
 
 
-__all__ = ["BaseModel", "IsTerminal", "Priors", "StateValue", "model_selector"]
+__all__ = ["BaseModel", "Priors", "StateValue", "model_selector"]
