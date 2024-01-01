@@ -26,8 +26,8 @@ def clip(minval: int, x: int, maxval: int) -> int:
 class RatedPlayer(abc.ABC):
     rating: glicko2.Rating
 
-    @abc.abstractmethod
     @property
+    @abc.abstractmethod
     def name(self) -> str:
         pass
 
