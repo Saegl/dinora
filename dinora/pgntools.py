@@ -44,7 +44,7 @@ def load_game_states(pgn: TextIO) -> Iterator[tuple[Game, Board, Move]]:
                 break
 
 
-def load_state_tensors(pgn: TextIO) -> Iterator[tuple[npf32, tuple[npf32, npf32]]]:
+def load_state_tensors(pgn: TextIO) -> Iterator[tuple[npf32, tuple[int, int]]]:
     for game, board, move in load_game_states(pgn):
         flip = not board.turn
         yield (
@@ -58,7 +58,7 @@ def load_state_tensors(pgn: TextIO) -> Iterator[tuple[npf32, tuple[npf32, npf32]
 
 def load_compact_state_tensors(
     pgn: TextIO,
-) -> Iterator[tuple[npf32, tuple[npf32, npf32]]]:
+) -> Iterator[tuple[npf32, tuple[int, int]]]:
     for game, board, move in load_game_states(pgn):
         flip = not board.turn
         yield (

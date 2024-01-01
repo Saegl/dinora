@@ -24,11 +24,15 @@ def clip(minval: int, x: int, maxval: int) -> int:
 
 
 class RatedPlayer(abc.ABC):
-    name: str
     rating: glicko2.Rating
 
     @abc.abstractmethod
-    def play(self, board: chess.Board) -> chess.Move:
+    @property
+    def name(self) -> str:
+        pass
+
+    @abc.abstractmethod
+    def play(self, board: chess.Board) -> tuple[chess.Move, int]:
         pass
 
     @abc.abstractmethod
@@ -148,7 +152,7 @@ class DinoraPlayer(RatedPlayer):
             output += f"_{self.time_limit}sec_move"
         return output
 
-    def play(self, board: chess.Board) -> chess.Move:
+    def play(self, board: chess.Board) -> tuple[chess.Move, int]:
         if self.nodes_limit:
             node = self.engine.get_best_node(
                 board, NodesCountConstraint(self.nodes_limit)
@@ -159,6 +163,8 @@ class DinoraPlayer(RatedPlayer):
             )
         else:
             raise ValueError("Unreachable state")
+        assert node.parent
+        assert node.move
         return node.move, node.parent.number_visits
 
     def close(self) -> None:

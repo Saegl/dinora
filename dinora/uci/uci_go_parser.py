@@ -38,7 +38,7 @@ class UciGoParams:
         if self.infinite:
             constraint = InfiniteConstraint()
 
-        elif time := self.movetime:
+        elif isinstance(self.movetime, int):
             constraint = MoveTimeConstraint(self.movetime)
 
         elif time := self.is_time(board.turn):

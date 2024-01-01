@@ -105,9 +105,9 @@ class CompactDataModule(pl.LightningDataModule):
         batch_size: int = 128,
     ) -> None:
         super().__init__()
-        self.hparams.z_weight = z_weight
-        self.hparams.q_weight = q_weight
-        self.hparams.batch_size = batch_size
+        self.hparams.z_weight = z_weight  # type: ignore
+        self.hparams.q_weight = q_weight  # type: ignore
+        self.hparams.batch_size = batch_size  # type: ignore
         self.dataset_folder = dataset_folder
 
         with open(dataset_folder / "report.json", "rt", encoding="utf8") as f:
@@ -158,7 +158,7 @@ class WandbDataModule(CompactDataModule):
         dataset_folder = PROJECT_ROOT / "data/datasets" / folder_name
         dataset_folder.mkdir(parents=True, exist_ok=True)
 
-        dataset_artifact = wandb.run.use_artifact(dataset_label)
+        dataset_artifact = wandb.run.use_artifact(dataset_label)  # type: ignore
         dataset_artifact.download(root=dataset_folder)
 
         super().__init__(dataset_folder, z_weight, q_weight, batch_size)

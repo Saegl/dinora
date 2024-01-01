@@ -9,7 +9,7 @@ class UnexpectedOutcome(Exception):
     pass
 
 
-def wdl_index(game: chess.pgn.Game, turn: bool):
+def wdl_index(game: chess.pgn.Game, turn: bool) -> int:
     result = game.headers["Result"]
 
     if result == "1/2-1/2":
@@ -26,7 +26,7 @@ def wdl_index(game: chess.pgn.Game, turn: bool):
         raise UnexpectedOutcome(f"Illegal game result: {result}")
 
 
-def z_value(game: chess.pgn.Game, turn: bool):
+def z_value(game: chess.pgn.Game, turn: bool) -> float:
     result = game.headers["Result"]
 
     if result == "1/2-1/2":
@@ -43,7 +43,9 @@ def z_value(game: chess.pgn.Game, turn: bool):
         raise UnexpectedOutcome(f"Illegal game result: {result}")
 
 
-def stockfish_value(board: chess.Board, engine: chess.engine.SimpleEngine, nodes: int):
+def stockfish_value(
+    board: chess.Board, engine: chess.engine.SimpleEngine, nodes: int
+) -> float:
     info = engine.analyse(board, chess.engine.Limit(nodes=nodes))
 
     # [0:1] scale

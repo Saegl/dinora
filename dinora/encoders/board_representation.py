@@ -85,8 +85,8 @@ def board_to_tensor(board: chess.Board) -> npt.NDArray[np.float32]:
 
     # Set en passant square [17: 18)
     if board.has_legal_en_passant():
-        square: chess.Square = board.ep_square
-        tensor[17][square // 8][square % 8] = 1.0
+        assert board.ep_square
+        tensor[17][board.ep_square // 8][board.ep_square % 8] = 1.0
 
     return tensor
 

@@ -48,5 +48,5 @@ plugins = [
 exclude = [
     'docs',
     'tests',
-    'dinora/models/dnn/keras_model.py'  # Will replace keras with pytorch, maybe
+    'trash',
 ]

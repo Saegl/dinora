@@ -21,6 +21,13 @@ class Engine:
         self.weights_path = weights_path
         self.device = device
 
+    @property
+    def model(self) -> BaseModel:
+        if self._model:
+            return self._model
+        else:
+            raise Exception("Model is not loaded")
+
     def loaded(self) -> bool:
         return self._model is not None
 
@@ -31,7 +38,8 @@ class Engine:
             )
 
     def reset(self) -> None:
-        self._model.reset()
+        if self._model is not None:
+            self._model.reset()
 
     def set_config_param(self, name, value):
         for field in dataclasses.fields(MCTSparams):
@@ -46,13 +54,15 @@ class Engine:
         root_node = run_mcts(
             state=board,
             constraint=constraint,
-            evaluator=self._model,
+            evaluator=self.model,
             params=self.mcts_params,
         )
         return root_node.best()
 
     def get_best_move(self, board: chess.Board, constraint: Constraint) -> chess.Move:
-        return self.get_best_node(board, constraint).move
+        node = self.get_best_node(board, constraint)
+        assert node.move
+        return node.move
 
 
 if __name__ == "__main__":

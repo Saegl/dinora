@@ -188,7 +188,9 @@ def render_state(
     nodes: int,
     render_params: RenderParams = RenderParams(),
 ) -> Node:
-    root = engine.get_best_node(board, NodesCountConstraint(nodes)).parent
+    node = engine.get_best_node(board, NodesCountConstraint(nodes))
+    assert node.parent
+    root = node.parent
 
     graph = build_graph(root, params=render_params, fen=board.fen())
     graph.render(

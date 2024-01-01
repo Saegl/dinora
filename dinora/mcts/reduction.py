@@ -34,6 +34,7 @@ def reduce_parent(parent: Node, child: Node):
     parent.value_estimate = -child.value_estimate
     parent.children.clear()
     parent.terminals.clear()
+    assert child.move
     parent.terminals[child.move] = child
 
 

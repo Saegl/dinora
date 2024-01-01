@@ -46,6 +46,8 @@ class Node:
 
     def to_root(self) -> None:
         if not self.lazyboard:
+            assert self.parent
+            assert self.move
             self.lazyboard = self.parent.board.copy()
             self.lazyboard.push(self.move)
         self.parent = None
@@ -57,6 +59,7 @@ class Node:
         self.is_terminal = True
         if self.parent and self.move in self.parent.children:
             # Move node from `children` to `terminals`
+            assert self.move
             del self.parent.children[self.move]
             self.parent.terminals[self.move] = self
 
@@ -65,6 +68,7 @@ class Node:
         line = []
         while len(curr.children) > 0 or len(curr.terminals) > 0:
             curr = curr.best()
+            assert curr.move
             line.append(curr.move.uci())
 
         return " ".join(line)
@@ -106,6 +110,7 @@ class Node:
             if len(self.terminals) == 1:  # Node was reduced by `reduction`
                 for child_terminal in self.terminals.values():
                     return child_terminal
+                raise Exception("Unreachable")
             elif len(self.terminals) == 0 and self.board.legal_moves.count() == 0:
                 raise ValueError("Cannot get best move if there is no legal moves")
             else:

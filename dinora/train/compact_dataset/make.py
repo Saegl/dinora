@@ -47,7 +47,7 @@ def convert_dir(
 
 
 def run_parallel_convert(
-    tasks: list[tuple[pathlib.Path, pathlib.Path]]
+    tasks: list[tuple[pathlib.Path, pathlib.Path, int]]
 ) -> dict[str, int]:
     chunks: dict[str, int] = {}
     with concurrent.futures.ProcessPoolExecutor() as executor:
@@ -105,7 +105,7 @@ def generate_report(
 def convert_pgn_file(pgn_path: pathlib.Path, save_path: pathlib.Path, q_nodes: int):
     print("Converting", pgn_path.name)
 
-    tensors = {name: [] for name in ["boards", "policies", "wdls", "z_values"]}
+    tensors = {name: [] for name in ["boards", "policies", "wdls", "z_values"]}  # type: ignore
 
     if q_nodes > 0:
         engine_logger.setLevel(logging.ERROR)
@@ -128,13 +128,13 @@ def convert_pgn_file(pgn_path: pathlib.Path, save_path: pathlib.Path, q_nodes: i
         if q_nodes > 0:
             engine.close()
 
-    tensors["boards"] = np.array(tensors["boards"], dtype=np.int64)
-    tensors["policies"] = np.array(tensors["policies"], dtype=np.int64)
-    tensors["wdls"] = np.array(tensors["wdls"], dtype=np.int64)
-    tensors["z_values"] = np.array(tensors["z_values"], dtype=np.float32).reshape(-1, 1)
+    tensors["boards"] = np.array(tensors["boards"], dtype=np.int64)  # type: ignore
+    tensors["policies"] = np.array(tensors["policies"], dtype=np.int64)  # type: ignore
+    tensors["wdls"] = np.array(tensors["wdls"], dtype=np.int64)  # type: ignore
+    tensors["z_values"] = np.array(tensors["z_values"], dtype=np.float32).reshape(-1, 1)  # type: ignore
 
     if q_nodes > 0:
-        tensors["q_values"] = np.array(tensors["q_values"], dtype=np.float32).reshape(
+        tensors["q_values"] = np.array(tensors["q_values"], dtype=np.float32).reshape(  # type: ignore
             -1, 1
         )
 

@@ -10,7 +10,7 @@ import torch
 
 import lightning.pytorch as pl
 from lightning.pytorch.loggers import WandbLogger
-from lightning.pytorch.callbacks import ModelCheckpoint
+from lightning.pytorch.callbacks import ModelCheckpoint, Callback
 from lightning.pytorch.tuner import Tuner
 
 from dinora import PROJECT_ROOT
@@ -92,7 +92,7 @@ def fit(config: Config):
     torch.set_float32_matmul_precision(config.matmul_precision)
     max_time = timedelta(**config.max_time) if config.max_time else None
 
-    callbacks = []
+    callbacks: list[Callback] = []
 
     if config.enable_sample_game_generator:
         callbacks.append(SampleGameGenerator())
@@ -148,7 +148,7 @@ def fit(config: Config):
 
     if config.tune_batch:
         tuner.scale_batch_size(model, datamodule=datamodule)
-        config.batch_size = datamodule.hparams.batch_size
+        config.batch_size = datamodule.hparams.batch_size  # type: ignore
 
     if config.tune_learning_rate:
         tuner.lr_find(model, datamodule=datamodule)

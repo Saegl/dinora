@@ -26,7 +26,7 @@ class SampleGameGenerator(Callback):
             bestmove = max(policy, key=lambda k: policy[k])
             board.push(bestmove)
         moves = " ".join(map(lambda m: m.uci(), board.move_stack))
-        trainer.logger.log_text(key="sample_game", columns=["moves"], data=[[moves]])
+        trainer.logger.log_text(key="sample_game", columns=["moves"], data=[[moves]])  # type: ignore
 
 
 class BoardsEvaluator(Callback):
@@ -80,7 +80,7 @@ class BoardsEvaluator(Callback):
 
             data.append(entry)
 
-        trainer.logger.log_text(key="val_positions", columns=COLUMNS, data=data)
+        trainer.logger.log_text(key="val_positions", columns=COLUMNS, data=data)  # type: ignore
 
 
 class ValidationCheckpointer(Callback):
@@ -96,7 +96,7 @@ class ValidationCheckpointer(Callback):
         import wandb
 
         final_state = wandb.Artifact(name=label, type="valid-state")
-        final_state.add_file(filepath)
+        final_state.add_file(filepath)  # type: ignore
         wandb.log_artifact(final_state)
 
     def on_validation_end(self, _: pl.Trainer, pl_module: pl.LightningModule) -> None:
