@@ -65,14 +65,16 @@ def run_mcts(
         leaf = selection(root, params.cpuct)
 
         tval = terminal_val(leaf.board)
-        if tval is None:
-            child_priors, leaf.value_estimate = evaluator.evaluate(leaf.board)
-            expansion(leaf, child_priors, params.fpu)
-        else:
+
+        if params.node_reduction and tval is not None:
             leaf.value_estimate = tval
             leaf.to_terminal()
             leaf.til_end = 0
             leaf = reduction(leaf)
+        else:
+            child_priors, leaf.value_estimate = evaluator.evaluate(leaf.board)
+            leaf.value_estimate = leaf.value_estimate if tval is None else tval
+            expansion(leaf, child_priors, params.fpu)
 
         backpropagation(leaf, leaf.value_estimate)
 
