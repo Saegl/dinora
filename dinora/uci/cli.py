@@ -41,12 +41,12 @@ def run_cli(args: Args) -> None:
     except KeyboardInterrupt:
         pass
     except:  # noqa: E722
-        with open("dinora.log", "wt", encoding="utf8") as logfile:
+        with open("dinora.log", "w", encoding="utf8") as logfile:
             exc_type, exc_value, exc_tb = sys.exc_info()
             logfile.write(
                 "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
             )
             logfile.write("\n")
 
-        with open("dinora.log", "rt", encoding="utf8") as f:
+        with open("dinora.log", encoding="utf8") as f:
             print(f.read())

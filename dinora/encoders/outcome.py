@@ -16,9 +16,7 @@ def wdl_index(game: chess.pgn.Game, turn: bool) -> int:
         return DRAW
     elif turn == WHITE and result == "1-0":
         return WIN
-    elif turn == WHITE and result == "0-1":
-        return LOSS
-    elif turn == BLACK and result == "1-0":
+    elif turn == WHITE and result == "0-1" or turn == BLACK and result == "1-0":
         return LOSS
     elif turn == BLACK and result == "0-1":
         return WIN
@@ -33,9 +31,7 @@ def z_value(game: chess.pgn.Game, turn: bool) -> float:
         return 0.0
     elif turn == WHITE and result == "1-0":
         return +1.0
-    elif turn == WHITE and result == "0-1":
-        return -1.0
-    elif turn == BLACK and result == "1-0":
+    elif turn == WHITE and result == "0-1" or turn == BLACK and result == "1-0":
         return -1.0
     elif turn == BLACK and result == "0-1":
         return +1.0

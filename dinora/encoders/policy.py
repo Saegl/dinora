@@ -21,7 +21,7 @@ So when we want to make NN inference for black perspective
 (white becomes black and black becomes white),
 after this flip, all prior probabilites from NN also comes flipped.
 """
-from typing import Iterable
+from collections.abc import Iterable
 from itertools import product, chain
 
 import chess
@@ -38,8 +38,7 @@ NUMBERS = list(map(str, range(1, 9)))
 
 def every_square() -> Iterable[Position]:
     "Return indices of 64 squares (position tuples)"
-    for i, j in product(range(8), range(8)):
-        yield i, j
+    yield from product(range(8), range(8))
 
 
 def addsq(a: Position, b: Position) -> Position:

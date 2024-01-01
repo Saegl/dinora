@@ -114,7 +114,7 @@ class CompactDataModule(pl.LightningDataModule):
         self.hparams.batch_size = batch_size  # type: ignore
         self.dataset_folder = dataset_folder
 
-        with open(dataset_folder / "report.json", "rt", encoding="utf8") as f:
+        with open(dataset_folder / "report.json", encoding="utf8") as f:
             self.report = json.load(f)
 
     def train_dataloader(self) -> DataLoader[CompactDataset]:

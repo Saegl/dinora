@@ -117,7 +117,7 @@ def convert_pgn_file(
         tensors["q_values"] = []
 
     try:
-        with open(pgn_path, "r", encoding="utf8", errors="ignore") as pgn:
+        with open(pgn_path, encoding="utf8", errors="ignore") as pgn:
             for game, board, move in load_game_states(pgn):
                 tensors["boards"].append(board_to_compact_state(board))
                 tensors["policies"].append(policy_index(move, not board.turn))

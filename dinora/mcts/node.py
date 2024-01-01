@@ -111,26 +111,23 @@ class Node:
                 for child_terminal in self.terminals.values():
                     return child_terminal
                 raise Exception("Unreachable")
-            elif len(self.terminals) == 0 and self.board.legal_moves.count() == 0:
+            if len(self.terminals) == 0 and self.board.legal_moves.count() == 0:
                 raise ValueError("Cannot get best move if there is no legal moves")
-            else:
-                raise Exception(
-                    "Logical error, terminal must contain at most one child"
-                )
+            raise Exception("Logical error, terminal must contain at most one child")
+
+        # Use secure child here?
+        # https://dke.maastrichtuniversity.nl/m.winands/documents/uctloa.pdf
+        best_non_terminal = self.best_child(1.0)
+
+        if self.terminals:
+            best_terminal = self.best_terminal()
         else:
-            # Use secure child here?
-            # https://dke.maastrichtuniversity.nl/m.winands/documents/uctloa.pdf
-            best_non_terminal = self.best_child(1.0)
+            return best_non_terminal
 
-            if self.terminals:
-                best_terminal = self.best_terminal()
-            else:
-                return best_non_terminal
-
-            if best_non_terminal.Q() > best_terminal.value_estimate:
-                return best_non_terminal
-            else:
-                return best_terminal
+        if best_non_terminal.Q() > best_terminal.value_estimate:
+            return best_non_terminal
+        else:
+            return best_terminal
 
     def __str__(self) -> str:
         return f"<Node {self.move} {self.number_visits}>"

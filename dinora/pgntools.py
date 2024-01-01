@@ -1,5 +1,6 @@
 import logging
-from typing import Iterator, TextIO
+from collections.abc import Iterator
+from typing import TextIO
 
 import chess
 import chess.pgn
@@ -40,7 +41,7 @@ def load_game_states(pgn: TextIO) -> Iterator[tuple[Game, Board, Move]]:
                 board.push(move)
             except AssertionError:
                 logging.warning(
-                    "Broken game found," f"can't make a move {move}." "Skipping game"
+                    f"Broken game found, can't make a move {move}. Skipping game"
                 )
                 break
 

@@ -27,7 +27,29 @@ repository = "https://github.com/DinoraChess/dinora"
 documentation = "https://dinora.readthedocs.io/en/latest"
 
 [tool.ruff]
-ignore = ["E501"]
+select = [
+    "E", "F", "I", "W", "E", "C", "PIE",
+    "T20", "ISC", "A", "B", "S", "T10", "Q",
+    "RSE", "RET", "SIM", "PTH", "ERA", "UP"
+]
+ignore = [
+    "E501", # line too long
+    "B905", # zip() without an explicit strict= parameter
+    "S311", # Standard pseudo-random generators are not suitable for cryptographic purposes
+    "PTH123", # open() should be replaced by Path.open()
+    "ERA001", # Found commented-out code
+    "S101", # assert: I use assert for mypy
+    "W291", # trailing-whitespace: use black
+    "T201", # print
+    "T203", # pprint
+    "RET505", # Unnecessary `elif` after `return` statement
+    "RET504", # Unnecessary assignment to {name} before return statement
+    "I001", # TODO enable
+    "SIM108", # Use ternary operator {contents} instead of if-else-block
+    "A003", # Class attribute {name} is shadowing a Python builtin
+    "C417", # map
+]
+exclude = ["docs", "dinora/elo_estimator/glicko2"]
 
 [build-system]
 requires = ["poetry-core"]

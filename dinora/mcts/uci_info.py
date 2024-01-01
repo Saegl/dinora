@@ -1,5 +1,5 @@
 from time import time
-from typing import Callable
+from collections.abc import Callable
 
 from dinora.mcts.node import Node
 

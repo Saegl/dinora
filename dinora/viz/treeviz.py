@@ -3,7 +3,8 @@ Visualization of MCTS
 """
 import pathlib
 from itertools import chain
-from typing import Iterator, Literal
+from collections.abc import Iterator
+from typing import Literal
 from dataclasses import dataclass
 
 import graphviz
@@ -30,6 +31,9 @@ class RenderParams:
     open_default_gui: bool = True
     output_dir: pathlib.Path = DEFAULT_OUTPUT_DIR
     imgformat: Literal["png", "svg"] = "svg"
+
+
+DEFAULT_RENDER_PARAMS = RenderParams()
 
 
 def get_all_nodes(node: Node) -> Iterator[Node]:
@@ -110,7 +114,7 @@ def build_root_node(
     svg = SVG_PREFIX + chess.svg.board(chess.Board(fen))
     svg_filename = "svg_board.svg"
     board_path = output_dir / svg_filename
-    with open(board_path, "wt", encoding="utf8") as f:
+    with open(board_path, "w", encoding="utf8") as f:
         f.write(svg)
     graph.node("root", label="", image=svg_filename, imagescale="false", shape="box")
 
@@ -158,7 +162,7 @@ def build_children_nodes(
 def build_graph(
     root: Node,
     fen: str = chess.STARTING_BOARD_FEN,
-    params: RenderParams = RenderParams(),
+    params: RenderParams = DEFAULT_RENDER_PARAMS,
 ) -> graphviz.Digraph:
     graph = graphviz.Digraph(
         "search-tree",
@@ -186,7 +190,7 @@ def render_state(
     engine: Engine,
     board: chess.Board,
     nodes: int,
-    render_params: RenderParams = RenderParams(),
+    render_params: RenderParams = DEFAULT_RENDER_PARAMS,
 ) -> Node:
     node = engine.get_best_node(board, NodesCountConstraint(nodes))
     assert node.parent
