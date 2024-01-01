@@ -6,7 +6,7 @@ from dinora.mcts.noise import apply_noise
 from dinora.mcts.constraints import Constraint
 from dinora.mcts.params import MCTSparams
 from dinora.models import BaseModel, Priors
-from dinora.mcts.reduction import reduction
+from dinora.mcts.reduction import reduction, terminal_val
 
 
 def selection(root: Node, c: float) -> Node:
@@ -52,9 +52,7 @@ def run_mcts(
         print(root)
     else:
         root = Node(params.fpu_at_root, lazyboard=state)
-        root.is_terminal, child_priors, root.value_estimate = evaluator.evaluate(
-            root.board
-        )
+        child_priors, root.value_estimate = evaluator.evaluate(root.board)
         child_priors = apply_noise(
             child_priors,
             params.dirichlet_alpha,
@@ -66,19 +64,19 @@ def run_mcts(
     while constraint.meet():
         leaf = selection(root, params.cpuct)
 
-        is_terminal, child_priors, leaf.value_estimate = evaluator.evaluate(leaf.board)
-
-        if is_terminal:
+        tval = terminal_val(leaf.board)
+        if tval is None:
+            child_priors, leaf.value_estimate = evaluator.evaluate(leaf.board)
+            expansion(leaf, child_priors, params.fpu)
+        else:
+            leaf.value_estimate = tval
             leaf.to_terminal()
             leaf.til_end = 0
             leaf = reduction(leaf)
 
-        if not leaf.is_terminal and not leaf.is_expanded:
-            expansion(leaf, child_priors, params.fpu)
-
         backpropagation(leaf, leaf.value_estimate)
-        uci_info.after_iteration(root, params.send_func)
 
+        uci_info.after_iteration(root, params.send_func)
         if root.is_terminal:
             break
 

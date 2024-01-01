@@ -1,5 +1,31 @@
 from operator import attrgetter
+
+import chess
 from dinora.mcts import Node
+
+
+def terminal_val(board: chess.Board) -> float | None:
+    outcome = board.outcome()
+
+    if outcome is not None and outcome.winner is not None:
+        # There is a winner, but is is our turn to move
+        # means we lost
+        return -1.0
+
+    elif (
+        outcome is not None  # We know there is no winner by `if` above, so it's draw
+        or board.is_repetition(3)  # Can claim draw means it's draw
+        or board.can_claim_fifty_moves()
+    ):
+        # There is some subtle difference between
+        # board.can_claim_threefold_repetition() and board.is_repetition(3)
+        # I believe it is right to use second one, but I am not 100% sure
+        # Gives +-1 ply error on this one for example https://lichess.org/EJ67iHS1/black#94
+
+        return 0.0
+    else:
+        assert outcome is None
+        return None
 
 
 def reduce_parent(parent: Node, child: Node):

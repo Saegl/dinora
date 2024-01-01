@@ -2,7 +2,7 @@ import numpy as np
 import chess
 from abc import ABC, abstractmethod
 
-from dinora.models import BaseModel, IsTerminal, Priors, StateValue
+from dinora.models import BaseModel, Priors, StateValue
 from dinora.encoders.policy import extract_prob_from_policy
 
 
@@ -38,32 +38,8 @@ class NNWrapper(BaseModel, ABC):
 
         return priors, float(raw_value[0])
 
-    def evaluate(self, board: chess.Board) -> tuple[IsTerminal, Priors, StateValue]:
-        outcome = board.outcome()
-
-        if outcome is not None and outcome.winner is not None:
-            # There is a winner, but is is our turn to move
-            # means we lost
-            return True, {}, -1.0
-
-        elif (
-            outcome
-            is not None  # We know there is no winner by `if` above, so it's draw
-            or board.is_repetition(3)  # Can claim draw means it's draw
-            or board.can_claim_fifty_moves()
-        ):
-            # There is some subtle difference between
-            # board.can_claim_threefold_repetition() and board.is_repetition(3)
-            # I believe it is right to use second one, but I am not 100% sure
-            # Gives +-1 ply error on this one for example https://lichess.org/EJ67iHS1/black#94
-
-            priors, _ = self.nn_evaluate(board)
-            return True, priors, 0.0
-        else:
-            assert outcome is None
-            # Use ANN evaluation if there is no outcome yet
-            priors, val = self.nn_evaluate(board)
-            return False, priors, val
+    def evaluate(self, board: chess.Board) -> tuple[Priors, StateValue]:
+        return self.nn_evaluate(board)
 
     def reset(self):
         pass
