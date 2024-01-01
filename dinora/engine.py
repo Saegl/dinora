@@ -64,8 +64,3 @@ class Engine:
         node = self.get_best_node(board, constraint)
         assert node.move
         return node.move
-
-
-if __name__ == "__main__":
-    engine = Engine("alphanet")
-    engine.set_config_param("cpuct", 4.0)

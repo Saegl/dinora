@@ -232,11 +232,3 @@ class AlphaNet(pl.LightningModule, NNWrapper):
 
     def reset(self) -> None:
         pass
-
-
-if __name__ == "__main__":
-    net = AlphaNet()
-
-    x = torch.zeros((6, 18, 8, 8))
-    policy, value = net(x)
-    print(policy.shape, value.shape)
