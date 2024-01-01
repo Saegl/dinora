@@ -1,8 +1,14 @@
+from __future__ import annotations
+import typing
 import pathlib
+import argparse
 
 from dinora import DEFAULT_WEIGHTS
-from dinora.cli_utils import Args, Subparsers
 from dinora.bench.selfplay import selfplay
+
+if typing.TYPE_CHECKING:
+    Subparsers = argparse._SubParsersAction[argparse.ArgumentParser]
+    Args = argparse.Namespace
 
 
 def build_parser(subparsers: Subparsers) -> None:

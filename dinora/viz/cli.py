@@ -1,9 +1,17 @@
+from __future__ import annotations
+
+import argparse
+import typing
 import pathlib
 import chess
 
 from dinora import DEFAULT_WEIGHTS, PROJECT_ROOT
 from dinora.engine import Engine
-from dinora.cli_utils import Subparsers, Args
+
+if typing.TYPE_CHECKING:
+    Subparsers = argparse._SubParsersAction[argparse.ArgumentParser]
+    Args = argparse.Namespace
+
 
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "data/treeviz"
 

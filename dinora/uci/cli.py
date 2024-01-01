@@ -1,3 +1,5 @@
+from __future__ import annotations
+import typing
 import sys
 import traceback
 import pathlib
@@ -6,7 +8,10 @@ import argparse
 from dinora import DEFAULT_WEIGHTS
 from dinora.engine import Engine
 from dinora.uci.uci import UciState
-from dinora.cli_utils import Args
+
+if typing.TYPE_CHECKING:
+    Subparsers = argparse._SubParsersAction[argparse.ArgumentParser]
+    Args = argparse.Namespace
 
 
 def build_parser() -> argparse.ArgumentParser:

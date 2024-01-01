@@ -13,9 +13,15 @@ the resulting dataset
 5. Now you can train neural network with this dataset, use <folder_name3>
 as `dataset_label` in dinora.train
 """
-import pathlib
+from __future__ import annotations
 
-from dinora.cli_utils import Subparsers, Args
+import pathlib
+import typing
+import argparse
+
+if typing.TYPE_CHECKING:
+    Subparsers = argparse._SubParsersAction[argparse.ArgumentParser]
+    Args = argparse.Namespace
 
 
 def build_parser(subparsers: Subparsers) -> None:
