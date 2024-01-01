@@ -14,6 +14,10 @@ import numpy as np
 import numpy.typing as npt
 
 
+npf32 = npt.NDArray[np.float32]
+npuint64 = npt.NDArray[np.uint64]
+
+
 PLANE_NAMES = [
     "WHITE KING",
     "WHITE QUEEN",
@@ -55,7 +59,7 @@ PIECE_INDEX = {
 assert len(PIECE_INDEX) == 12
 
 
-def board_to_tensor(board: chess.Board) -> npt.NDArray[np.float32]:
+def board_to_tensor(board: chess.Board) -> npf32:
     "Convert current state (chessboard) to tensor"
     flip = not board.turn
     if flip:
@@ -91,7 +95,7 @@ def board_to_tensor(board: chess.Board) -> npt.NDArray[np.float32]:
     return tensor
 
 
-def board_to_compact_state(board: chess.Board) -> np.ndarray:
+def board_to_compact_state(board: chess.Board) -> npuint64:
     flip = not board.turn
     if flip:
         board = board.mirror()
@@ -119,7 +123,7 @@ def board_to_compact_state(board: chess.Board) -> np.ndarray:
     return np.concatenate((pieces_array, config_array))
 
 
-def compact_state_to_board_tensor(array: np.ndarray) -> np.ndarray:
+def compact_state_to_board_tensor(array: npuint64) -> npf32:
     pieces_array = np.unpackbits(array[:12].view(np.uint8))
     pieces_planes = pieces_array.reshape((12, 8, 8)).astype(np.float32)
 

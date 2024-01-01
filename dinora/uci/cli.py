@@ -6,9 +6,10 @@ import argparse
 from dinora import DEFAULT_WEIGHTS
 from dinora.engine import Engine
 from dinora.uci.uci import UciState
+from dinora.cli_utils import Args
 
 
-def build_parser():
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dinora",
         description="Chess engine",
@@ -30,7 +31,7 @@ def build_parser():
     return parser
 
 
-def run_cli(args):
+def run_cli(args: Args) -> None:
     try:
         engine = Engine(args.model, args.weights, args.device)
         uci_state = UciState(engine)

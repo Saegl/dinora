@@ -1,6 +1,8 @@
 import pathlib
 import dataclasses
 
+from typing import Any
+
 import chess
 
 from dinora.mcts import MCTSparams, run_mcts, Constraint
@@ -41,7 +43,7 @@ class Engine:
         if self._model is not None:
             self._model.reset()
 
-    def set_config_param(self, name, value):
+    def set_config_param(self, name: str, value: Any) -> None:
         for field in dataclasses.fields(MCTSparams):
             if field.name == name:
                 setattr(self.mcts_params, name, field.type(value))

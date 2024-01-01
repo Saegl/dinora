@@ -15,7 +15,7 @@ from dinora.train.handmade_val_dataset.dataset import POSITIONS
 
 class SampleGameGenerator(Callback):
     def on_fit_start(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
-        self.table = wandb.Table(columns=["moves"])
+        self.table = wandb.Table(columns=["moves"])  # type: ignore
 
     def on_validation_end(
         self, trainer: pl.Trainer, pl_module: pl.LightningModule
@@ -30,12 +30,12 @@ class SampleGameGenerator(Callback):
 
 
 class BoardsEvaluator(Callback):
-    def __init__(self, render_image=False):
+    def __init__(self, render_image: bool = False) -> None:
         self.positions = POSITIONS
         self.render_image = render_image
 
     @staticmethod
-    def board_to_image(board):
+    def board_to_image(board: chess.Board) -> Image:
         svg = chess.svg.board(board)
         png_out = BytesIO()
         cairosvg.svg2png(svg.encode(), write_to=png_out)
@@ -84,10 +84,10 @@ class BoardsEvaluator(Callback):
 
 
 class ValidationCheckpointer(Callback):
-    def __init__(self):
+    def __init__(self) -> None:
         self.saves_counter = 0
 
-    def save_model(self, pl_module: pl.LightningModule, label: str):
+    def save_model(self, pl_module: pl.LightningModule, label: str) -> None:
         self.saves_counter += 1
         filepath = pathlib.Path(f"{label}.ckpt").absolute()
 

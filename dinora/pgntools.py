@@ -15,10 +15,11 @@ from dinora.encoders.outcome import wdl_index
 logging.basicConfig(level=logging.DEBUG)
 
 npf32 = npt.NDArray[np.float32]
+npuint64 = npt.NDArray[np.uint64]
 
 
 def load_chess_games(pgn: TextIO) -> Iterator[chess.pgn.Game]:
-    def is_supported_variant(game):
+    def is_supported_variant(game: chess.pgn.Game) -> bool:
         return game.headers.get("Variant", "Standard") == "Standard"
 
     game = chess.pgn.read_game(pgn)
@@ -58,7 +59,7 @@ def load_state_tensors(pgn: TextIO) -> Iterator[tuple[npf32, tuple[int, int]]]:
 
 def load_compact_state_tensors(
     pgn: TextIO,
-) -> Iterator[tuple[npf32, tuple[int, int]]]:
+) -> Iterator[tuple[npuint64, tuple[int, int]]]:
     for game, board, move in load_game_states(pgn):
         flip = not board.turn
         yield (

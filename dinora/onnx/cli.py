@@ -1,9 +1,10 @@
 import pathlib
 
 from dinora import DEFAULT_WEIGHTS
+from dinora.cli_utils import Subparsers, Args
 
 
-def build_parser(subparsers):
+def build_parser(subparsers: Subparsers) -> None:
     parser = subparsers.add_parser(
         name="export_onnx", help="Export torch model as onnx"
     )
@@ -20,7 +21,7 @@ def build_parser(subparsers):
     )
 
 
-def run_cli(args):
+def run_cli(args: Args) -> None:
     from dinora.onnx.export_onnx import export_onnx
 
     export_onnx(args.model, args.weights)

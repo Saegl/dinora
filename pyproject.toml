@@ -41,6 +41,7 @@ pythonpath = ["."]
 norecursedirs = 'bench'  # Run benchmarks only by specifying `bench` directory
 
 [tool.mypy]
+strict = true
 ignore_missing_imports = true
 plugins = [
     'numpy.typing.mypy_plugin'
@@ -49,4 +50,5 @@ exclude = [
     'docs',
     'tests',
     'trash',
+    'dinora/elo_estimator/glicko2', # external repo
 ]

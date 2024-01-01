@@ -28,7 +28,7 @@ def terminal_val(board: chess.Board) -> float | None:
         return None
 
 
-def reduce_parent(parent: Node, child: Node):
+def reduce_parent(parent: Node, child: Node) -> None:
     parent.to_terminal()
     parent.til_end = child.til_end + 1
     parent.value_estimate = -child.value_estimate
@@ -38,15 +38,16 @@ def reduce_parent(parent: Node, child: Node):
     parent.terminals[child.move] = child
 
 
-def reduce_to_win(node: Node):
+def reduce_to_win(node: Node) -> Node | None:
     at_least_one_lost = any(map(Node.is_loss, node.terminals.values()))
     if at_least_one_lost:
         return min(
             filter(Node.is_loss, node.terminals.values()), key=attrgetter("til_end")
         )
+    return None
 
 
-def reduce_to_loss(node: Node):
+def reduce_to_loss(node: Node) -> Node | None:
     only_terminals_left = len(node.children) == 0
     if not only_terminals_left:
         return None
@@ -57,8 +58,10 @@ def reduce_to_loss(node: Node):
             filter(Node.is_win, node.terminals.values()), key=attrgetter("til_end")
         )
 
+    return None
 
-def reduce_to_draw(node: Node):
+
+def reduce_to_draw(node: Node) -> Node | None:
     only_terminals_left = len(node.children) == 0
     all_draws = all(map(Node.is_draw, node.terminals.values()))
     at_least_one_win = any(map(Node.is_win, node.terminals.values()))
@@ -68,9 +71,10 @@ def reduce_to_draw(node: Node):
         return max(
             filter(Node.is_draw, node.terminals.values()), key=attrgetter("til_end")
         )
+    return None
 
 
-def reduction(node: Node):
+def reduction(node: Node) -> Node:
     current = node
     while current.is_terminal and current.parent:
         current = current.parent

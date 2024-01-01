@@ -15,8 +15,10 @@ as `dataset_label` in dinora.train
 """
 import pathlib
 
+from dinora.cli_utils import Subparsers, Args
 
-def build_parser(subparsers):
+
+def build_parser(subparsers: Subparsers) -> None:
     parser = subparsers.add_parser(
         name="make_dataset", help="Tool to convert pgns to compact dataset"
     )
@@ -61,7 +63,7 @@ def build_parser(subparsers):
     )
 
 
-def run_cli(args):
+def run_cli(args: Args) -> None:
     from dinora.train.compact_dataset.make import convert_dir
 
     convert_dir(

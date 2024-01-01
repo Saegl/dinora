@@ -1,10 +1,11 @@
 import pathlib
 
 from dinora import DEFAULT_WEIGHTS
+from dinora.cli_utils import Args, Subparsers
 from dinora.bench.selfplay import selfplay
 
 
-def build_parser(subparsers):
+def build_parser(subparsers: Subparsers) -> None:
     parser = subparsers.add_parser(name="bench", help="Benchmark speed of engine")
     parser.add_argument(
         "--model",
@@ -23,5 +24,5 @@ def build_parser(subparsers):
     )
 
 
-def run_cli(args):
+def run_cli(args: Args) -> None:
     selfplay(args.model, args.weights, args.device)

@@ -3,11 +3,12 @@ import chess
 
 from dinora import DEFAULT_WEIGHTS, PROJECT_ROOT
 from dinora.engine import Engine
+from dinora.cli_utils import Subparsers, Args
 
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "data/treeviz"
 
 
-def build_parser(subparsers):
+def build_parser(subparsers: Subparsers) -> None:
     parser = subparsers.add_parser(name="treeviz", help="Render MCTS tree")
     parser.add_argument(
         "--model",
@@ -70,7 +71,7 @@ def build_parser(subparsers):
     )
 
 
-def run_cli(args):
+def run_cli(args: Args) -> None:
     from dinora.viz.treeviz import render_state, RenderParams
 
     engine = Engine(args.model, args.weights, args.device)

@@ -1,3 +1,5 @@
+import argparse
+
 import dinora.elo_estimator.cli as elo_estimator_cli
 
 import dinora.viz.cli as treeviz_cli
@@ -8,7 +10,7 @@ import dinora.bench.cli as bench_cli
 import dinora.onnx.cli as onnx_cli
 
 
-def run_cli():
+def run_cli() -> None:
     parser = build_root_cli()
     args = parser.parse_args()
 
@@ -28,7 +30,7 @@ def run_cli():
         uci_cli.run_cli(args)
 
 
-def build_root_cli():
+def build_root_cli() -> argparse.ArgumentParser:
     parser = uci_cli.build_parser()
     subparsers = parser.add_subparsers(title="Subcommands", dest="subcommand")
 

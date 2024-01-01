@@ -3,9 +3,10 @@ import pathlib
 
 from dinora.elo_estimator import glicko2
 from dinora.elo_estimator.elo_estimator import load_players, play_match
+from dinora.cli_utils import Subparsers, Args
 
 
-def build_parser(subparsers):
+def build_parser(subparsers: Subparsers) -> None:
     parser = subparsers.add_parser(
         name="elo_estimator", help="Estimate elo of chess engines"
     )
@@ -25,11 +26,11 @@ def build_parser(subparsers):
     )
 
 
-def run_cli(args):
+def run_cli(args: Args) -> None:
     with args.config.open(encoding="utf8") as f:
         config = json.load(f)
 
-    env = glicko2.Glicko2()
+    env = glicko2.Glicko2()  # type: ignore
     teacher_player, student_player = load_players(config)
 
     if args.output:

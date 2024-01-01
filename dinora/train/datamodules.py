@@ -2,11 +2,15 @@ import json
 import pathlib
 
 import numpy as np
+import numpy.typing as npt
 import lightning.pytorch as pl
 from torch.utils.data import DataLoader, TensorDataset
 
 from dinora import PROJECT_ROOT
 from dinora.encoders.board_representation import compact_state_to_board_tensor
+
+
+npf32 = npt.NDArray[np.float32]
 
 
 class CompactDataset(TensorDataset):
@@ -49,15 +53,15 @@ class CompactDataset(TensorDataset):
     def __len__(self) -> int:
         return self.length
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int):  # type: ignore
         if not (self.current_left_bound <= index < self.current_right_bound):
             for chunk_info in self.chunks_bounds:
-                if chunk_info["left_bound"] <= index < chunk_info["right_bound"]:
+                if chunk_info["left_bound"] <= index < chunk_info["right_bound"]:  # type: ignore
                     print("Swith to", chunk_info["path"])
 
-                    data = np.load(chunk_info["path"])
-                    self.current_left_bound = chunk_info["left_bound"]
-                    self.current_right_bound = chunk_info["right_bound"]
+                    data = np.load(chunk_info["path"])  # type: ignore
+                    self.current_left_bound = chunk_info["left_bound"]  # type: ignore
+                    self.current_right_bound = chunk_info["right_bound"]  # type: ignore
 
                     self.current_loaded_boards = data["boards"]
                     self.current_loaded_policies = data["policies"]
@@ -66,7 +70,7 @@ class CompactDataset(TensorDataset):
                     if "q_values" in data:
                         self.current_loaded_outcomes += self.q_weight * data["q_values"]
 
-                    length = chunk_info["right_bound"] - chunk_info["left_bound"]
+                    length = chunk_info["right_bound"] - chunk_info["left_bound"]  # type: ignore
                     assert (
                         length
                         == len(self.current_loaded_boards)
@@ -113,37 +117,37 @@ class CompactDataModule(pl.LightningDataModule):
         with open(dataset_folder / "report.json", "rt", encoding="utf8") as f:
             self.report = json.load(f)
 
-    def train_dataloader(self):
+    def train_dataloader(self) -> DataLoader[CompactDataset]:
         return DataLoader(
             CompactDataset(
                 self.dataset_folder,
                 self.report["train"],
-                self.hparams.z_weight,
-                self.hparams.q_weight,
+                self.hparams.z_weight,  # type: ignore
+                self.hparams.q_weight,  # type: ignore
             ),
-            batch_size=self.hparams.batch_size,
+            batch_size=self.hparams.batch_size,  # type: ignore
         )
 
-    def val_dataloader(self):
+    def val_dataloader(self) -> DataLoader[CompactDataset]:
         return DataLoader(
             CompactDataset(
                 self.dataset_folder,
                 self.report["val"],
-                self.hparams.z_weight,
-                self.hparams.q_weight,
+                self.hparams.z_weight,  # type: ignore
+                self.hparams.q_weight,  # type: ignore
             ),
-            batch_size=self.hparams.batch_size,
+            batch_size=self.hparams.batch_size,  # type: ignore
         )
 
-    def test_dataloader(self):
+    def test_dataloader(self) -> DataLoader[CompactDataset]:
         return DataLoader(
             CompactDataset(
                 self.dataset_folder,
                 self.report["test"],
-                self.hparams.z_weight,
-                self.hparams.q_weight,
+                self.hparams.z_weight,  # type: ignore
+                self.hparams.q_weight,  # type: ignore
             ),
-            batch_size=self.hparams.batch_size,
+            batch_size=self.hparams.batch_size,  # type: ignore
         )
 
 

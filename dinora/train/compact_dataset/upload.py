@@ -1,7 +1,7 @@
 import pathlib
 
 
-def upload_dataset(dataset_dir: pathlib.Path, wandb_label: str):
+def upload_dataset(dataset_dir: pathlib.Path, wandb_label: str) -> None:
     import wandb
 
     wandb.init(project="dinora-chess")

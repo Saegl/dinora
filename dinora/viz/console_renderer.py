@@ -1,3 +1,5 @@
+# type: ignore
+# This file in broken state
 import numpy as np
 
 from dinora import PROJECT_ROOT

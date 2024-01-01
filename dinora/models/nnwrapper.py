@@ -1,14 +1,18 @@
 import numpy as np
+import numpy.typing as npt
 import chess
 from abc import ABC, abstractmethod
 
-from dinora.models import BaseModel, Priors, StateValue
+from dinora.models.base import BaseModel, Evaluation
 from dinora.encoders.policy import extract_prob_from_policy
 
 
-def softmax(x, tau=1.0):
+npf32 = npt.NDArray[np.float32]
+
+
+def softmax(x: npf32, tau: float = 1.0) -> npf32:
     e_x = np.exp(x / tau)
-    return e_x / e_x.sum()
+    return e_x / e_x.sum()  # type: ignore
 
 
 class NNWrapper(BaseModel, ABC):
@@ -18,14 +22,14 @@ class NNWrapper(BaseModel, ABC):
     """
 
     @abstractmethod
-    def raw_outputs(self, board: chess.Board):
+    def raw_outputs(self, board: chess.Board) -> tuple[npf32, npf32]:
         """
         NN outputs as numpy arrays
         priors numpy of shape (1880,)
         state value of shape (1,)
         """
 
-    def nn_evaluate(self, board: chess.Board):
+    def nn_evaluate(self, board: chess.Board) -> Evaluation:
         get_prob = extract_prob_from_policy
 
         raw_policy, raw_value = self.raw_outputs(board)
@@ -38,8 +42,8 @@ class NNWrapper(BaseModel, ABC):
 
         return priors, float(raw_value[0])
 
-    def evaluate(self, board: chess.Board) -> tuple[Priors, StateValue]:
+    def evaluate(self, board: chess.Board) -> Evaluation:
         return self.nn_evaluate(board)
 
-    def reset(self):
+    def reset(self) -> None:
         pass

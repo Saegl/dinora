@@ -27,7 +27,7 @@ def model_selector(
 
         alphanet = torch.load(weights_path, map_location=device)
         alphanet = alphanet.to(device)
-        return alphanet
+        return alphanet  # type: ignore
 
     elif model == "onnx":
         from dinora.models.onnxmodel import OnnxModel

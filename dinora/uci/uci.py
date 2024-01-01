@@ -101,5 +101,5 @@ class UciState:
         move = self.engine.get_best_move(self.board, constraint)
         send(f"bestmove {move}")
 
-    def quit(self, tokens: list[str]):
+    def quit(self, tokens: list[str]) -> None:
         sys.exit(0)

@@ -54,7 +54,12 @@ stochastic gradient descent with the annealing rate, momentum and regularization
 the supervised learning experiment; however, cross-entropy and MSE components were weighted equally,
 since more data was available.'
 """
+from typing import Any
+
 import chess
+
+import numpy as np
+import numpy.typing as npt
 
 import torch
 import torch.nn as nn
@@ -65,6 +70,9 @@ import lightning.pytorch as pl
 
 from dinora.encoders.board_representation import board_to_tensor
 from dinora.models.nnwrapper import NNWrapper
+
+
+npf32 = npt.NDArray[np.float32]
 
 
 class ResBlock(nn.Module):
@@ -91,7 +99,7 @@ class ResBlock(nn.Module):
         )
         self.relu = nn.ReLU()
 
-    def forward(self, x):
+    def forward(self, x):  # type: ignore
         return self.relu(self.body(x) + x)
 
 
@@ -155,12 +163,12 @@ class AlphaNet(pl.LightningModule, NNWrapper):
             nn.Tanh(),
         )
 
-    def forward(self, x):
+    def forward(self, x):  # type: ignore
         x = self.convblock(x)
         x = self.res_blocks(x)
         return self.policy_head(x), self.value_head(x)
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch, batch_idx):  # type: ignore
         x, (y_policy, y_value) = batch
         batch_len = len(x)
 
@@ -185,7 +193,7 @@ class AlphaNet(pl.LightningModule, NNWrapper):
 
         return cumulative_loss
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch, batch_idx) -> None:  # type: ignore
         x, (y_policy, y_value) = batch
         batch_len = len(x)
         y_hat_policy, y_hat_value = self(x)
@@ -204,7 +212,7 @@ class AlphaNet(pl.LightningModule, NNWrapper):
             }
         )
 
-    def configure_optimizers(self):
+    def configure_optimizers(self) -> Any:
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         scheduler = StepLR(
             optimizer, step_size=1, gamma=self.lr_scheduler_gamma, verbose=True
@@ -218,7 +226,7 @@ class AlphaNet(pl.LightningModule, NNWrapper):
             },
         }
 
-    def raw_outputs(self, board: chess.Board):
+    def raw_outputs(self, board: chess.Board) -> tuple[npf32, npf32]:
         board_tensor = board_to_tensor(board)
         with torch.no_grad():
             raw_policy, raw_value = self(
@@ -226,7 +234,7 @@ class AlphaNet(pl.LightningModule, NNWrapper):
             )
         return raw_policy[0].cpu().numpy(), raw_value[0].cpu().numpy()
 
-    def reset(self):
+    def reset(self) -> None:
         pass
 
 

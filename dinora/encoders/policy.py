@@ -178,7 +178,7 @@ def extract_prob_from_policy(
     policy: npt.NDArray[np.float32],
     move: chess.Move,
     flip: bool,
-) -> np.float32:
+) -> float:
     move_to_index_lookup = FLIPPED_MOVE_TO_INDEX if flip else MOVE_TO_INDEX
     index = move_to_index_lookup[move]
-    return policy[index]
+    return float(policy[index])

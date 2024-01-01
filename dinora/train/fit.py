@@ -9,9 +9,9 @@ from typing import Literal
 import torch
 
 import lightning.pytorch as pl
-from lightning.pytorch.loggers import WandbLogger
+from lightning.pytorch.loggers import WandbLogger  # type: ignore
 from lightning.pytorch.callbacks import ModelCheckpoint, Callback
-from lightning.pytorch.tuner import Tuner
+from lightning.pytorch.tuner import Tuner  # type: ignore
 
 from dinora import PROJECT_ROOT
 from dinora.train.datamodules import WandbDataModule
@@ -32,7 +32,7 @@ logging.getLogger("fsspec").setLevel(logging.WARNING)
 @dataclass
 class Config:
     matmul_precision: Literal["highest", "high", "medium"]
-    max_time: dict | None
+    max_time: dict | None  # type: ignore
     max_epochs: int  # set -1 to ignore
     dataset_label: str
     z_weight: float
@@ -47,7 +47,7 @@ class Config:
     lr_scheduler_freq: int  # change each steps
 
     enable_checkpointing: bool
-    checkpoint_train_time_interval: dict
+    checkpoint_train_time_interval: dict  # type: ignore
 
     enable_sample_game_generator: bool
     enable_boards_evaluator: bool
@@ -70,7 +70,7 @@ class Config:
     value_lin_channels: int
 
 
-def get_model(config: Config):
+def get_model(config: Config) -> pl.LightningModule:
     if config.model_type == "alphanet":
         from dinora.models.alphanet import AlphaNet
 
@@ -88,7 +88,7 @@ def get_model(config: Config):
         raise ValueError("This model is not supported")
 
 
-def fit(config: Config):
+def fit(config: Config) -> None:
     torch.set_float32_matmul_precision(config.matmul_precision)
     max_time = timedelta(**config.max_time) if config.max_time else None
 
@@ -159,7 +159,7 @@ def fit(config: Config):
     )
 
 
-def validate(config: Config):
+def validate(config: Config) -> None:
     model = get_model(config)
     model.load_from_checkpoint("models/model-eliteq.ckpt")
 

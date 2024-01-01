@@ -13,5 +13,5 @@ class BaseModel(ABC):
         pass
 
     @abstractmethod
-    def reset(self):
+    def reset(self) -> None:
         """Delete caches"""

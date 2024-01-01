@@ -31,6 +31,6 @@ class CachedModel(BaseModel):
             self.cache[epd] = [policy, value]
             return policy, value
 
-    def reset(self):
+    def reset(self) -> None:
         self.clear()
         self.model.reset()

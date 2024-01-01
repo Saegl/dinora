@@ -1,4 +1,6 @@
 import pathlib
+import numpy as np
+import numpy.typing as npt
 
 import chess
 import onnxruntime
@@ -8,6 +10,7 @@ from dinora.models.nnwrapper import NNWrapper
 from dinora.encoders.board_representation import board_to_tensor
 
 
+npf32 = npt.NDArray[np.float32]
 DEFAULT_ONNX_WEIGHTS = PROJECT_ROOT / "models/alphanet_classic.ckpt.onnx"
 
 
@@ -27,7 +30,7 @@ class OnnxModel(NNWrapper):
 
         self.ort_session = onnxruntime.InferenceSession(weights, providers=providers)
 
-    def raw_outputs(self, board: chess.Board):
+    def raw_outputs(self, board: chess.Board) -> tuple[npf32, npf32]:
         """
         NN outputs as numpy arrays
         priors numpy of shape (1880,)
@@ -39,5 +42,5 @@ class OnnxModel(NNWrapper):
         )
         return raw_policy[0], raw_value[0]
 
-    def reset(self):
+    def reset(self) -> None:
         pass

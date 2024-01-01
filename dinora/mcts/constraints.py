@@ -50,7 +50,7 @@ class MoveTimeConstraint(Constraint):
     starttime: float = field(default_factory=time)
     movetime_seconds: float = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.movetime_seconds = self.movetime / 1000
 
     def meet(self) -> bool:

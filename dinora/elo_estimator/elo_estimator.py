@@ -260,7 +260,7 @@ def play_match(
         else:
             student_outcome = glicko2.LOSS
 
-        student_player.rating = env.rate(
+        student_player.rating = env.rate(  # type: ignore
             student_player.rating, [(student_outcome, teacher_player.rating)]
         )
         yield game
@@ -271,19 +271,19 @@ def play_match(
         player.close()
 
 
-def load_players(config: dict) -> tuple[TeacherPlayer, RatedPlayer]:
+def load_players(config: dict) -> tuple[TeacherPlayer, RatedPlayer]:  # type: ignore
     if "mu" in config["teacher_player"]["start_rating"]:
         raise ValueError("Cannot set teacher `mu`, it will be similar to student")
 
     Teacher = globals()[config["teacher_player"]["class"]]
     teacher_init = config["teacher_player"]["init"]
-    teacher_rating = glicko2.Rating(phi=config["teacher_player"]["start_rating"]["phi"])
+    teacher_rating = glicko2.Rating(phi=config["teacher_player"]["start_rating"]["phi"])  # type: ignore
     teacher_player: TeacherPlayer = Teacher(teacher_rating, **teacher_init)
 
     Student = globals()[config["student_player"]["class"]]
     student_init = config["student_player"]["init"]
     student_start_rating = config["student_player"]["start_rating"]
-    student_rating = glicko2.Rating(
+    student_rating = glicko2.Rating(  # type: ignore
         mu=student_start_rating["mu"], phi=student_start_rating["phi"]
     )
     student_player = Student(student_rating, **student_init)

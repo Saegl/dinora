@@ -1,7 +1,8 @@
 import pathlib
+from dinora.cli_utils import Subparsers, Args
 
 
-def build_parser(subparsers):
+def build_parser(subparsers: Subparsers) -> None:
     parser = subparsers.add_parser(
         name="upload_dataset", help="Tool to upload dataset to wandb"
     )
@@ -17,7 +18,7 @@ def build_parser(subparsers):
     )
 
 
-def run_cli(args):
+def run_cli(args: Args) -> None:
     from dinora.train.compact_dataset.upload import upload_dataset
 
     upload_dataset(args.dataset_dir, args.wandb_label)

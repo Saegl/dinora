@@ -22,7 +22,7 @@ def convert_dir(
     train_percentage: float,
     val_percentage: float,
     test_percentage: float,
-):
+) -> None:
     if not (0.9 <= train_percentage + val_percentage + test_percentage <= 1.1):
         raise ValueError("Train/val/test percentage doesn't sum to 1.0")
 
@@ -65,7 +65,7 @@ def generate_report(
     train_percentage: float,
     val_percentage: float,
     test_percentage: float,
-):
+) -> None:
     total_states = sum(chunks.values())
     if not (0.9 <= train_percentage + val_percentage + test_percentage <= 1.1):
         raise ValueError("Train/val/test percentage doesn't sum to 1.0")
@@ -102,7 +102,9 @@ def generate_report(
         json.dump(report, f)
 
 
-def convert_pgn_file(pgn_path: pathlib.Path, save_path: pathlib.Path, q_nodes: int):
+def convert_pgn_file(
+    pgn_path: pathlib.Path, save_path: pathlib.Path, q_nodes: int
+) -> tuple[pathlib.Path, int]:
     print("Converting", pgn_path.name)
 
     tensors = {name: [] for name in ["boards", "policies", "wdls", "z_values"]}  # type: ignore
