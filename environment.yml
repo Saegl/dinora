@@ -32,7 +32,6 @@ dependencies:
       # tests
       - pytest
       - pytest-cov
-      - pytest-benchmark
       # devtools
       - pre-commit
       - black

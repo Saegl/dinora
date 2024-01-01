@@ -38,7 +38,6 @@ py-modules = ['dinora']
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-norecursedirs = 'bench'  # Run benchmarks only by specifying `bench` directory
 
 [tool.mypy]
 strict = true
