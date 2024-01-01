@@ -9,8 +9,11 @@ Evaluation = tuple[Priors, StateValue]
 
 class BaseModel(ABC):
     @abstractmethod
-    def evaluate(self, state: chess.Board) -> Evaluation:
+    def evaluate(self, board: chess.Board) -> Evaluation:
         pass
+
+    def evaluate_batch(self, boards: list[chess.Board]) -> list[Evaluation]:
+        return [self.evaluate(board) for board in boards]
 
     @abstractmethod
     def reset(self) -> None:
