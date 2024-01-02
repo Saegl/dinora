@@ -96,7 +96,9 @@ def build_info_node(graph: graphviz.Digraph, root: Node) -> None:
     bestchild = root.best()
     info = (
         f"Side to move: {'white' if root.board.turn else 'black'} \n"
-        f"Q at bestchild {bestchild.Q():.3f} \n\n"
+        f"Q at bestchild {bestchild.Q():.3f} \n"
+        f"VE at bestchild {bestchild.value_estimate:.3f} \n"
+        f"VE at root {root.value_estimate:.3f} \n\n"
         f"TOP 5 most visited nodes at root: \n{top_visited} \n\n"
         f"TOP 5 highest Q nodes at root: \n{top_q} \n\n"
         f"Tree Shape: {tree_shape(root)}\n"
