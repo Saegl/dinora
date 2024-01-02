@@ -14,7 +14,7 @@ DEFAULT_ONNX_WEIGHTS = PROJECT_ROOT / "models/alphanet_classic.ckpt.onnx"
 
 
 class OnnxModel(NNWrapper):
-    def __init__(self, weights: pathlib.Path | None, device: str | None):
+    def __init__(self, weights: pathlib.Path | None = None, device: str | None = None):
         if device is None:
             providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
         elif device == "cpu":
