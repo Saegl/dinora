@@ -114,7 +114,7 @@ class Node:
 
         # Use secure child here?
         # https://dke.maastrichtuniversity.nl/m.winands/documents/uctloa.pdf
-        best_non_terminal = self.best_puct(1.0)
+        best_non_terminal = self.best_puct(0.0)
 
         if self.terminals:
             best_terminal = self.best_terminal()
