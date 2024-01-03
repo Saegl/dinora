@@ -12,7 +12,7 @@ def cp(q: float) -> int:
 
 
 def calc_score(node: Node) -> int:
-    score = int(round(cp(node.Q()), 0))
+    score = int(round(cp(node.q()), 0))
     return score
 
 
@@ -39,7 +39,7 @@ def send_tree_info(send: Callable[[str], None], root: Node) -> None:
                     nd[1].move,
                     nd[1].number_visits,
                     round(nd[1].prior * 100, 2),
-                    round(nd[1].Q(), 5),
+                    round(nd[1].q(), 5),
                 )
             )
 
@@ -57,7 +57,7 @@ class UciInfo:
 
         if delta - self.delta_last > 5:  # Send info every 5 sec
             self.delta_last = delta
-            bestnode = root.get_most_visited_node()
+            bestnode = root.best_n()
             score = calc_score(bestnode)
             send_info(
                 send_func,
@@ -68,7 +68,7 @@ class UciInfo:
             )
 
     def at_mcts_end(self, root: Node, send_func: Callable[[str], None]) -> None:
-        bestnode = root.best()
+        bestnode = root.best_mixed()
         delta = time() - self.start_time
         score = calc_score(bestnode)
 

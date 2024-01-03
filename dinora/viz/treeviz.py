@@ -73,7 +73,7 @@ def get_pv_set(root: Node) -> set[NodeID]:
 
     curr = root
     while len(curr.children) != 0:
-        bestchild = curr.best()
+        bestchild = curr.best_mixed()
         ans.add(node_id(bestchild))
         curr = bestchild
     return ans
@@ -81,22 +81,22 @@ def get_pv_set(root: Node) -> set[NodeID]:
 
 def build_info_node(graph: graphviz.Digraph, root: Node) -> None:
     children = list(root.children.items())
-    children.sort(key=lambda t: (t[1].number_visits, t[1].Q()), reverse=True)
+    children.sort(key=lambda t: (t[1].number_visits, t[1].q()), reverse=True)
     top_visited_labels = [
-        f"{t[0]} - N:{t[1].number_visits}, Q:{t[1].Q():.3f}" for t in children[:5]
+        f"{t[0]} - N:{t[1].number_visits}, Q:{t[1].q():.3f}" for t in children[:5]
     ]
     top_visited = "\n".join(top_visited_labels)
 
-    children.sort(key=lambda t: (t[1].Q(), t[1].number_visits), reverse=True)
+    children.sort(key=lambda t: (t[1].q(), t[1].number_visits), reverse=True)
     top_q_highest_labels = [
-        f"{t[0]} - Q:{t[1].Q():.3f}, N{t[1].number_visits}" for t in children[:5]
+        f"{t[0]} - Q:{t[1].q():.3f}, N{t[1].number_visits}" for t in children[:5]
     ]
     top_q = "\n".join(top_q_highest_labels)
 
-    bestchild = root.best()
+    bestchild = root.best_mixed()
     info = (
         f"Side to move: {'white' if root.board.turn else 'black'} \n"
-        f"Q at bestchild {bestchild.Q():.3f} \n"
+        f"Q at bestchild {bestchild.q():.3f} \n"
         f"VE at bestchild {bestchild.value_estimate:.3f} \n"
         f"VE at root {root.value_estimate:.3f} \n\n"
         f"TOP 5 most visited nodes at root: \n{top_visited} \n\n"
@@ -104,7 +104,7 @@ def build_info_node(graph: graphviz.Digraph, root: Node) -> None:
         f"Tree Shape: {tree_shape(root)}\n"
         f"PV line: {root.get_pv_line()}\n"
         f"Ply til end: {root.til_end if root.is_terminal else 'inf'}\n"
-        f"Best move: {root.best().move}"
+        f"Best move: {root.best_mixed().move}"
     )
     graph.node("info", label=info, shape="box")
 
@@ -142,7 +142,7 @@ def build_children_nodes(
             others_prior += child.prior
             continue
 
-        label = f"{{ {str(move)} | Q:{child.Q():.3f} N:{child.number_visits} VE: {child.value_estimate:.3f} }}"
+        label = f"{{ {str(move)} | Q:{child.q():.3f} N:{child.number_visits} VE: {child.value_estimate:.3f} }}"
         if child_id in pv_set:
             color = "red"
         elif child.is_terminal:

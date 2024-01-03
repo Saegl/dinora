@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import math
+import operator
 from collections import OrderedDict
 from dataclasses import dataclass, field
-from typing import Optional
 
 import chess
 
@@ -13,9 +15,9 @@ class Node:
     value_estimate: float = 0.0
     lazyboard: chess.Board | None = None
     move: chess.Move | None = None
-    parent: Optional["Node"] = None
-    children: OrderedDict[chess.Move, "Node"] = field(default_factory=OrderedDict)
-    terminals: OrderedDict[chess.Move, "Node"] = field(default_factory=OrderedDict)
+    parent: Node | None = None
+    children: OrderedDict[chess.Move, Node] = field(default_factory=OrderedDict)
+    terminals: OrderedDict[chess.Move, Node] = field(default_factory=OrderedDict)
     number_visits: int = 0
     is_expanded: bool = False
     is_terminal: bool = False
@@ -63,49 +65,44 @@ class Node:
             del self.parent.children[self.move]
             self.parent.terminals[self.move] = self
 
-    def get_pv_line(self) -> str:
-        curr = self
-        line = []
-        while len(curr.children) > 0 or len(curr.terminals) > 0:
-            curr = curr.best()
-            assert curr.move
-            line.append(curr.move.uci())
+    def add_child(self, move: chess.Move, prior: float, fpu: float) -> None:
+        self.children[move] = Node(parent=self, move=move, prior=prior, total_value=fpu)
 
-        return " ".join(line)
-
-    def get_most_visited_node(self) -> "Node":
-        _, node = max(
-            self.children.items(),
-            key=lambda item: (item[1].number_visits, item[1].Q()),
-        )
-        return node
-
-    def get_highest_q_node(self) -> "Node":
-        _, node = max(
-            self.children.items(),
-            key=lambda item: (item[1].Q(), item[1].number_visits),
-        )
-        return node
-
-    def Q(self) -> float:
+    def q(self) -> float:
         return self.total_value / (1 + self.number_visits)
 
-    def U(self) -> float:
+    def u(self) -> float:
         assert self.parent
         return (
             math.sqrt(self.parent.number_visits) * self.prior / (1 + self.number_visits)
         )
 
-    def best_terminal(self) -> "Node":
-        return max(self.terminals.values(), key=lambda node: node.value_estimate)
+    def puct(self, c: float) -> float:
+        return self.q() + c * self.u()
 
-    def best_child(self, c: float) -> "Node":
-        return max(self.children.values(), key=lambda node: node.Q() + c * node.U())
+    def get_pv_line(self) -> str:
+        curr = self
+        line = []
+        while len(curr.children) > 0 or len(curr.terminals) > 0:
+            curr = curr.best_mixed()
+            assert curr.move
+            line.append(curr.move.uci())
 
-    def add_child(self, move: chess.Move, prior: float, fpu: float) -> None:
-        self.children[move] = Node(parent=self, move=move, prior=prior, total_value=fpu)
+        return " ".join(line)
 
-    def best(self) -> "Node":
+    def best_n(self) -> Node:
+        return max(self.children.values(), key=operator.attrgetter("number_visits"))
+
+    def best_q(self) -> Node:
+        return max(self.children.values(), key=Node.q)
+
+    def best_terminal(self) -> Node:
+        return max(self.terminals.values(), key=operator.attrgetter("value_estimate"))
+
+    def best_puct(self, c: float) -> Node:
+        return max(self.children.values(), key=lambda node: node.puct(c))
+
+    def best_mixed(self) -> Node:
         if self.is_terminal:
             if len(self.terminals) == 1:  # Node was reduced by `reduction`
                 for child_terminal in self.terminals.values():
@@ -117,14 +114,14 @@ class Node:
 
         # Use secure child here?
         # https://dke.maastrichtuniversity.nl/m.winands/documents/uctloa.pdf
-        best_non_terminal = self.best_child(1.0)
+        best_non_terminal = self.best_puct(1.0)
 
         if self.terminals:
             best_terminal = self.best_terminal()
         else:
             return best_non_terminal
 
-        if best_non_terminal.Q() > best_terminal.value_estimate:
+        if best_non_terminal.q() > best_terminal.value_estimate:
             return best_non_terminal
         else:
             return best_terminal

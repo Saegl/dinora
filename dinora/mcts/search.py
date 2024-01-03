@@ -13,7 +13,7 @@ def selection(root: Node, c: float) -> Node:
     current = root
 
     while current.is_expanded and current.children:
-        current = current.best_child(c)
+        current = current.best_puct(c)
 
     return current
 

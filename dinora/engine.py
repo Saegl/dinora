@@ -62,7 +62,7 @@ class Engine:
             evaluator=self.model,
             params=self.mcts_params,
         )
-        return root_node.best()
+        return root_node.best_mixed()
 
     def get_best_move(self, board: chess.Board, constraint: Constraint) -> chess.Move:
         node = self.get_best_node(board, constraint)
