@@ -9,6 +9,10 @@ from dinora.mcts.node import Node
 from dinora.models import BaseModel, model_selector
 
 
+class ParamNotFound(Exception):
+    """Thrown if config param not exists"""
+
+
 class Engine:
     def __init__(
         self,
@@ -48,7 +52,7 @@ class Engine:
                 setattr(self.mcts_params, name, field.type(value))
                 break
         else:
-            raise ValueError("Field is not found")
+            raise ParamNotFound
 
     def get_best_node(self, board: chess.Board, constraint: Constraint) -> Node:
         self.load_model()

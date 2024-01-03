@@ -1,8 +1,9 @@
+import contextlib
 import sys
 
 import chess
 
-from dinora.engine import Engine
+from dinora.engine import Engine, ParamNotFound
 from dinora.uci.uci_go_parser import parse_go_params
 
 
@@ -71,7 +72,8 @@ class UciState:
     def setoption(self, tokens: list[str]) -> None:
         name = tokens[tokens.index("name") + 1].lower()
         value = tokens[tokens.index("value") + 1]
-        self.engine.set_config_param(name, value)
+        with contextlib.suppress(ParamNotFound):
+            self.engine.set_config_param(name, value)
 
     def isready(self, tokens: list[str]) -> None:
         self.load_model()
