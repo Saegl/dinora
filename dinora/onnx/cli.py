@@ -4,8 +4,6 @@ import argparse
 import pathlib
 import typing
 
-from dinora import DEFAULT_WEIGHTS
-
 if typing.TYPE_CHECKING:
     Subparsers = argparse._SubParsersAction[argparse.ArgumentParser]
     Args = argparse.Namespace
@@ -22,7 +20,6 @@ def build_parser(subparsers: Subparsers) -> None:
     )
     parser.add_argument(
         "--weights",
-        default=DEFAULT_WEIGHTS,
         help="Path to model weights",
         type=pathlib.Path,
     )

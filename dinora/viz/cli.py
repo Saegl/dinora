@@ -6,7 +6,7 @@ import typing
 
 import chess
 
-from dinora import DEFAULT_WEIGHTS, PROJECT_ROOT
+from dinora import PROJECT_ROOT
 from dinora.engine import Engine
 
 if typing.TYPE_CHECKING:
@@ -21,18 +21,15 @@ def build_parser(subparsers: Subparsers) -> None:
     parser = subparsers.add_parser(name="treeviz", help="Render MCTS tree")
     parser.add_argument(
         "--model",
-        default="alphanet",
         help="Name of the model to use",
     )
     parser.add_argument(
         "--weights",
-        default=DEFAULT_WEIGHTS,
         help="Path to model weights",
         type=pathlib.Path,
     )
     parser.add_argument(
         "--device",
-        default="cuda",
     )
     parser.add_argument(
         "--fen",

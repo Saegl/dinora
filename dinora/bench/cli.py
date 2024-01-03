@@ -4,7 +4,6 @@ import argparse
 import pathlib
 import typing
 
-from dinora import DEFAULT_WEIGHTS
 from dinora.bench.selfplay import selfplay
 
 if typing.TYPE_CHECKING:
@@ -21,13 +20,12 @@ def build_parser(subparsers: Subparsers) -> None:
     )
     parser.add_argument(
         "--weights",
-        default=DEFAULT_WEIGHTS,
         help="Path to model weights",
         type=pathlib.Path,
     )
     parser.add_argument(
         "--device",
-        default="cuda",
+        type=str,
     )
 
 

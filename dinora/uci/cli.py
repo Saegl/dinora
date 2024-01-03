@@ -6,7 +6,6 @@ import sys
 import traceback
 import typing
 
-from dinora import DEFAULT_WEIGHTS
 from dinora.engine import Engine
 from dinora.uci.uci import UciState
 
@@ -22,12 +21,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--model",
-        default="alphanet",
         help="Name of the model to use",
     )
     parser.add_argument(
         "--weights",
-        default=DEFAULT_WEIGHTS,
         help="Path to model weights",
         type=pathlib.Path,
     )

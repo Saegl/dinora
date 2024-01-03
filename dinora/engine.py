@@ -16,7 +16,7 @@ class ParamNotFound(Exception):
 class Engine:
     def __init__(
         self,
-        model_name: str = "alphanet",
+        model_name: str | None = None,
         weights_path: pathlib.Path | None = None,
         device: str | None = None,
     ):

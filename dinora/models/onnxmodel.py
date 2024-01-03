@@ -5,12 +5,12 @@ import numpy as np
 import numpy.typing as npt
 import onnxruntime
 
-from dinora import PROJECT_ROOT
 from dinora.encoders.board_representation import board_to_tensor
+from dinora.models import search_weights
 from dinora.models.nnwrapper import NNWrapper
 
 npf32 = npt.NDArray[np.float32]
-DEFAULT_ONNX_WEIGHTS = PROJECT_ROOT / "models/alphanet_classic.ckpt.onnx"
+DEFAULT_WEIGHTS_FILENAME = "alphanet_classic.ckpt.onnx"
 
 
 class OnnxModel(NNWrapper):
@@ -25,7 +25,7 @@ class OnnxModel(NNWrapper):
             raise ValueError(f"Device '{device}' is not supported")
 
         if weights is None:
-            weights = DEFAULT_ONNX_WEIGHTS
+            weights = search_weights(DEFAULT_WEIGHTS_FILENAME)
 
         self.ort_session = onnxruntime.InferenceSession(weights, providers=providers)
 
