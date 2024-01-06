@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import chess
 
 from dinora.mcts.constraints import Constraint
@@ -8,12 +10,14 @@ from dinora.mcts.reduction import reduction, terminal_val
 from dinora.mcts.uci_info import UciInfo
 from dinora.models import BaseModel, Priors
 
+SelectionPolicy = Callable[[Node], Node]
 
-def selection(root: Node, c: float) -> Node:
+
+def selection(root: Node, selection_policy: SelectionPolicy) -> Node:
     current = root
 
     while current.is_expanded and current.children:
-        current = current.best_puct(c)
+        current = selection_policy(current)
 
     return current
 
@@ -62,7 +66,7 @@ def run_mcts(
         backpropagation(root, root.value_estimate)
 
     while constraint.meet():
-        leaf = selection(root, params.cpuct)
+        leaf = selection(root, params.selection_policy)
 
         tval = terminal_val(leaf.board)
 

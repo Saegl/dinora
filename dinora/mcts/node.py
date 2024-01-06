@@ -6,6 +6,15 @@ from collections import OrderedDict
 from dataclasses import dataclass, field
 
 import chess
+import numpy as np
+import numpy.typing as npt
+
+npf32 = npt.NDArray[np.float32]
+
+
+def softmax(x: npf32, tau: float = 1.0) -> npf32:
+    e_x = np.exp(x / tau)
+    return e_x / e_x.sum()  # type: ignore
 
 
 @dataclass
@@ -102,6 +111,15 @@ class Node:
     def best_puct(self, c: float) -> Node:
         return max(self.children.values(), key=lambda node: node.puct(c))
 
+    def best_softmax(self, t: float) -> Node:
+        children = list(self.children.values())
+        qs = np.array(
+            [node.prior / (node.number_visits + 1) + node.q() for node in children]
+        )
+        probs = softmax(qs, t)
+        i = np.random.choice(len(children), p=probs)
+        return children[i]
+
     def best_mixed(self) -> Node:
         if self.is_terminal:
             if len(self.terminals) == 1:  # Node was reduced by `reduction`
@@ -114,7 +132,8 @@ class Node:
 
         # Use secure child here?
         # https://dke.maastrichtuniversity.nl/m.winands/documents/uctloa.pdf
-        best_non_terminal = self.best_puct(0.0)
+        # best_non_terminal = self.best_puct(0.0)
+        best_non_terminal = self.best_n()
 
         if self.terminals:
             best_terminal = self.best_terminal()

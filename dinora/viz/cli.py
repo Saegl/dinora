@@ -75,12 +75,14 @@ def build_parser(subparsers: Subparsers) -> None:
         default="svg",
         help="Output image format svg/png",
     )
+    parser.add_argument("--selection-policy-name", default="")
 
 
 def run_cli(args: Args) -> None:
     from dinora.viz.treeviz import RenderParams, render_state
 
     engine = Engine(args.model, args.weights, args.device)
+    engine.mcts_params.selection_policy_name = "softmax"
     board = chess.Board(fen=args.fen)
 
     render_state(
