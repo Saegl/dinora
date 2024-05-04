@@ -4,14 +4,14 @@ import time
 import chess
 
 from dinora.engine import Engine
-from dinora.mcts import MoveTimeConstraint
+from dinora.search.stoppers import MoveTime
 
 
 def selfplay(model_name: str, weights: pathlib.Path, device: str) -> None:
     engine = Engine(model_name, weights, device)
     engine.mcts_params.send_func = lambda _: None
     engine.load_model()
-    engine.get_best_move(chess.Board(), MoveTimeConstraint(100))  # Warmup
+    engine.get_best_move(chess.Board(), MoveTime(100))  # Warmup
     print("Engine loaded")
 
     board = chess.Board()
@@ -22,7 +22,7 @@ def selfplay(model_name: str, weights: pathlib.Path, device: str) -> None:
 
     try:
         while not board.is_game_over(claim_draw=True):
-            node = engine.get_best_node(board, MoveTimeConstraint(1000))
+            node = engine.get_best_node(board, MoveTime(1000))
             assert node.move
             assert node.parent
             print(

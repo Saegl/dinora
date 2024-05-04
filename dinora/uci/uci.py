@@ -97,10 +97,10 @@ class UciState:
         go_params = parse_go_params(tokens)
         send(f"info string parsed params {go_params}")
 
-        constraint = go_params.get_search_constraint(self.board)
-        send(f"info string chosen constraint {constraint}")
+        stopper = go_params.get_search_stopper(self.board)
+        send(f"info string chosen stopper {stopper}")
 
-        move = self.engine.get_best_move(self.board, constraint)
+        move = self.engine.get_best_move(self.board, stopper)
         send(f"bestmove {move}")
 
     def quit(self, tokens: list[str]) -> None:

@@ -6,9 +6,9 @@ from time import time
 extra_time = 0.5
 
 
-class Constraint(ABC):
+class Stopper(ABC):
     """
-    Constraints controll when to stop MCTS searching
+    Stoppers controll when to stop searching
     """
 
     @abstractmethod
@@ -23,7 +23,7 @@ def time_manager(moves_number: int, time_left: int, inc: int = 0) -> float:
     return move_time
 
 
-class TimeConstraint(Constraint):
+class Time(Stopper):
     def __init__(
         self,
         moves_number: int,
@@ -41,11 +41,11 @@ class TimeConstraint(Constraint):
         return time() - self.starttime < self.move_time
 
     def __str__(self) -> str:
-        return f"<TimeConstraint: {self.move_time=} {self.starttime=}>"
+        return f"<Time: {self.move_time=} {self.starttime=}>"
 
 
 @dataclass
-class MoveTimeConstraint(Constraint):
+class MoveTime(Stopper):
     movetime: int
     starttime: float = field(default_factory=time)
     movetime_seconds: float = field(init=False)
@@ -57,7 +57,7 @@ class MoveTimeConstraint(Constraint):
         return time() - self.starttime < (self.movetime / 1000)
 
 
-class NodesCountConstraint(Constraint):
+class NodesCount(Stopper):
     def __init__(self, count: int) -> None:
         self.step = 0
         self.count = count
@@ -67,12 +67,12 @@ class NodesCountConstraint(Constraint):
         return self.count > self.step
 
     def __str__(self) -> str:
-        return f"<NodesCountConstraint: {self.count=} {self.step=}>"
+        return f"<NodesCount: {self.count=} {self.step=}>"
 
 
-class InfiniteConstraint(Constraint):
+class Infinite(Stopper):
     def meet(self) -> bool:
         return True
 
     def __str__(self) -> str:
-        return "<InfiniteConstraint 8>"
+        return "<Infinite 8>"

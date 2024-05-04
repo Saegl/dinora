@@ -4,9 +4,10 @@ from typing import Any
 
 import chess
 
-from dinora.mcts import Constraint, MCTSparams, run_mcts
+from dinora.mcts import MCTSparams, run_mcts
 from dinora.mcts.node import Node
 from dinora.models import BaseModel, model_selector
+from dinora.search.stoppers import Stopper
 
 
 class ParamNotFound(Exception):
@@ -54,17 +55,17 @@ class Engine:
         else:
             raise ParamNotFound
 
-    def get_best_node(self, board: chess.Board, constraint: Constraint) -> Node:
+    def get_best_node(self, board: chess.Board, stopper: Stopper) -> Node:
         self.load_model()
         root_node = run_mcts(
             state=board,
-            constraint=constraint,
+            stopper=stopper,
             evaluator=self.model,
             params=self.mcts_params,
         )
         return root_node.best_mixed()
 
-    def get_best_move(self, board: chess.Board, constraint: Constraint) -> chess.Move:
-        node = self.get_best_node(board, constraint)
+    def get_best_move(self, board: chess.Board, stopper: Stopper) -> chess.Move:
+        node = self.get_best_node(board, stopper)
         assert node.move
         return node.move

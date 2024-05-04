@@ -9,7 +9,7 @@ but if they fails, it could be false positive
 import chess
 
 from dinora.engine import Engine
-from dinora.mcts import NodesCountConstraint
+from dinora.search.stoppers import NodesCount
 
 
 def test_1ply_mates() -> None:
@@ -23,7 +23,8 @@ def test_1ply_mates() -> None:
 
     for fen in fens:
         board = chess.Board(fen=fen)
-        root = engine.get_best_node(board, NodesCountConstraint(100)).parent
+        root = engine.get_best_node(board, NodesCount(100)).parent
+        assert root
         assert root.is_terminal
         assert len(root.get_pv_line().split()) == 1
 
@@ -39,7 +40,8 @@ def test_3plies_mates() -> None:
 
     for fen in fens:
         board = chess.Board(fen=fen)
-        root = engine.get_best_node(board, NodesCountConstraint(500)).parent
+        root = engine.get_best_node(board, NodesCount(500)).parent
+        assert root
         assert root.is_terminal
         assert len(root.get_pv_line().split()) == 3
 
@@ -50,6 +52,7 @@ def test_7plies_mate() -> None:
     engine = Engine("onnx", device="cpu")
     engine.mcts_params.node_reduction = True
 
-    root = engine.get_best_node(board, NodesCountConstraint(1500)).parent
+    root = engine.get_best_node(board, NodesCount(1500)).parent
+    assert root
     assert root.is_terminal
     assert root.get_pv_line() == "d3h7 f8h7 g3g7 g8g7 c2g6 g7h8 e5f7"

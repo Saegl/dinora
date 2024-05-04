@@ -12,7 +12,8 @@ import graphviz
 
 from dinora import PROJECT_ROOT
 from dinora.engine import Engine
-from dinora.mcts import Node, NodesCountConstraint
+from dinora.mcts import Node
+from dinora.search.stoppers import NodesCount
 
 NodeID = str
 SVG_PREFIX = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
@@ -194,7 +195,7 @@ def render_state(
     nodes: int,
     render_params: RenderParams = DEFAULT_RENDER_PARAMS,
 ) -> Node:
-    node = engine.get_best_node(board, NodesCountConstraint(nodes))
+    node = engine.get_best_node(board, NodesCount(nodes))
     assert node.parent
     root = node.parent
 

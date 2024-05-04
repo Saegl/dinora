@@ -2,13 +2,13 @@ from collections.abc import Callable
 
 import chess
 
-from dinora.mcts.constraints import Constraint
 from dinora.mcts.node import Node
 from dinora.mcts.noise import apply_noise
 from dinora.mcts.params import MCTSparams
 from dinora.mcts.reduction import reduction, terminal_val
 from dinora.mcts.uci_info import UciInfo
 from dinora.models import BaseModel, Priors
+from dinora.search.stoppers import Stopper
 
 SelectionPolicy = Callable[[Node], Node]
 
@@ -43,7 +43,7 @@ def backpropagation(node: Node, value_estimate: float) -> None:
 
 def run_mcts(
     state: chess.Board | Node,
-    constraint: Constraint,
+    stopper: Stopper,
     evaluator: BaseModel,
     params: MCTSparams,
 ) -> Node:
@@ -65,7 +65,7 @@ def run_mcts(
         expansion(root, child_priors, params.fpu)
         backpropagation(root, root.value_estimate)
 
-    while constraint.meet():
+    while stopper.meet():
         leaf = selection(root, params.selection_policy)
 
         tval = terminal_val(leaf.board)
