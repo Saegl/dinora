@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     glicko2
     ~~~~~~~
@@ -27,7 +26,7 @@ TAU = 1.0
 EPSILON = 0.000001
 
 
-class Rating(object):
+class Rating:
     def __init__(self, mu=MU, phi=PHI, sigma=SIGMA):
         self.mu = mu
         self.phi = phi
@@ -36,10 +35,10 @@ class Rating(object):
     def __repr__(self):
         c = type(self)
         args = (c.__module__, c.__name__, self.mu, self.phi, self.sigma)
-        return "%s.%s(mu=%.3f, phi=%.3f, sigma=%.3f)" % args
+        return "{}.{}(mu={:.3f}, phi={:.3f}, sigma={:.3f})".format(*args)
 
 
-class Glicko2(object):
+class Glicko2:
     def __init__(self, mu=MU, phi=PHI, sigma=SIGMA, tau=TAU, epsilon=EPSILON):
         self.mu = mu
         self.phi = phi

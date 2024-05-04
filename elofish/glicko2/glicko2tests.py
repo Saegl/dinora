@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-from glicko2 import Glicko2, WIN, LOSS
+from glicko2 import LOSS, WIN, Glicko2
 
 
-class almost(object):
+class almost:
     def __init__(self, val, precision=3):
         self.val = val
         self.precision = precision
@@ -10,7 +9,7 @@ class almost(object):
     def almost_equals(self, val1, val2):
         if round(val1, self.precision) == round(val2, self.precision):
             return True
-        fmt = "%.{0}f".format(self.precision)
+        fmt = f"%.{self.precision}f"
 
         def mantissa(f):
             return int((fmt % f).replace(".", ""))

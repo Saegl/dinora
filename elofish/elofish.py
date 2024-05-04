@@ -1,7 +1,6 @@
 import abc
 import datetime
 import itertools
-import pathlib
 import random
 import typing
 
@@ -9,9 +8,7 @@ import chess
 import chess.engine
 import chess.pgn
 
-from dinora.elo_estimator.glicko2 import glicko2
-from dinora.engine import Engine
-from dinora.mcts.constraints import MoveTimeConstraint, NodesCountConstraint
+from elofish.glicko2 import glicko2
 
 DEFAULT_MAX_GAMES = 100
 DEFAULT_MIN_PHI = 75.0
@@ -27,11 +24,24 @@ class RatedPlayer(abc.ABC):
 
     @property
     @abc.abstractmethod
+    def fullname(self) -> str:
+        pass
+
+    @property
+    @abc.abstractmethod
     def name(self) -> str:
         pass
 
     @abc.abstractmethod
     def play(self, board: chess.Board) -> tuple[chess.Move, int]:
+        pass
+
+    @abc.abstractmethod
+    def dump_info(self) -> dict[str, str]:
+        pass
+
+    @abc.abstractmethod
+    def dump_options(self) -> dict[typing.Any, typing.Any]:
         pass
 
     @abc.abstractmethod
@@ -49,34 +59,34 @@ class TeacherPlayer(RatedPlayer, abc.ABC):
         pass
 
 
-class StockfishPlayer(TeacherPlayer):
-    STOCKFISH_MIN_ELO: int = 1320
-    STOCKFISH_MAX_ELO: int = 3190
-
+class UCIPlayer(RatedPlayer):
     def __init__(
         self,
         rating: glicko2.Rating,
         command: str,
+        options: dict[str, str],
         nodes_limit: int | None = None,
         time_limit: float | None = None,  # seconds per move
-        elo: int | None = None,
     ):
         self.rating = rating
         self.time_limit = time_limit
         self.nodes_limit = nodes_limit
         self.uci_engine = chess.engine.SimpleEngine.popen_uci(command)
-
-        if elo:
-            self.set_elo(elo)
+        self.options = options
+        self.uci_engine.configure(options)
 
     @property
-    def name(self) -> str:
-        output = "Stockfish"
+    def fullname(self) -> str:
+        output = self.name
         if self.nodes_limit:
             output += f"_{self.nodes_limit}nodes"
         if self.time_limit:
             output += f"_{self.time_limit}sec_move"
         return output
+
+    @property
+    def name(self) -> str:
+        return self.uci_engine.id.get("name", "UnkownEngine")
 
     def play(self, board: chess.Board) -> tuple[chess.Move, int]:
         playres = self.uci_engine.play(
@@ -88,7 +98,41 @@ class StockfishPlayer(TeacherPlayer):
             ),
         )
         assert playres.move
-        return playres.move, playres.info["nodes"]
+        return playres.move, playres.info.get("nodes", -1)
+
+    def dump_info(self) -> dict[str, str]:
+        return dict(self.uci_engine.id)
+
+    def dump_options(self) -> dict[typing.Any, typing.Any]:
+        options = {}
+        for k, v in self.uci_engine.options.items():
+            options[k] = self.options.get(k, v.default)
+        return options
+
+    def close(self) -> None:
+        self.uci_engine.close()
+
+    def reset(self) -> None:
+        pass
+
+
+class StockfishPlayer(UCIPlayer, TeacherPlayer):
+    STOCKFISH_MIN_ELO: int = 1320
+    STOCKFISH_MAX_ELO: int = 3190
+
+    def __init__(
+        self,
+        rating: glicko2.Rating,
+        command: str,
+        options: dict[str, str],
+        nodes_limit: int | None = None,
+        time_limit: float | None = None,  # seconds per move
+        elo: int | None = None,
+    ):
+        super().__init__(rating, command, options, nodes_limit, time_limit)
+
+        if elo:
+            self.set_elo(elo)
 
     @staticmethod
     def clip_elo(target_elo: int) -> int:
@@ -108,70 +152,6 @@ class StockfishPlayer(TeacherPlayer):
         self.rating.mu = target_elo
         self.set_elo(target_elo)
 
-    def close(self) -> None:
-        self.uci_engine.close()
-
-    def reset(self) -> None:
-        pass
-
-
-class DinoraPlayer(RatedPlayer):
-    def __init__(
-        self,
-        rating: glicko2.Rating,
-        weights: str,
-        device: str,
-        model: str = "alphanet",
-        nodes_limit: int | None = None,
-        time_limit: float | None = None,
-    ) -> None:
-        self.weights = weights
-        self.rating = rating
-        self.engine = Engine(model, pathlib.Path(weights), device)
-        self.engine.load_model()
-        self.nodes_limit = nodes_limit
-        self.time_limit = time_limit
-        assert self.engine._model
-        self.engine.mcts_params.send_func = lambda _: None
-
-        if self.nodes_limit and self.time_limit:
-            raise ValueError(
-                "Cannot set both nodes_limit and time_limit for DinoraPlayer"
-            )
-        if self.nodes_limit is None and self.time_limit is None:
-            raise ValueError("Configure nodes_limit or time_limit for DinoraPlayer")
-
-    @property
-    def name(self) -> str:
-        filename = pathlib.Path(self.weights).name
-        output = f"Dinora_{filename}"
-        if self.nodes_limit:
-            output += f"_{self.nodes_limit}nodes"
-        if self.time_limit:
-            output += f"_{self.time_limit}sec_move"
-        return output
-
-    def play(self, board: chess.Board) -> tuple[chess.Move, int]:
-        if self.nodes_limit:
-            node = self.engine.get_best_node(
-                board, NodesCountConstraint(self.nodes_limit)
-            )
-        elif self.time_limit:
-            node = self.engine.get_best_node(
-                board, MoveTimeConstraint(int(self.time_limit * 1000))
-            )
-        else:
-            raise ValueError("Unreachable state")
-        assert node.parent
-        assert node.move
-        return node.move, node.parent.number_visits
-
-    def close(self) -> None:
-        pass
-
-    def reset(self) -> None:
-        self.engine.reset()
-
 
 def play_game(
     white_player: RatedPlayer,
@@ -182,24 +162,31 @@ def play_game(
 ) -> chess.pgn.Game:
     board = chess.Board()
     current_datetime = datetime.datetime.now()
-    utc_datetime = datetime.datetime.utcnow()
+    utc_datetime = datetime.datetime.now(datetime.timezone.utc)
     game = chess.pgn.Game(
         headers={
             "Event": "Elo estimate",
             "Site": "Dinora elo_estimator.py",
-            "Stage": f"{student_player.name} phi: {int(student_player.rating.phi)}",
+            "Stage": f"{student_player.fullname} phi: {int(student_player.rating.phi)}",
             "Date": current_datetime.date().strftime(r"%Y.%m.%d"),
             "UTCDate": utc_datetime.date().strftime(r"%Y.%m.%d"),
             "Time": current_datetime.strftime("%H:%M:%S"),
             "UTCTime": utc_datetime.strftime("%H:%M:%S"),
-            "White": white_player.name,
-            "Black": black_player.name,
+            "White": white_player.fullname,
+            "Black": black_player.fullname,
             "Round": str(game_ind),
             "WhiteElo": str(int(white_player.rating.mu)),
             "BlackElo": str(int(black_player.rating.mu)),
+            "StudentRatingDeviation": f"{student_player.rating.phi:.2f}",
         }
     )
     node: chess.pgn.GameNode = game
+
+    teacher_total_nodes = 0
+    teacher_plies = 0
+
+    student_total_nodes = 0
+    student_plies = 0
 
     for player in itertools.cycle([white_player, black_player]):
         if not board.outcome(claim_draw=True):
@@ -208,11 +195,20 @@ def play_game(
             board.push(move)
             if game_tick:
                 print(move.uci(), nodes)
+
+            if player is student_player:
+                student_total_nodes += nodes
+                student_plies += 1
+            else:
+                teacher_total_nodes += nodes
+                teacher_plies += 1
         else:
             break
 
     result = board.result(claim_draw=True)
     game.headers["Result"] = result
+    game.headers["AvgTeacherNodes"] = str(teacher_total_nodes // teacher_plies)
+    game.headers["AvgStudentNodes"] = str(student_total_nodes // student_plies)
 
     white_player.reset()
     black_player.reset()

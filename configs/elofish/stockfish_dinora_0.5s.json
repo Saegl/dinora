@@ -1,0 +1,36 @@
+{
+    "max_games": 200,
+    "min_phi": 20.0,
+    "min_mu": 1200,
+    "teacher_player": {
+        "class": "StockfishPlayer",
+        "start_rating": {
+            "phi": 10
+        },
+        "init": {
+            "command": "stockfish",
+            "options": {"Use NNUE": "false"},
+            "time_limit": 0.5
+        }
+    },
+    "student_player": {
+        "class": "UCIPlayer",
+        "start_rating": {
+            "mu": 2500,
+            "phi": 150
+        },
+        "init": {
+            "command": [
+                "python",
+                "-m",
+                "dinora",
+                "--model",
+                "alphanet",
+                "--weights",
+                "models/alphanet_classic.ckpt"
+            ],
+            "options": {},
+            "time_limit": 0.5
+        }
+    }
+}
