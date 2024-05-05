@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from time import time
 
-from dinora.mcts.node import Node
+from dinora.search.ext_mcts.node import Node
 
 NONZERO = 0.001
 

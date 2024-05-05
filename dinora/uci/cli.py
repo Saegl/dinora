@@ -20,6 +20,11 @@ def build_parser() -> argparse.ArgumentParser:
         description="Chess engine",
     )
     parser.add_argument(
+        "--searcher",
+        help="Name of the searcher to use",
+        default="auto",
+    )
+    parser.add_argument(
         "--model",
         help="Name of the model to use",
     )
@@ -36,7 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def run_cli(args: Args) -> None:
     try:
-        engine = Engine(args.model, args.weights, args.device)
+        engine = Engine(args.searcher, args.model, args.weights, args.device)
         uci_state = UciState(engine)
         uci_state.loop()
     except SystemExit:

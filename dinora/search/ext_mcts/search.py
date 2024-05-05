@@ -2,12 +2,12 @@ from collections.abc import Callable
 
 import chess
 
-from dinora.mcts.node import Node
-from dinora.mcts.noise import apply_noise
-from dinora.mcts.params import MCTSparams
-from dinora.mcts.reduction import reduction, terminal_val
-from dinora.mcts.uci_info import UciInfo
 from dinora.models import BaseModel, Priors
+from dinora.search.ext_mcts.node import Node
+from dinora.search.ext_mcts.noise import apply_noise
+from dinora.search.ext_mcts.params import MCTSparams
+from dinora.search.ext_mcts.reduction import reduction, terminal_val
+from dinora.search.ext_mcts.uci_info import UciInfo
 from dinora.search.stoppers import Stopper
 
 SelectionPolicy = Callable[[Node], Node]

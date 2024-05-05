@@ -4,6 +4,7 @@ import sys
 import chess
 
 from dinora.engine import Engine, ParamNotFound
+from dinora.search.base import ConfigType
 from dinora.uci.uci_go_parser import parse_go_params
 
 
@@ -11,16 +12,6 @@ def send(s: str) -> None:
     sys.stdout.write(s)
     sys.stdout.write("\n")
     sys.stdout.flush()
-
-
-UCI_OPTIONS = [
-    # name, type, default
-    ("fpu", "string", -1.0),
-    ("fpu_at_root", "string", 0.0),
-    ("cpuct", "string", 3.0),
-    ("dirichlet_alpha", "string", 0.3),
-    ("noise_eps", "string", 0.0),
-]
 
 
 class UciState:
@@ -58,14 +49,21 @@ class UciState:
             self.dispatcher(line)
 
     ### UCI Commands:
-    def uci(self, tokens: list[str]) -> None:
+    def uci(self, _: list[str]) -> None:
         send("id name Dinora")
         send("id author Saegl")
-        for name, type_name, default in UCI_OPTIONS:
-            send(f"option name {name} type {type_name} default {default}")
+        for name, (config_type, default) in self.engine.get_config_schema().items():
+            match config_type:
+                case ConfigType.String:
+                    uci_type_name = "string"
+                case ConfigType.Float:
+                    uci_type_name = "string"
+                case _:
+                    raise Exception("Cannot convert config_type to uci_type")
+            send(f"option name {name} type {uci_type_name} default {default}")
         send("uciok")
 
-    def ucinewgame(self, tokens: list[str]) -> None:
+    def ucinewgame(self, _: list[str]) -> None:
         self.load_model()
         self.board = chess.Board()
 
@@ -75,7 +73,7 @@ class UciState:
         with contextlib.suppress(ParamNotFound):
             self.engine.set_config_param(name, value)
 
-    def isready(self, tokens: list[str]) -> None:
+    def isready(self, _: list[str]) -> None:
         self.load_model()
         send("readyok")
 
@@ -103,5 +101,5 @@ class UciState:
         move = self.engine.get_best_move(self.board, stopper)
         send(f"bestmove {move}")
 
-    def quit(self, tokens: list[str]) -> None:
+    def quit(self, _: list[str]) -> None:
         sys.exit(0)

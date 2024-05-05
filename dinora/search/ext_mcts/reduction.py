@@ -2,7 +2,7 @@ from operator import attrgetter
 
 import chess
 
-from dinora.mcts import Node
+from dinora.search.ext_mcts.node import Node
 
 
 def terminal_val(board: chess.Board) -> float | None:

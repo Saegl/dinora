@@ -11,8 +11,10 @@ import chess.svg
 import graphviz
 
 from dinora import PROJECT_ROOT
-from dinora.engine import Engine
-from dinora.mcts import Node
+from dinora.models.base import BaseModel
+from dinora.search.ext_mcts.node import Node
+from dinora.search.ext_mcts.params import MCTSparams
+from dinora.search.ext_mcts.search import run_mcts
 from dinora.search.stoppers import NodesCount
 
 NodeID = str
@@ -190,14 +192,12 @@ def build_graph(
 
 
 def render_state(
-    engine: Engine,
+    evaluator: BaseModel,
     board: chess.Board,
     nodes: int,
     render_params: RenderParams = DEFAULT_RENDER_PARAMS,
 ) -> Node:
-    node = engine.get_best_node(board, NodesCount(nodes))
-    assert node.parent
-    root = node.parent
+    root = run_mcts(board, NodesCount(nodes), evaluator, MCTSparams())
 
     graph = build_graph(root, params=render_params, fen=board.fen())
     graph.render(

@@ -5,7 +5,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Literal
 
-from dinora.mcts.node import Node
+from dinora.search.ext_mcts.node import Node
 
 
 def init_puct(params: "MCTSparams", node: Node) -> Node:

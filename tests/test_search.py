@@ -1,7 +1,7 @@
-from dinora.mcts.uci_info import cp
+from dinora.search.ext_mcts.uci_info import cp
 
 
-def test_cp():
+def test_cp() -> None:
     # Dead draw
     assert cp(0.0) == 0
 

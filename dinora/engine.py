@@ -1,12 +1,11 @@
-import dataclasses
 import pathlib
 from typing import Any
 
 import chess
 
-from dinora.mcts import MCTSparams, run_mcts
-from dinora.mcts.node import Node
 from dinora.models import BaseModel, model_selector
+from dinora.search.base import ConfigType, DefaultValue
+from dinora.search.registered import get_searcher
 from dinora.search.stoppers import Stopper
 
 
@@ -17,13 +16,14 @@ class ParamNotFound(Exception):
 class Engine:
     def __init__(
         self,
+        searcher: str = "auto",
         model_name: str | None = None,
         weights_path: pathlib.Path | None = None,
         device: str | None = None,
     ):
+        self.searcher = get_searcher(searcher)
         self._model_name = model_name
         self._model: BaseModel | None = None
-        self.mcts_params = MCTSparams()
         self.weights_path = weights_path
         self.device = device
 
@@ -47,25 +47,14 @@ class Engine:
         if self._model is not None:
             self._model.reset()
 
-    def set_config_param(self, name: str, value: Any) -> None:
-        for field in dataclasses.fields(MCTSparams):
-            if field.name == name:
-                setattr(self.mcts_params, name, field.type(value))
-                break
-        else:
-            raise ParamNotFound
+    def get_config_schema(self) -> dict[str, tuple[ConfigType, DefaultValue]]:
+        return self.searcher.config_schema()
 
-    def get_best_node(self, board: chess.Board, stopper: Stopper) -> Node:
-        self.load_model()
-        root_node = run_mcts(
-            state=board,
-            stopper=stopper,
-            evaluator=self.model,
-            params=self.mcts_params,
-        )
-        return root_node.best_mixed()
+    def set_config_param(self, name: str, value: Any) -> None:
+        try:
+            self.searcher.set_config_param(name, value)
+        except KeyError as exc:
+            raise ParamNotFound from exc
 
     def get_best_move(self, board: chess.Board, stopper: Stopper) -> chess.Move:
-        node = self.get_best_node(board, stopper)
-        assert node.move
-        return node.move
+        return self.searcher.search(board, stopper, self.model)

@@ -81,12 +81,12 @@ def build_parser(subparsers: Subparsers) -> None:
 def run_cli(args: Args) -> None:
     from dinora.viz.treeviz import RenderParams, render_state
 
-    engine = Engine(args.model, args.weights, args.device)
-    engine.mcts_params.selection_policy_name = "softmax"
+    engine = Engine("ext_mcts", args.model, args.weights, args.device)
+    engine.load_model()
     board = chess.Board(fen=args.fen)
 
     render_state(
-        engine,
+        engine.model,
         board=board,
         nodes=args.nodes,
         render_params=RenderParams(

@@ -8,8 +8,7 @@ from dinora.search.stoppers import MoveTime
 
 
 def selfplay(model_name: str, weights: pathlib.Path, device: str) -> None:
-    engine = Engine(model_name, weights, device)
-    engine.mcts_params.send_func = lambda _: None
+    engine = Engine("ext_mcts", model_name, weights, device)
     engine.load_model()
     engine.get_best_move(chess.Board(), MoveTime(100))  # Warmup
     print("Engine loaded")
@@ -22,17 +21,13 @@ def selfplay(model_name: str, weights: pathlib.Path, device: str) -> None:
 
     try:
         while not board.is_game_over(claim_draw=True):
-            node = engine.get_best_node(board, MoveTime(1000))
-            assert node.move
-            assert node.parent
-            print(
-                f"{total_moves}. Move {node.move.uci()}"
-                f"\tnodes {node.parent.number_visits}"
-            )
+            move = engine.get_best_move(board, MoveTime(1000))
+            visits = 0  # FIXME: use real visits, broken after new `searcher`
+            print(f"{total_moves}. Move {move.uci()}\tnodes {visits}")
 
             total_moves += 1
-            total_visits += node.parent.number_visits
-            board.push(node.move)
+            total_visits += visits
+            board.push(move)
     except KeyboardInterrupt:
         print("Bench canceled by keyboard interrupt")
     finally:
