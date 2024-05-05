@@ -166,7 +166,7 @@ def play_game(
     game = chess.pgn.Game(
         headers={
             "Event": "Elo estimate",
-            "Site": "Dinora elo_estimator.py",
+            "Site": "Dinora elofish.py",
             "Stage": f"{student_player.fullname} phi: {int(student_player.rating.phi)}",
             "Date": current_datetime.date().strftime(r"%Y.%m.%d"),
             "UTCDate": utc_datetime.date().strftime(r"%Y.%m.%d"),

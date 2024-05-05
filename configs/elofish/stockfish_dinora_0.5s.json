@@ -24,6 +24,8 @@
                 "python",
                 "-m",
                 "dinora",
+                "--searcher",
+                "ext_mcts",
                 "--model",
                 "alphanet",
                 "--weights",

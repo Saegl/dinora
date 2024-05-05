@@ -48,7 +48,7 @@ ignore = [
     "A003", # Class attribute {name} is shadowing a Python builtin
     "C417", # map
 ]
-exclude = ["docs", "dinora/elo_estimator/glicko2"]
+exclude = ["docs"]
 
 [build-system]
 requires = ["poetry-core"]
@@ -70,5 +70,4 @@ exclude = [
     'docs',
     'tests',
     'trash',
-    'dinora/elo_estimator/glicko2', # external repo
 ]

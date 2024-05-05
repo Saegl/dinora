@@ -1,1 +1,1 @@
-from dinora.elo_estimator.glicko2.glicko2 import *  # noqa: F403
+from elofish.glicko2.glicko2 import *  # noqa: F403
