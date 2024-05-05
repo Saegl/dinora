@@ -1,14 +1,16 @@
 import pathlib
 from io import BytesIO
+from typing import Any
 
 import cairosvg
 import chess
+import chess.svg
 import lightning.pytorch as pl
 import torch
+import wandb
 from lightning.pytorch.callbacks import Callback
 from PIL import Image
 
-import wandb
 from dinora.train.handmade_val_dataset.dataset import POSITIONS
 
 
@@ -34,7 +36,7 @@ class BoardsEvaluator(Callback):
         self.render_image = render_image
 
     @staticmethod
-    def board_to_image(board: chess.Board) -> Image:
+    def board_to_image(board: chess.Board) -> Any:
         svg = chess.svg.board(board)
         png_out = BytesIO()
         cairosvg.svg2png(svg.encode(), write_to=png_out)

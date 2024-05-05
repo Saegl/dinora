@@ -9,7 +9,7 @@ from typing import Literal
 import lightning.pytorch as pl
 import torch
 from lightning.pytorch.callbacks import Callback, ModelCheckpoint
-from lightning.pytorch.loggers import WandbLogger  # type: ignore
+from lightning.pytorch.loggers import WandbLogger
 from lightning.pytorch.tuner import Tuner  # type: ignore
 
 from dinora import PROJECT_ROOT
