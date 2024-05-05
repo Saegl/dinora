@@ -12,7 +12,7 @@ class Stopper(ABC):
     """
 
     @abstractmethod
-    def meet(self) -> bool:
+    def should_stop(self) -> bool:
         pass
 
 
@@ -34,11 +34,11 @@ class Time(Stopper):
         self.starttime = time()
         self.steps = 0
 
-    def meet(self) -> bool:
+    def should_stop(self) -> bool:
         if self.steps < 2:  # Calculate minimum 2 nodes
             self.steps += 1
             return True
-        return time() - self.starttime < self.move_time
+        return time() - self.starttime > self.move_time
 
     def __str__(self) -> str:
         return f"<Time: {self.move_time=} {self.starttime=}>"
@@ -53,8 +53,8 @@ class MoveTime(Stopper):
     def __post_init__(self) -> None:
         self.movetime_seconds = self.movetime / 1000
 
-    def meet(self) -> bool:
-        return time() - self.starttime < (self.movetime / 1000)
+    def should_stop(self) -> bool:
+        return time() - self.starttime > (self.movetime / 1000)
 
 
 class NodesCount(Stopper):
@@ -62,17 +62,17 @@ class NodesCount(Stopper):
         self.step = 0
         self.count = count
 
-    def meet(self) -> bool:
+    def should_stop(self) -> bool:
         self.step += 1
-        return self.count > self.step
+        return self.count < self.step
 
     def __str__(self) -> str:
         return f"<NodesCount: {self.count=} {self.step=}>"
 
 
 class Infinite(Stopper):
-    def meet(self) -> bool:
-        return True
+    def should_stop(self) -> bool:
+        return False
 
     def __str__(self) -> str:
         return "<Infinite 8>"

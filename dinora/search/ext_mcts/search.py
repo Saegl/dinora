@@ -65,7 +65,7 @@ def run_mcts(
         expansion(root, child_priors, params.fpu)
         backpropagation(root, root.value_estimate)
 
-    while stopper.meet():
+    while not stopper.should_stop():
         leaf = selection(root, params.selection_policy)
 
         tval = terminal_val(leaf.board)
