@@ -31,6 +31,6 @@ class ExtMcts(BaseSearcher):
     def search(
         self, board: chess.Board, stopper: Stopper, evaluator: BaseModel
     ) -> chess.Move:
-        move = run_mcts(board, stopper, evaluator, self.params).move
+        move = run_mcts(board, stopper, evaluator, self.params).best_mixed().move
         assert move
         return move
