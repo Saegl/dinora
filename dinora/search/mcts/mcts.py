@@ -5,6 +5,7 @@ import math
 import chess
 
 from dinora.models import BaseModel
+from dinora.models.base import Priors
 from dinora.search.base import BaseSearcher, ConfigType, DefaultValue
 from dinora.search.stoppers import Stopper
 
@@ -31,11 +32,9 @@ class Node:
         return self.value_sum / self.visits
 
 
-def expand(node: Node, evaluator: BaseModel, board: chess.Board) -> float:
-    priors, value = evaluator.evaluate(board)
+def expand(node: Node, priors: Priors) -> None:
     for move, prior in priors.items():
         node.children[move] = Node(node, prior)
-    return value
 
 
 def backpropagate(node: Node, value: float, board: chess.Board) -> None:
@@ -89,10 +88,12 @@ class MCTS(BaseSearcher):
         self, board: chess.Board, stopper: Stopper, evaluator: BaseModel
     ) -> chess.Move:
         root = Node(None, 0.0)
-        expand(root, evaluator, board)
+        priors, value = evaluator.evaluate(board)
+        expand(root, priors)
         while not stopper.should_stop():
             leaf = select_leaf(root, board)
-            value = expand(leaf, evaluator, board)
+            priors, value = evaluator.evaluate(board)
+            expand(leaf, priors)
             backpropagate(leaf, value, board)
 
         print(f"info nodes {root.visits}")
