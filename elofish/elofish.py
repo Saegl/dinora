@@ -69,10 +69,12 @@ class UCIPlayer(RatedPlayer):
         time_limit: float | None = None,  # seconds per move
     ):
         self.rating = rating
+        self.command = command
         self.time_limit = time_limit
         self.nodes_limit = nodes_limit
-        self.uci_engine = chess.engine.SimpleEngine.popen_uci(command)
         self.options = options
+
+        self.uci_engine = chess.engine.SimpleEngine.popen_uci(command)
         self.uci_engine.configure(options)
 
     @property
@@ -113,7 +115,9 @@ class UCIPlayer(RatedPlayer):
         self.uci_engine.close()
 
     def reset(self) -> None:
-        pass
+        self.uci_engine.close()
+        self.uci_engine = chess.engine.SimpleEngine.popen_uci(self.command)
+        self.uci_engine.configure(self.options)
 
 
 class StockfishPlayer(UCIPlayer, TeacherPlayer):

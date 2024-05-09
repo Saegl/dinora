@@ -137,7 +137,7 @@ def run_cli(args: Args) -> None:
         f"Final rating {student_player.rating.mu} ({student_player.rating.phi})\n"
     )
 
-    print(f"{Fore.GREEN}Result saved at {output_dir}")
+    print(f"{Fore.GREEN}Result saved at {output_dir}{Fore.RESET}")
 
 
 if __name__ == "__main__":
