@@ -230,5 +230,17 @@ class AlphaNet(pl.LightningModule, NNWrapper):
             )
         return raw_policy[0].cpu().numpy(), raw_value[0].cpu().numpy()
 
+    def raw_outputs_batch(self, boards: list[chess.Board]) -> tuple[npf32, npf32]:
+        input_tensor = []
+        for board in boards:
+            input_tensor.append(board_to_tensor(board))
+
+        with torch.no_grad():
+            raw_policies, raw_values = self(
+                torch.from_numpy(np.array(input_tensor)).to(self.device)
+            )
+
+        return raw_policies.cpu().numpy(), raw_values.cpu().numpy()
+
     def reset(self) -> None:
         pass

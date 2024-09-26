@@ -29,6 +29,10 @@ class NNWrapper(BaseModel, ABC):
         state value of shape (1,)
         """
 
+    @abstractmethod
+    def raw_outputs_batch(self, boards: list[chess.Board]) -> tuple[npf32, npf32]:
+        pass
+
     def nn_evaluate(self, board: chess.Board) -> Evaluation:
         get_prob = extract_prob_from_policy
 
@@ -44,6 +48,29 @@ class NNWrapper(BaseModel, ABC):
 
     def evaluate(self, board: chess.Board) -> Evaluation:
         return self.nn_evaluate(board)
+
+    def evaluate_batch(self, boards: list[chess.Board]) -> list[Evaluation]:
+        get_prob = extract_prob_from_policy
+
+        raw_policies, raw_values = self.raw_outputs_batch(boards)
+
+        ans = []
+
+        for i in range(len(raw_policies)):
+            board = boards[i]
+            moves = list(board.legal_moves)
+            move_logits = [get_prob(raw_policies[i], move, not board.turn) for move in moves]
+
+            move_priors = softmax(np.array(move_logits))
+            priors = dict(zip(moves, move_priors))
+
+            ans.append((priors, float(raw_values[i][0])))
+
+        return ans
+
+    def evaluate_batch_naive(self, boards: list[chess.Board]) -> list[Evaluation]:
+        return [self.evaluate(board) for board in boards]
+
 
     def reset(self) -> None:
         pass
