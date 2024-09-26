@@ -51,6 +51,8 @@ def test_contain_all_moves():
     """
 
     game = read_game(StringIO(crazy_game))
+    assert game is not None
+
     for move in game.mainline_moves():
         assert move.uci() in all_moves_set
         assert move.uci() in flipped_moves_set
