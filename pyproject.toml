@@ -1,12 +1,12 @@
 [project]
-name = "Dinora"
+name = "dinora"
 version = "0.0.3"
 description = "Dinora Chess Engine"
 readme = "README.md"
-keywords = ["chess", "uci", "ai", "tensorflow"]
+keywords = ["chess", "uci", "ai", "pytorch"]
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "Environment :: GPU :: NVIDIA CUDA :: 11.2",
+    "Environment :: GPU :: NVIDIA CUDA",
     "Topic :: Games/Entertainment :: Board Games",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Intended Audience :: Developers",
@@ -14,17 +14,34 @@ classifiers = [
     "Intended Audience :: Education",
     "Intended Audience :: Science/Research"
 ]
+requires-python = ">=3.12"
+dependencies = [
+    "cairosvg>=2.7.1",
+    "chess>=1.10.0",
+    "colorama>=0.4.6",
+    "graphviz>=0.20.3",
+    "lightning>=2.4.0",
+    "numpy>=2.1.1",
+    "onnxruntime-gpu>=1.19.2",
+    "onnxruntime>=1.19.2",
+    "pillow>=10.4.0",
+    "pylru>=1.2.1",
+    "torch>=2.4.1",
+    "tqdm>=4.66.5",
+    "wandb>=0.18.1",
+]
 
-[tool.poetry]
-name = "Dinora"
-version = "0.0.3"
-description = "Dinora Chess Engine"
-authors = ["Saegl <saegl@protonmail.com>"]
-maintainers = ["Saegl <saegl@protonmail.com>"]
-license = "GPL-3.0-only"
-homepage = "https://github.com/DinoraChess/dinora"
-repository = "https://github.com/DinoraChess/dinora"
-documentation = "https://dinora.readthedocs.io/en/latest"
+[tool.uv]
+dev-dependencies = [
+    "pre-commit>=3.8.0",
+    "pytest >=8.1.1,<9",
+    "pytest-cov>=5.0.0",
+    "mypy>=1.11.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.ruff]
 select = [
@@ -49,16 +66,6 @@ ignore = [
     "C417", # map
 ]
 exclude = ["docs"]
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.setuptools]
-py-modules = ['dinora']
-
-[tool.pytest.ini_options]
-pythonpath = ["."]
 
 [tool.mypy]
 strict = true
