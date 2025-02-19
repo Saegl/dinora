@@ -1,7 +1,7 @@
 import json
 import pathlib
 import time
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import timedelta
 
 import lightning.pytorch as pl
@@ -77,11 +77,7 @@ def collect_games(
 def fit(config: Config, model, datamodule, generation_output_dir: pathlib.Path):
     print("STAGE: Fit")
     start_time = time.time()
-    wandb_logger = WandbLogger(
-        project="dinora-chess",
-        # log_model="all",  # TODO: save model weights to wandb
-        # config={"config_file": asdict(config)}, # TODO: save config
-    )
+    wandb_logger = WandbLogger(project="dinora-chess")
     trainer = pl.Trainer(
         max_epochs=config.epochs_per_generation,
         logger=wandb_logger,
@@ -103,7 +99,7 @@ def start_rl(config: Config):
     model = AlphaNet(learning_rate=config.learning_rate).to("cuda")
     output_dir = pathlib.Path.cwd() / "data" / "rl_data"
 
-    run = wandb.init(job_type="rl", project="dinora-chess")
+    run = wandb.init(job_type="rl", project="dinora-chess", config=asdict(config))
 
     for generation in range(config.generations):
         generation_output_dir = output_dir / f"generation-{generation}"
