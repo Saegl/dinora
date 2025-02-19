@@ -1,6 +1,7 @@
 import datetime
 import pathlib
 import time
+from contextlib import contextmanager
 from io import TextIOWrapper
 
 import chess
@@ -9,6 +10,20 @@ import chess.pgn
 from dinora.models.alphanet import AlphaNet
 from dinora.search.mcts import mcts
 from dinora.search.noise import apply_noise
+
+
+class Timers:
+    def __init__(self):
+        self.acc = {}
+
+    def add(self, name):
+        self.acc[name] = 0.0
+
+    @contextmanager
+    def timing_section(self, name: str):
+        start_time = time.time()
+        yield
+        self.acc[name] += time.time() - start_time
 
 
 class Game:
@@ -125,50 +140,88 @@ def selfplay(
     dirichlet_alpha: float,
     noise_eps: float,
     pgn_file: pathlib.Path,
+    log_interval: int,
 ):
     games = [Game(nodes_per_move, cpuct) for _ in range(batch_size)]
     completed_games = 0
 
     batch_calls = 0
+    positions = 0
 
     pgn_output = pgn_file.open("w", encoding="utf8")
 
     last_log_time = time.time()
-    log_interval = 10 * 60
+
+    timers = Timers()
+    timers.add("gather")
+    timers.add("inference")
+    timers.add("backprop")
+
+    selfplay_start_time = time.time()
 
     while completed_games < games_count:
-        # gather batch
-        for i in range(batch_size):
-            game = games[i]
-            done = game.next()
-            if done:
-                completed_games += 1
-                save_game_pgn(game, pgn_output)
-                games[i] = Game(nodes_per_move, cpuct)
+        with timers.timing_section("gather"):
+            for i in range(batch_size):
                 game = games[i]
-                game.next()
+                done = game.next()
+                if done:
+                    completed_games += 1
+                    save_game_pgn(game, pgn_output)
+                    games[i] = Game(nodes_per_move, cpuct)
+                    game = games[i]
+                    game.next()
+            batch = [game.board for game in games]
 
-        batch = [game.board for game in games]
-        outs = model.evaluate_batch(batch)
+        with timers.timing_section("inference"):
+            outs = model.evaluate_batch(batch)
 
-        for i in range(batch_size):
-            game = games[i]
-            game.submit(*outs[i], opening_noise_moves, dirichlet_alpha, noise_eps)
-            # print(f"Game {i} ply", game.board.ply())
-
-        # print(batch_calls)
+        with timers.timing_section("backprop"):
+            for i in range(batch_size):
+                game = games[i]
+                game.submit(*outs[i], opening_noise_moves, dirichlet_alpha, noise_eps)
 
         batch_calls += 1
+        positions += batch_size
 
         current_time = time.time()
         if current_time - last_log_time >= log_interval:
             last_log_time = time.time()
-            print("=" * 80)
+            times_sum = sum(timers.acc.values()) + 0.000001
             print("Batch plies")
             print([game.board.ply() for game in games])
+            print(f"Batch gather time: {timers.acc['gather']:.3f}")
+            print(f"Inference time: {timers.acc['inference']:.3f}")
+            print(f"MCTS backprop time: {timers.acc['backprop']:.3f}")
+            print(
+                f"GPU Idle {((timers.acc['gather'] + timers.acc['backprop']) / times_sum) * 100:.3f}%"
+            )
             print(f"Number of batch calls: {batch_calls}")
             print(f"Number of generated games {completed_games} / {games_count}")
+            print(f"Batch speed: {batch_calls / times_sum:.3f} batches/second")
+            print(f"Positions speed: {positions / times_sum:.3f} pos/second")
+            print(
+                f"Game generation speed: {completed_games / times_sum:.3f} games/second"
+            )
             print("=" * 80)
+
+    total_time = time.time() - selfplay_start_time
+
+    times_sum = sum(timers.acc.values()) + 0.000001
+
+    print("Selfplay finished")
+    print(f"Time taken: {total_time}")
+    print(f"Batch gather time: {timers.acc['gather']:.3f}")
+    print(f"Inference time: {timers.acc['inference']:.3f}")
+    print(f"MCTS backprop time: {timers.acc['backprop']:.3f}")
+    print(
+        f"GPU Idle {((timers.acc['gather'] + timers.acc['backprop']) / times_sum) * 100:.3f}%"
+    )
+    print(f"Number of batch calls: {batch_calls}")
+    print(f"Number of generated games {completed_games} / {games_count}")
+    print(f"Batch speed: {batch_calls / times_sum:.3f} batches/second")
+    print(f"Positions speed: {positions / times_sum:.3f} pos/second")
+    print(f"Game generation speed: {completed_games / times_sum:.3f} games/second")
+    print("=" * 80)
 
     pgn_output.close()
 
@@ -179,6 +232,7 @@ def analyze_pgn(pgn_file: pathlib.Path):
 
     positions_count = 0
     games_count = 0
+    # TODO: MIN, MAX, AVG moves
 
     white = 0
     black = 0
@@ -225,19 +279,21 @@ def analyze_pgn(pgn_file: pathlib.Path):
 if __name__ == "__main__":
     from dinora.models import model_selector
 
-    model = model_selector("alphanet", None, "cuda")
+    model_path = pathlib.Path("models/alphanet_mini.ckpt")
+    model = model_selector("alphanet", model_path, "cuda")
     pgn_file = pathlib.Path("example.pgn")
     assert isinstance(model, AlphaNet)
     selfplay(
         model,
-        games_count=15,
+        games_count=64,
         nodes_per_move=80,
-        batch_size=15,
+        batch_size=64,
         cpuct=3.0,
         opening_noise_moves=10,
         dirichlet_alpha=0.1,
         noise_eps=0.3,
         pgn_file=pgn_file,
+        log_interval=5,
     )
     print()
     analyze_pgn(pgn_file)

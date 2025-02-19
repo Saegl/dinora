@@ -57,6 +57,7 @@ def collect_games(
         config.dirichlet_alpha,
         config.noise_fraction,
         pgn_file,
+        10 * 60,
     )
     analyze_pgn(pgn_file)
     print(
