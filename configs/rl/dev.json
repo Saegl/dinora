@@ -3,11 +3,12 @@
     "dirichlet_alpha": 0.4,
     "noise_fraction": 0.4,
     "cpuct": 4.0,
-    "generations": 1000,
+    "generations": 1,
     "games_per_generation": 3,
-    "epochs_per_generation": 3,
-    "nodes_per_move": 100,
+    "epochs_per_generation": 1,
+    "nodes_per_move": 10,
     "batch_size_train": 128,
-    "batch_size_selfplay": 128,
-    "learning_rate": 0.001
+    "batch_size_selfplay": 3,
+    "learning_rate": 0.001,
+    "selfplay_log_interval": 5
 }

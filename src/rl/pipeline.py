@@ -33,6 +33,8 @@ class Config:
     batch_size_selfplay: int = 128
     learning_rate: float = 0.001
 
+    selfplay_log_interval: int = 10 * 60
+
     @staticmethod
     def from_file(filepath: pathlib.Path):
         with filepath.open("rt", encoding="utf8") as f:
@@ -57,12 +59,16 @@ def collect_games(
         config.dirichlet_alpha,
         config.noise_fraction,
         pgn_file,
-        10 * 60,
+        config.selfplay_log_interval,
     )
     analyze_pgn(pgn_file)
     print(
         f"STAGE: Game collection took {timedelta(seconds=int(time.time() - start_time))}"
     )
+
+    artifact = wandb.Artifact("selfplay_pgn", type="selfplay_pgn")
+    artifact.add_file(str(pgn_file.absolute()))
+    wandb.log_artifact(artifact)
 
     return pgn_file
 
@@ -85,6 +91,10 @@ def fit(config: Config, model, datamodule, generation_output_dir: pathlib.Path):
     model_file = generation_output_dir / "model.ckpt"
     torch.save(model, model_file)
 
+    artifact = wandb.Artifact("rl_model", type="rl_model")
+    artifact.add_file(str(model_file.absolute()))
+    wandb.log_artifact(artifact)
+
     print(f"STAGE: Fit took {timedelta(seconds=int(time.time() - start_time))}")
 
 
@@ -92,7 +102,7 @@ def start_rl(config: Config):
     model = AlphaNet(learning_rate=config.learning_rate).to("cuda")
     output_dir = pathlib.Path.cwd() / "data" / "rl_data"
 
-    wandb.init(job_type="rl", project="dinora-chess")
+    run = wandb.init(job_type="rl", project="dinora-chess")
 
     for generation in range(config.generations):
         generation_output_dir = output_dir / f"generation-{generation}"
@@ -119,3 +129,5 @@ def start_rl(config: Config):
             dataset_dir, z_weight=1.0, q_weight=0.0, batch_size=config.batch_size_train
         )
         fit(config, model, datamodule, generation_output_dir)
+
+    run.finish()
