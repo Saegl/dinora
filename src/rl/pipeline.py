@@ -46,6 +46,7 @@ def collect_games(
     config: Config, model: AlphaNet, output_dir: pathlib.Path
 ) -> pathlib.Path:
     print("STAGE: Game collection")
+    print(f"On device: {model.device}")
     start_time = time.time()
     pgn_file = output_dir / "games.pgn"
 
