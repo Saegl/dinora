@@ -24,11 +24,6 @@ class OnnxModel(NNWrapper):
         else:
             raise ValueError(f"Device '{device}' is not supported")
 
-        if "CUDAExecutionProvider" in providers:
-            import torch  # this reuses cuda from torch
-
-            assert torch.cuda.is_available()
-
         if weights is None:
             weights = search_weights(DEFAULT_WEIGHTS_FILENAME)
 
