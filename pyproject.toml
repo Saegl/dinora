@@ -46,6 +46,7 @@ dev-dependencies = [
     "optuna>=4.2.1",
     "optuna-dashboard>=0.17.0",
     "snakeviz>=2.2.2",
+    "ipython>=8.32.0",
 ]
 
 [build-system]
