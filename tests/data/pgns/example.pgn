@@ -1,0 +1,327 @@
+[Event "Rated Blitz game"]
+[Site "?"]
+[Date "2022.04.01"]
+[Round "-"]
+[White "nihilistiq"]
+[Black "rdzm64"]
+[Result "1-0"]
+[WhiteTitle "NM"]
+[WhiteElo "2590"]
+[BlackElo "2478"]
+[ECO "E00"]
+[Opening "Catalan Opening"]
+[TimeControl "180+0"]
+[UTCDate "2022.04.01"]
+[UTCTime "00:00:44"]
+[Termination "Normal"]
+[LichessURL "https://lichess.org/v17R9eiI"]
+[WhiteRatingDiff "+4"]
+[BlackRatingDiff "-4"]
+
+1. d4 Nf6 2. c4 e6 3. g3 Bb4+ 4. Nd2 O-O 5. Bg2 c5 6. a3 Bxd2+ 7. Qxd2 cxd4
+8. Nf3 Nc6 9. Nxd4 d5 10. O-O Bd7 11. cxd5 Nxd5 12. b4 Nxd4 13. Qxd4 Bc6
+14. Bb2 f6 15. Rfd1 Qe7 16. e4 Nb6 17. Rac1 Rfd8 18. Qe3 Rxd1+ 19. Rxd1 Nc4
+20. Qe2 Nxb2 21. Qxb2 Rd8 22. Qc2 Rxd1+ 23. Qxd1 Qd7 24. Qxd7 Bxd7 25. e5
+b6 26. f4 Kf7 27. Kf2 g5 28. Ke3 h6 29. Kd4 f5 30. Bf3 Ke7 31. Kc4 g4 32.
+Bg2 Kd8 33. Kb3 Kc7 34. a4 Bc6 35. Bf1 Bd5+ 36. Kc3 Bc6 37. Bc4 Kd7 38. a5
+Bb7 39. Kd4 Bc6 40. Ba6 Bd5 41. Bd3 Kc6 42. b5+ Kd7 43. Bxf5 Bf3 44. Be4
+Be2 45. axb6 axb6 46. Bc6+ Ke7 47. Ke3 Bc4 48. Kf2 Kf7 49. Kg2 Kg6 50. h3
+h5 51. hxg4 hxg4 52. Kf2 Kf5 53. Ke3 Kg6 54. Kd4 Kf5 55. Kxc4 1-0
+
+[Event "Rated Blitz game"]
+[Site "?"]
+[Date "2022.04.01"]
+[Round "-"]
+[White "dragongana"]
+[Black "sergiul"]
+[Result "0-1"]
+[WhiteElo "2392"]
+[BlackElo "2512"]
+[ECO "B19"]
+[Opening "Caro-Kann Defense: Classical Variation, Spassky Variation"]
+[TimeControl "180+2"]
+[UTCDate "2022.04.01"]
+[UTCTime "00:00:21"]
+[Termination "Normal"]
+[LichessURL "https://lichess.org/Mt36EJK4"]
+[WhiteRatingDiff "-4"]
+[BlackRatingDiff "+4"]
+
+1. e4 c6 2. d4 d5 3. Nd2 dxe4 4. Nxe4 Bf5 5. Ng3 Bg6 6. Nf3 Nd7 7. h4 h6 8.
+h5 Bh7 9. Bd3 Bxd3 10. Qxd3 e6 11. Qe2 Ngf6 12. Bd2 Be7 13. O-O-O O-O 14.
+Ne5 c5 15. Ng6 Re8 16. Nxe7+ Qxe7 17. Be3 Rac8 18. dxc5 Nxc5 19. Bxc5 Qxc5
+20. Ne4 Nxe4 21. Qxe4 Qxf2 22. Rd2 Qb6 23. Rhd1 Qa5 24. Rd7 Qxa2 25. Qxb7
+Qa1+ 26. Kd2 Qa4 27. b3 Qf4+ 28. Ke1 Rxc2 29. R1d2 Rxd2 30. Rxd2 Qe5+ 31.
+Kf2 Qf4+ 32. Ke1 Rb8 33. Qxa7 Rxb3 34. Qa8+ Kh7 35. Ra2 Re3+ 36. Kd1 Qf1+
+37. Kc2 Qf2+ 0-1
+
+[Event "Rated Rapid game"]
+[Site "?"]
+[Date "2022.04.01"]
+[Round "-"]
+[White "yohane22"]
+[Black "Sheeshi123"]
+[Result "0-1"]
+[WhiteElo "2489"]
+[BlackElo "2636"]
+[ECO "D31"]
+[Opening "Queen's Gambit Declined: Janowski Variation"]
+[TimeControl "600+0"]
+[UTCDate "2022.04.01"]
+[UTCTime "00:00:26"]
+[Termination "Normal"]
+[LichessURL "https://lichess.org/5wn5Qvnl"]
+[WhiteRatingDiff "-3"]
+[BlackRatingDiff "+9"]
+
+1. d4 d5 2. c4 e6 3. Nc3 a6 4. cxd5 exd5 5. Nf3 c6 6. Bf4 Bd6 7. Bxd6 Qxd6
+8. e3 Ne7 9. Bd3 O-O 10. O-O Nd7 11. Rc1 Nf6 12. Ne5 Bf5 13. Bxf5 Nxf5 14.
+Qb3 Qe7 15. Na4 Nd6 16. Rc2 Nfe4 17. Rfc1 f5 18. Nc5 f4 19. f3 Nxc5 20.
+Rxc5 Nf5 21. e4 Nxd4 22. Qd3 Qxe5 0-1
+
+[Event "Rated Blitz game"]
+[Site "?"]
+[Date "2022.04.01"]
+[Round "-"]
+[White "Rookdom"]
+[Black "elamier"]
+[Result "1-0"]
+[BlackTitle "FM"]
+[WhiteElo "2602"]
+[BlackElo "2496"]
+[ECO "D10"]
+[Opening "Slav Defense"]
+[TimeControl "180+0"]
+[UTCDate "2022.04.01"]
+[UTCTime "00:01:00"]
+[Termination "Normal"]
+[LichessURL "https://lichess.org/8HG1xnlD"]
+[WhiteRatingDiff "+4"]
+[BlackRatingDiff "-4"]
+
+1. d4 d5 2. c4 c6 3. Nc3 Nf6 4. e3 a6 5. a4 e6 6. cxd5 exd5 7. h3 a5 8. g4
+h6 9. Bg2 Na6 10. Nge2 Nb4 11. f3 Bd6 12. e4 Be7 13. e5 Nd7 14. O-O Nf8 15.
+f4 h5 16. f5 hxg4 17. hxg4 Bg5 18. Nf4 Bxf4 19. Bxf4 Qh4 20. Rf2 g6 21. Qf3
+gxf5 22. gxf5 Bxf5 23. Bg3 Qg5 24. Qxf5 Qxg3 25. Qxf7+ Kd8 26. Qf6+ Kc7 27.
+Qxh8 1-0
+
+[Event "Rated Blitz game"]
+[Site "?"]
+[Date "2022.04.01"]
+[Round "-"]
+[White "angelmarqz"]
+[Black "MartinLorenzini"]
+[Result "0-1"]
+[WhiteTitle "CM"]
+[BlackTitle "GM"]
+[WhiteElo "2598"]
+[BlackElo "2697"]
+[ECO "B01"]
+[Opening "Scandinavian Defense: Classical Variation"]
+[TimeControl "180+0"]
+[UTCDate "2022.04.01"]
+[UTCTime "00:01:14"]
+[Termination "Normal"]
+[LichessURL "https://lichess.org/wpBJOZ9k"]
+[WhiteRatingDiff "-4"]
+[BlackRatingDiff "+4"]
+
+1. e4 d5 2. exd5 Qxd5 3. Nc3 Qa5 4. d4 Nf6 5. Nf3 Bf5 6. Bc4 e6 7. O-O Bb4
+8. Bd2 Nc6 9. a3 Bxc3 10. Bxc3 Qb6 11. a4 a5 12. Qe2 O-O 13. h3 Rfd8 14.
+Rfd1 Be4 15. Ne5 Nxd4 16. Bxd4 Rxd4 17. c3 Rd6 18. Bb5 Rxd1+ 19. Rxd1 c6
+20. Bd3 Bxd3 21. Qxd3 Qc7 22. f4 g6 23. Kh2 Nd5 24. g3 Rb8 25. Rd2 b5 26.
+axb5 cxb5 27. Qe4 a4 28. Re2 a3 29. Ng4 h5 30. Ne3 Nxe3 31. Qxe3 a2 32. Re1
+b4 33. cxb4 Qc2+ 34. Kh1 Qxb2 0-1
+
+[Event "Rated Blitz game"]
+[Site "?"]
+[Date "2022.04.01"]
+[Round "-"]
+[White "Charles-Ingalls"]
+[Black "kill_mms"]
+[Result "1-0"]
+[WhiteElo "2785"]
+[BlackElo "2620"]
+[ECO "C02"]
+[Opening "French Defense: Advance Variation, Milner-Barry Gambit"]
+[TimeControl "180+0"]
+[UTCDate "2022.04.01"]
+[UTCTime "00:01:14"]
+[Termination "Normal"]
+[LichessURL "https://lichess.org/7samO3yO"]
+[WhiteRatingDiff "+3"]
+[BlackRatingDiff "-3"]
+
+1. e4 e6 2. d4 d5 3. e5 c5 4. c3 Qb6 5. Nf3 Nc6 6. Bd3 cxd4 7. O-O Bd7 8.
+Re1 Nge7 9. h4 Rc8 10. h5 Nf5 11. Bxf5 exf5 12. cxd4 h6 13. Nc3 Be6 14. Re3
+Be7 15. Ne2 O-O 16. Ne1 Rc7 17. Rg3 Kh7 18. Rb3 Qa6 19. Rc3 Rfc8 20. Nd3
+Nb4 21. Ndf4 Nc6 22. Nxe6 fxe6 23. Nf4 Nd8 24. Bd2 Bb4 25. Rxc7 1-0
+
+[Event "Rated Blitz game"]
+[Site "?"]
+[Date "2022.04.01"]
+[Round "-"]
+[White "pupuchurru"]
+[Black "semi-decent"]
+[Result "1-0"]
+[WhiteElo "2730"]
+[BlackElo "2628"]
+[ECO "B23"]
+[Opening "Sicilian Defense: Closed"]
+[TimeControl "180+0"]
+[UTCDate "2022.04.01"]
+[UTCTime "00:00:55"]
+[Termination "Time forfeit"]
+[LichessURL "https://lichess.org/MMxMz1el"]
+[WhiteRatingDiff "+5"]
+[BlackRatingDiff "-4"]
+
+1. e4 c5 2. Nc3 a6 3. Nge2 b5 4. g3 Bb7 5. Bg2 Nf6 6. d4 cxd4 7. Nxd4 e6 8.
+O-O b4 9. Na4 Bxe4 10. Bxe4 Nxe4 11. Re1 d5 12. c4 bxc3 13. Nxc3 Nxc3 14.
+Qh5 Ne4 15. Nxe6 Qd7 16. Nc7+ Qxc7 17. Qxd5 Be7 18. Qxa8 Nd6 19. Bg5 f6 20.
+Bf4 O-O 21. Rac1 Qd7 22. Qd5+ Kh8 23. Rxe7 Qxe7 24. Qxd6 Qxd6 25. Bxd6 Rd8
+26. b4 h5 27. Bf4 Kh7 28. h4 Kg6 29. Rc7 Rd1+ 30. Kg2 Nd7 31. Rc6 Rb1 32.
+a3 Nf8 33. Rxa6 Kf5 34. Ra5+ Ke4 35. Rxh5 Ne6 36. Be3 Rb3 37. Ra5 1-0
+
+[Event "Rated Blitz game"]
+[Site "?"]
+[Date "2022.04.01"]
+[Round "-"]
+[White "Samhouri"]
+[Black "KamranShirazi"]
+[Result "1-0"]
+[WhiteTitle "FM"]
+[BlackTitle "IM"]
+[WhiteElo "2474"]
+[BlackElo "2551"]
+[ECO "A40"]
+[Opening "Englund Gambit Complex: Soller Gambit Deferred"]
+[TimeControl "180+0"]
+[UTCDate "2022.04.01"]
+[UTCTime "00:01:20"]
+[Termination "Normal"]
+[LichessURL "https://lichess.org/G1Fdtskm"]
+[WhiteRatingDiff "+7"]
+[BlackRatingDiff "-7"]
+
+1. d4 e5 2. dxe5 Nc6 3. Nf3 f6 4. e4 fxe5 5. Bc4 Qf6 6. Nc3 Bb4 7. Bd2 Bxc3
+8. Bxc3 Nge7 9. h4 h6 10. b4 d6 11. b5 Nd8 12. Qd3 Be6 13. a4 O-O 14. h5
+Qf7 15. Bxe6 Nxe6 16. Qc4 Nf4 17. Qxf7+ Rxf7 18. Kf1 Raf8 19. Ne1 Kh7 20.
+Bd2 Ne6 21. Be3 Ng8 22. f3 Nf6 23. Ke2 b6 24. Nd3 Nf4+ 25. Nxf4 exf4 26.
+Bd4 Nd7 27. a5 Re8 28. axb6 axb6 29. Kd3 d5 30. exd5 Rf5 31. c4 Ne5+ 32.
+Kc3 Nf7 33. Rae1 Rxe1 34. Rxe1 Rxh5 35. Re7 Rf5 36. Rxc7 Nd6 37. Rxg7+ Kh8
+38. Rd7+ Kg8 39. Rxd6 h5 40. Rxb6 Rg5 41. Rf6 Rxg2 42. Rxf4 Rb2 43. Kxb2
+Kh7 44. Rh4 Kg6 45. b6 Kg5 46. Rh1 h4 47. b7 Kf4 48. b8=Q+ Kxf3 49. Qh2 Ke4
+50. Qxh4+ Kd3 51. Rd1+ Kxc4 52. Bf2+ Kb5 53. Qd4 Ka6 54. Qb6# 1-0
+
+[Event "Rated Blitz game"]
+[Site "?"]
+[Date "2022.04.01"]
+[Round "-"]
+[White "Sultanjr"]
+[Black "BigPiano"]
+[Result "1-0"]
+[WhiteTitle "IM"]
+[BlackTitle "NM"]
+[WhiteElo "2469"]
+[BlackElo "2508"]
+[ECO "D01"]
+[Opening "Rapport-Jobava System"]
+[TimeControl "180+0"]
+[UTCDate "2022.04.01"]
+[UTCTime "00:01:42"]
+[Termination "Normal"]
+[LichessURL "https://lichess.org/Lo2ugeVC"]
+[WhiteRatingDiff "+7"]
+[BlackRatingDiff "-6"]
+
+1. d4 Nf6 2. Nc3 d5 3. Bf4 c5 4. e3 a6 5. Nf3 Nc6 6. Ne5 Qb6 7. Nxc6 bxc6
+8. Na4 Qa5+ 9. c3 c4 10. b4 Qd8 11. Nc5 Bf5 12. f3 e6 13. g4 Bg6 14. h4 a5
+15. Qa4 Bxc5 16. bxc5 O-O 17. h5 Bd3 18. Qxc6 Bxf1 19. Kxf1 a4 20. Rb1 Qa5
+21. Rb4 a3 22. Ke2 Rac8 23. Qb6 Qxb6 24. Rxb6 Nd7 25. Rb7 Nb8 26. Bd6 Rfe8
+27. Rhb1 Nc6 28. R1b6 h6 29. Ra6 Rb8 30. Bxb8 1-0
+
+[Event "Rated Blitz game"]
+[Site "?"]
+[Date "2022.04.01"]
+[Round "-"]
+[White "KB60615"]
+[Black "manneredmonkey"]
+[Result "0-1"]
+[BlackTitle "NM"]
+[WhiteElo "2494"]
+[BlackElo "2596"]
+[ECO "A00"]
+[Opening "Van't Kruijs Opening"]
+[TimeControl "180+0"]
+[UTCDate "2022.04.01"]
+[UTCTime "00:01:31"]
+[Termination "Time forfeit"]
+[LichessURL "https://lichess.org/XWnhzyNm"]
+[WhiteRatingDiff "-4"]
+[BlackRatingDiff "+5"]
+
+1. e3 d6 2. Nf3 Nf6 3. c4 g6 4. h4 c5 5. Nc3 Nc6 6. d4 Bg7 7. d5 Na5 8. Be2
+Bg4 9. Bd2 Bxf3 10. gxf3 h5 11. f4 Rb8 12. f5 gxf5 13. Qc2 Qd7 14. Rg1 Bh6
+15. Bd3 e6 16. Ne2 b6 17. Bc3 Qe7 18. b3 Rg8 19. Rxg8+ Nxg8 20. O-O-O Qxh4
+21. Rg1 Ne7 22. Qb2 e5 23. Rg2 Nb7 24. Bxe5 dxe5 25. Qxe5 Rd8 26. Rg8+ Bf8
+27. Qg7 Kd7 28. Rxf8 Rxf8 29. Qxf8 Qxf2 30. Qxf7 Qxe3+ 31. Kc2 Nd6 32. Qxh5
+f4 33. Qg4+ Kd8 34. Qxf4 Qxf4 35. Nxf4 Ng8 36. Ne6+ Kd7 37. Nf8+ Kc7 38.
+Ne6+ Kb8 39. Bg6 Nf6 40. Kd3 Ng4 41. Bh7 Ne5+ 42. Ke3 Nd7 43. Kf4 Nf6 44.
+Bf5 a5 45. Ke5 Nfe8 46. Bg6 Kc8 47. Bxe8 Nxe8 48. d6 Kd7 49. Nf8+ Kc6 50.
+Ke6 Nxd6 51. Nd7 Nb7 52. Ne5+ Kc7 53. Kd5 a4 54. bxa4 Na5 55. Nf7 Nc6 56.
+Nd6 Nb4+ 57. Ke5 Nxa2 58. Nb5+ Kc6 59. Na7+ Kb7 60. Nb5 Nb4 61. Kd6 Nc6 62.
+Nc7 Na5 63. Nd5 Nxc4+ 0-1
+
+[Event "Rated Blitz game"]
+[Site "?"]
+[Date "2022.04.01"]
+[Round "-"]
+[White "Phyton_BKD"]
+[Black "MarkusMaischberger"]
+[Result "1-0"]
+[WhiteElo "2567"]
+[BlackElo "2547"]
+[ECO "E12"]
+[Opening "Queen's Indian Defense: Kasparov Variation"]
+[TimeControl "180+0"]
+[UTCDate "2022.04.01"]
+[UTCTime "00:01:07"]
+[Termination "Normal"]
+[LichessURL "https://lichess.org/ZnPx9HH3"]
+[WhiteRatingDiff "+5"]
+[BlackRatingDiff "-5"]
+
+1. d4 Nf6 2. Nf3 e6 3. c4 b6 4. Nc3 Bb7 5. Bg5 Be7 6. e3 Ne4 7. Bf4 d6 8.
+Bd3 Nxc3 9. bxc3 Nd7 10. O-O O-O 11. Nd2 e5 12. Bg3 f5 13. f4 e4 14. Bc2 c5
+15. a4 Rc8 16. a5 bxa5 17. Qb1 Rb8 18. Qa2 cxd4 19. cxd4 Ba6 20. Qxa5 Qxa5
+21. Rxa5 Bc8 22. Rb1 Rxb1+ 23. Bxb1 a6 24. Ba2 Kh8 25. Kf2 Bb7 26. Ke2 Rb8
+27. c5 dxc5 28. Be6 Nf8 29. Bxf5 cxd4 30. exd4 Bb4 31. Ra2 Bxd2 32. Kxd2 g6
+33. Bh3 Bc8 34. Bxc8 Rxc8 35. Rxa6 Kg7 36. Ke3 Rc2 37. d5 Rxg2 38. Ra7+ Kg8
+39. Kxe4 Re2+ 40. Kd3 Re8 41. Bf2 Rd8 42. Ke4 Nd7 43. Bd4 Re8+ 44. Be5 Nf6+
+45. Kd4 Ng4 46. d6 Kf8 47. Rxh7 1-0
+
+[Event "Rated Blitz game"]
+[Site "?"]
+[Date "2022.04.01"]
+[Round "-"]
+[White "solar_eclipse7"]
+[Black "Hassprediger"]
+[Result "1-0"]
+[WhiteElo "2565"]
+[BlackElo "2502"]
+[ECO "B12"]
+[Opening "Caro-Kann Defense: Advance Variation, Van der Wiel Attack"]
+[TimeControl "180+2"]
+[UTCDate "2022.04.01"]
+[UTCTime "00:01:35"]
+[Termination "Normal"]
+[LichessURL "https://lichess.org/u89lTlu0"]
+[WhiteRatingDiff "+6"]
+[BlackRatingDiff "-5"]
+
+1. e4 c6 2. d4 d5 3. e5 Bf5 4. Nc3 e6 5. g4 Bg6 6. Nge2 c5 7. h4 h5 8. Nf4
+Bh7 9. Nxh5 cxd4 10. Qxd4 Nc6 11. Qa4 Ne7 12. Bg5 Qb6 13. O-O-O O-O-O 14.
+f4 Qf2 15. Rd2 Qe3 16. Bg2 d4 17. Nb5 Nd5 18. f5 Qxe5 19. Bxd8 Kxd8 20.
+Nxd4 Bc5 21. Nxc6+ bxc6 22. Qxc6 Be3 23. Bxd5 Bxd2+ 24. Kxd2 Qxd5+ 25.
+Qxd5+ exd5 26. Nxg7 f6 27. g5 Ke7 28. g6 Bg8 29. h5 1-0
