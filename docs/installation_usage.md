@@ -3,7 +3,7 @@
 **There is no simple installation process for end users!**  
 This is mostly intended for python developers  
 Only tested OS is linux, might work on Windows (after fixing torch cuda deps and
-converting run.sh to run.bat, make PR if you want to fix windows)
+converting `bin/run.sh` to `bin/run.bat`, make PR if you want to fix windows)
 
 
 You need [uv](https://docs.astral.sh/uv/)  
@@ -37,7 +37,7 @@ browse Tools > Settings > Engines > Add a new engine >
 
 ```
 Name: Dinora Chess Engine
-Command: ./run.sh
+Command: ./bin/run.sh
 Working Directory: <folder where you cloned the repo>
 Protocol: UCI
 ```
