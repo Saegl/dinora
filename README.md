@@ -60,13 +60,16 @@ python code
 - [int8 MCTS article](https://int8.io/monte-carlo-tree-search-beginners-guide/)
   Intro to MCTS blog post
 - [Deep Dive MCTS](https://www.moderndescartes.com/essays/deep_dive_mcts/)
-Another great article on MCTS
+Another great article on MCTS + [code](https://github.com/tensorflow/minigo)
 - [Stockfish](https://stockfishchess.org/) Strongest chess engine, used here for
   test / training data annotation
 - [Leela Chess Zero](https://lczero.org/) If you really want to use AlphaZero
 inspired chess engine this is the real one
+- [CrazyAra](https://github.com/QueensGambit/CrazyAra) Strong chess engine
+written in Python & C++
 - [Pytorch](https://pytorch.org/) Library to train neural networks
 - [Python chess](https://python-chess.readthedocs.io/en/latest/) Library for
 chess (rules, legal moves generator, pgn reader/writer, UCI interface)
-- [Lichess Elite Database](https://database.nikonoel.fr/)
+- [Lichess Elite Database](https://database.nikonoel.fr/) database of games
+between 2200 vs 2400 lichess players
 
