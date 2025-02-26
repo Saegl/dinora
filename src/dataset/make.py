@@ -134,7 +134,7 @@ def convert_pgn_file(
         if engine is not None:
             engine.close()
 
-    tensors["boards"] = np.array(tensors["boards"], dtype=np.int64)  # type: ignore
+    tensors["boards"] = np.array(tensors["boards"], dtype=np.uint64)  # type: ignore
     tensors["policies"] = np.array(tensors["policies"], dtype=np.int64)  # type: ignore
     tensors["wdls"] = np.array(tensors["wdls"], dtype=np.int64)  # type: ignore
     tensors["z_values"] = np.array(tensors["z_values"], dtype=np.float32).reshape(-1, 1)  # type: ignore
