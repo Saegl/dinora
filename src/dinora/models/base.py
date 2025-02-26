@@ -28,10 +28,13 @@ class BaseModel(ABC):
         """
         Same as `evaluate` but for batch of boards
 
-        Defaults to slow fallback, use faster methods of your
-        neural networks library
-        """
+        Example of slow fallback
+        ```
         return [self.evaluate(board) for board in boards]
+        ```
+        use faster methods of your neural networks library
+        """
+        raise Exception(f"Batcn evaluation is not implemented on {self.name()}")
 
     @abstractmethod
     def reset(self) -> None:
