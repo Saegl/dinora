@@ -1,4 +1,3 @@
-import logging
 from collections.abc import Iterator
 from typing import TextIO
 
@@ -8,8 +7,6 @@ import numpy as np
 import numpy.typing as npt
 from chess import Board, Move
 from chess.pgn import Game
-
-logging.basicConfig(level=logging.DEBUG)
 
 npf32 = npt.NDArray[np.float32]
 npuint64 = npt.NDArray[np.uint64]
@@ -36,7 +33,5 @@ def load_game_states(pgn: TextIO) -> Iterator[tuple[Game, Board, Move]]:
             try:
                 board.push(move)
             except AssertionError:
-                logging.warning(
-                    f"Broken game found, can't make a move {move}. Skipping game"
-                )
+                print(f"Broken game found, can't make a move {move}. Skipping game")
                 break
