@@ -5,7 +5,7 @@ from dinora.search.mcts_batch.mcts_batch import MctsBatch
 from dinora.search.onemove.onemove import OneMove
 
 registered_searchers: dict[str, type[BaseSearcher]] = {
-    "auto": ExtMcts,
+    "auto": MctsBatch,
     "ext_mcts": ExtMcts,
     "mcts": MCTS,
     "mcts_batch": MctsBatch,

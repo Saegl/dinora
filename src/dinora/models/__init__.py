@@ -16,6 +16,11 @@ AVAILABLE_MODELS = [
     "handcrafted",
 ]
 
+DEFAULT_MODELS = [
+    "alphanet",
+    "onnx",
+]
+
 
 def search_weights(filename: str) -> pathlib.Path:
     places = [
@@ -32,7 +37,7 @@ def search_weights(filename: str) -> pathlib.Path:
 
 
 def load_default() -> BaseModel:
-    for model_name in AVAILABLE_MODELS:
+    for model_name in DEFAULT_MODELS:
         try:
             model = model_selector(model_name, None, None)
             return model
