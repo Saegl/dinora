@@ -29,6 +29,20 @@ logging.getLogger("fsspec").setLevel(logging.WARNING)
 
 
 @dataclass
+class AlphaNetConfig:
+    res_channels: int
+    res_blocks: int
+    policy_channels: int
+    value_channels: int
+    value_lin_channels: int
+
+
+@dataclass
+class SeNetConfig(AlphaNetConfig):
+    pass
+
+
+@dataclass
 class Config:
     matmul_precision: Literal["highest", "high", "medium"]
     max_time: dict | None  # type: ignore
@@ -65,15 +79,17 @@ class Config:
     limit_val_batches: int | None
     limit_test_batches: int | None
 
-    model_type: Literal["alphanet"]
-
-    res_channels: int
-    res_blocks: int
-    policy_channels: int
-    value_channels: int
-    value_lin_channels: int
+    model_type: Literal["alphanet", "senet"]
+    model_conf: AlphaNetConfig | SeNetConfig
 
     # TODO: def from_json, also use this in jupyter notebook
+
+    @staticmethod
+    def from_dict(d):
+        ModelConfig = AlphaNetConfig if d["model_type"] == "alphanet" else SeNetConfig
+        model_conf = ModelConfig(**d["model_conf"])
+        conf = Config(**(d | {"model_conf": model_conf}))
+        return conf
 
 
 def get_model(config: Config) -> pl.LightningModule:
@@ -81,11 +97,24 @@ def get_model(config: Config) -> pl.LightningModule:
         from dinora.models.alphanet import AlphaNet
 
         return AlphaNet(
-            filters=config.res_channels,
-            res_blocks=config.res_blocks,
-            policy_channels=config.policy_channels,
-            value_channels=config.value_channels,
-            value_fc_hidden=config.value_lin_channels,
+            filters=config.model_conf.res_channels,
+            res_blocks=config.model_conf.res_blocks,
+            policy_channels=config.model_conf.policy_channels,
+            value_channels=config.model_conf.value_channels,
+            value_fc_hidden=config.model_conf.value_lin_channels,
+            learning_rate=config.learning_rate,
+            lr_scheduler_gamma=config.lr_scheduler_gamma,
+            lr_scheduler_freq=config.lr_scheduler_freq,
+        )
+    elif config.model_type == "senet":
+        from dinora.models.senet import SeNet
+
+        return SeNet(
+            filters=config.model_conf.res_channels,
+            res_blocks=config.model_conf.res_blocks,
+            policy_channels=config.model_conf.policy_channels,
+            value_channels=config.model_conf.value_channels,
+            value_fc_hidden=config.model_conf.value_lin_channels,
             learning_rate=config.learning_rate,
             lr_scheduler_gamma=config.lr_scheduler_gamma,
             lr_scheduler_freq=config.lr_scheduler_freq,
@@ -207,5 +236,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     with open(path, encoding="utf") as f:
-        config = Config(**json.load(f))
+        config = Config.from_dict(json.load(f))
     fit(config)

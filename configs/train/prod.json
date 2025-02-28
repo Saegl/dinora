@@ -34,10 +34,11 @@
     "limit_test_batches": null,
 
     "model_type": "alphanet",
-
-    "res_channels": 256,
-    "res_blocks": 19,
-    "policy_channels": 64,
-    "value_channels": 8,
-    "value_lin_channels": 256
+    "model_conf": {
+        "res_channels": 256,
+        "res_blocks": 19,
+        "policy_channels": 64,
+        "value_channels": 8,
+        "value_lin_channels": 256
+    }
 }

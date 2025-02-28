@@ -32,12 +32,13 @@
     "limit_train_batches": 1,
     "limit_val_batches": 0,
     "limit_test_batches": null,
-    
-    "model_type": "alphanet",
 
-    "res_channels": 128,
-    "res_blocks": 10,
-    "policy_channels": 64,
-    "value_channels": 16,
-    "value_lin_channels": 64
+    "model_type": "alphanet",
+    "model_conf": {
+        "res_channels": 64,
+        "res_blocks": 8,
+        "policy_channels": 64,
+        "value_channels": 16,
+        "value_lin_channels": 64
+    }
 }
