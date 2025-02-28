@@ -88,6 +88,3 @@ class DummyModel(BaseModel):
 
     def evaluate_batch(self, boards: list[chess.Board]) -> list[Evaluation]:
         return [self.evaluate(board) for board in boards]
-
-    def reset(self) -> None:
-        pass

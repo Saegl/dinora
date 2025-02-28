@@ -44,6 +44,3 @@ class OnnxModel(BaseModel):
             (legal_policy(raw_policy[i], board), float(raw_value[i, 0]))
             for i, board in enumerate(boards)
         ]
-
-    def reset(self) -> None:
-        pass

@@ -36,8 +36,7 @@ class BaseModel(ABC):
         """
         raise Exception(f"Batcn evaluation is not implemented on {self.name()}")
 
-    @abstractmethod
-    def reset(self) -> None:
+    def reset(self) -> None:  # noqa: B027
         """
         Delete caches
         Useful to call between games in benchmarks/evaluators
