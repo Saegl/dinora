@@ -66,8 +66,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import StepLR
 
-from dinora.encoders.board_tensor import board_to_tensor
-from dinora.models.nnwrapper import NNWrapper
+from dinora.encoders.board_tensor import boards_to_tensor
+from dinora.encoders.policy import legal_policy
+from dinora.models.base import BaseModel, Evaluation
 
 npf32 = npt.NDArray[np.float32]
 
@@ -100,7 +101,7 @@ class ResBlock(nn.Module):
         return self.relu(self.body(x) + x)
 
 
-class AlphaNet(pl.LightningModule, NNWrapper):
+class AlphaNet(pl.LightningModule, BaseModel):
     def __init__(
         self,
         filters: int = 256,
@@ -224,25 +225,21 @@ class AlphaNet(pl.LightningModule, NNWrapper):
             },
         }
 
-    def raw_outputs(self, board: chess.Board) -> tuple[npf32, npf32]:
-        flip = not board.turn
-        board_tensor = board_to_tensor(board, flip)
-        with torch.no_grad():
-            raw_policy, raw_value = self(
-                torch.from_numpy(board_tensor).reshape((1, 18, 8, 8)).to(self.device)
-            )
-        return raw_policy[0].cpu().numpy(), raw_value[0].cpu().numpy()
-
-    def raw_batch_outputs(self, boards: list[chess.Board]) -> tuple[npf32, npf32]:
-        batch = []
-        for board in boards:
-            batch.append(board_to_tensor(board, not board.turn))
-
-        batch_np = np.array(batch)
+    def inference_np(self, batch_np: npf32) -> tuple[npf32, npf32]:
         with torch.no_grad():
             raw_policy, raw_value = self(torch.from_numpy(batch_np).to(self.device))
-
         return raw_policy.cpu().numpy(), raw_value.cpu().numpy()
+
+    def evaluate(self, board: chess.Board) -> Evaluation:
+        return self.evaluate_batch([board])[0]
+
+    def evaluate_batch(self, boards: list[chess.Board]) -> list[Evaluation]:
+        raw_policy, raw_value = self.inference_np(boards_to_tensor(boards))
+
+        return [
+            (legal_policy(raw_policy[i], board), float(raw_value[i, 0]))
+            for i, board in enumerate(boards)
+        ]
 
     def reset(self) -> None:
         pass

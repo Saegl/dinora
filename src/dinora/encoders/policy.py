@@ -29,6 +29,7 @@ import chess
 import numpy as np
 import numpy.typing as npt
 
+npf32 = npt.NDArray[np.float32]
 # rank (letter, horizontal), file (number, vertical)
 Position = tuple[int, int]
 
@@ -181,3 +182,17 @@ def extract_logit(
     move_to_index_lookup = FLIPPED_MOVE_TO_INDEX if flip else MOVE_TO_INDEX
     index = move_to_index_lookup[move]
     return float(policy[index])
+
+
+def softmax(x: npf32, tau: float = 1.0) -> npf32:
+    e_x = np.exp(x / tau)
+    return e_x / e_x.sum()  # type: ignore
+
+
+def legal_policy(raw_policy: npf32, board: chess.Board):
+    moves = list(board.legal_moves)
+    move_logits = [extract_logit(raw_policy, move, not board.turn) for move in moves]
+
+    move_priors = softmax(np.array(move_logits))
+    policy = {move: float(prior) for move, prior in zip(moves, move_priors)}
+    return policy

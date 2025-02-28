@@ -112,3 +112,7 @@ def board_to_tensor(board: chess.Board, flip: bool) -> npf32:
         tensor[17, file, rank] = 1.0
 
     return tensor
+
+
+def boards_to_tensor(boards: list[chess.Board]) -> npf32:
+    return np.array([board_to_tensor(board, not board.turn) for board in boards])
