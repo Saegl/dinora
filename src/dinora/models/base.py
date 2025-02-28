@@ -24,6 +24,7 @@ class BaseModel(ABC):
         value = 0.0 => Draw
         """
 
+    @abstractmethod
     def evaluate_batch(self, boards: list[chess.Board]) -> list[Evaluation]:
         """
         Same as `evaluate` but for batch of boards
@@ -34,7 +35,6 @@ class BaseModel(ABC):
         ```
         use faster methods of your neural networks library
         """
-        raise Exception(f"Batcn evaluation is not implemented on {self.name()}")
 
     def reset(self) -> None:  # noqa: B027
         """
