@@ -2,7 +2,7 @@ import math
 
 import chess
 
-from dinora.models.base import BaseModel, Priors, StateValue
+from dinora.models.base import BaseModel, Evaluation, Priors
 
 
 def evaluate_board(board: chess.Board) -> float:
@@ -86,8 +86,11 @@ class DummyModel(BaseModel):
     def name(self) -> str:
         return "Handcrafted"
 
-    def evaluate(self, board: chess.Board) -> tuple[Priors, StateValue]:
+    def evaluate(self, board: chess.Board) -> Evaluation:
         return move_ordering(board), evaluate_board(board)
+
+    def evaluate_batch(self, boards: list[chess.Board]) -> list[Evaluation]:
+        return [self.evaluate(board) for board in boards]
 
     def reset(self) -> None:
         pass
