@@ -161,9 +161,6 @@ class AlphaNet(pl.LightningModule, BaseModel):
             nn.Tanh(),
         )
 
-    def name(self) -> str:
-        return "Alphanet"
-
     def forward(self, x):  # type: ignore
         x = self.convblock(x)
         x = self.res_blocks(x)

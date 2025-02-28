@@ -30,9 +30,6 @@ class OnnxModel(BaseModel):
 
         self.ort_session = onnxruntime.InferenceSession(weights, providers=providers)
 
-    def name(self) -> str:
-        return "Onnx"
-
     def inference_np(self, batch_np: npf32) -> tuple[npf32, npf32]:
         raw_policy, raw_value = self.ort_session.run(None, {"input": batch_np})
         return raw_policy, raw_value
