@@ -1,7 +1,7 @@
 import json
 import pathlib
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import timedelta
 
 import lightning.pytorch as pl
@@ -34,6 +34,8 @@ class Config:
     learning_rate: float = 0.001
 
     selfplay_log_interval: int = 10 * 60
+    selfplay_num_batch_workers: int = 4
+    selfplay_cuda_devices: list[str] = field(default_factory=lambda: ["cuda:0"])
 
     @staticmethod
     def from_file(filepath: pathlib.Path):
@@ -46,8 +48,6 @@ def collect_games(
     config: Config, model: AlphaNet, output_dir: pathlib.Path
 ) -> pathlib.Path:
     print("STAGE: Game collection")
-    model.to("cuda")
-    print(f"On device: {model.device}")
     start_time = time.time()
     pgn_file = output_dir / "games.pgn"
 
@@ -62,6 +62,8 @@ def collect_games(
         config.noise_fraction,
         pgn_file,
         config.selfplay_log_interval,
+        config.selfplay_num_batch_workers,
+        config.selfplay_cuda_devices,
     )
     analyze_pgn(pgn_file)
     print(
@@ -97,7 +99,7 @@ def fit(config: Config, model, datamodule, generation_output_dir: pathlib.Path):
 
 
 def start_rl(config: Config):
-    model = AlphaNet(learning_rate=config.learning_rate).to("cuda")
+    model = AlphaNet(learning_rate=config.learning_rate)
     output_dir = pathlib.Path.cwd() / "data" / "rl_data"
 
     run = wandb.init(job_type="rl", project="dinora-chess", config=asdict(config))

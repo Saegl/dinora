@@ -10,5 +10,9 @@
     "batch_size_train": 128,
     "batch_size_selfplay": 3,
     "learning_rate": 0.001,
-    "selfplay_log_interval": 5
+    "selfplay_log_interval": 5,
+    "selfplay_num_batch_workers": 4,
+    "selfplay_cuda_devices": [
+        "cuda:0"
+    ]
 }
