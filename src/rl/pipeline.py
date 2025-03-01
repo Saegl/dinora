@@ -121,6 +121,7 @@ def start_rl(config: Config):
         learning_rate=config.learning_rate,
     )
     output_dir = pathlib.Path.cwd() / "data" / "rl_data"
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     model_file = output_dir / "model_init.ckpt"
     torch.save(model, model_file)
