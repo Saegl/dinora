@@ -37,6 +37,8 @@ class Config:
     selfplay_num_batch_workers: int = 4
     selfplay_cuda_devices: list[str] = field(default_factory=lambda: ["cuda:0"])
 
+    upload_model: bool = True
+
     @staticmethod
     def from_file(filepath: pathlib.Path):
         with filepath.open("rt", encoding="utf8") as f:
@@ -91,9 +93,10 @@ def fit(config: Config, model, datamodule, generation_output_dir: pathlib.Path):
     model_file = generation_output_dir / "model.ckpt"
     torch.save(model, model_file)
 
-    artifact = wandb.Artifact("rl_model", type="rl_model")
-    artifact.add_file(str(model_file.absolute()))
-    wandb.log_artifact(artifact)
+    if config.upload_model:
+        artifact = wandb.Artifact("rl_model", type="rl_model")
+        artifact.add_file(str(model_file.absolute()))
+        wandb.log_artifact(artifact)
 
     print(f"STAGE: Fit took {timedelta(seconds=int(time.time() - start_time))}")
 
@@ -101,6 +104,14 @@ def fit(config: Config, model, datamodule, generation_output_dir: pathlib.Path):
 def start_rl(config: Config):
     model = AlphaNet(learning_rate=config.learning_rate)
     output_dir = pathlib.Path.cwd() / "data" / "rl_data"
+
+    model_file = output_dir / "model_init.ckpt"
+    torch.save(model, model_file)
+
+    if config.upload_model:
+        artifact = wandb.Artifact("rl_model", type="rl_model")
+        artifact.add_file(str(model_file.absolute()))
+        wandb.log_artifact(artifact)
 
     run = wandb.init(job_type="rl", project="dinora-chess", config=asdict(config))
 

@@ -14,5 +14,6 @@
     "selfplay_num_batch_workers": 4,
     "selfplay_cuda_devices": [
         "cuda:0"
-    ]
+    ],
+    "upload_model": false
 }
