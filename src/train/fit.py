@@ -28,7 +28,7 @@ logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)
 logging.getLogger("fsspec").setLevel(logging.WARNING)
 
 
-@dataclass
+@dataclass(frozen=True)
 class AlphaNetConfig:
     res_channels: int
     res_blocks: int
@@ -37,7 +37,7 @@ class AlphaNetConfig:
     value_lin_channels: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class SeNetConfig(AlphaNetConfig):
     pass
 

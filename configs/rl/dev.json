@@ -15,5 +15,12 @@
     "selfplay_cuda_devices": [
         "cuda:0"
     ],
-    "upload_model": false
+    "upload_model": false,
+    "model_conf": {
+        "res_channels": 128,
+        "res_blocks": 7,
+        "policy_channels": 32,
+        "value_channels": 8,
+        "value_lin_channels": 128
+    }
 }

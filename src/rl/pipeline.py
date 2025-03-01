@@ -14,6 +14,7 @@ from dinora import PROJECT_ROOT
 from dinora.models.alphanet import AlphaNet
 from rl.selfplay import analyze_pgn, selfplay
 from train.datamodules import CompactDataModule
+from train.fit import AlphaNetConfig
 
 
 @dataclass
@@ -38,11 +39,20 @@ class Config:
     selfplay_cuda_devices: list[str] = field(default_factory=lambda: ["cuda:0"])
 
     upload_model: bool = True
+    model_conf: AlphaNetConfig = AlphaNetConfig(
+        res_channels=128,
+        res_blocks=7,
+        policy_channels=32,
+        value_channels=8,
+        value_lin_channels=128,
+    )
 
     @staticmethod
     def from_file(filepath: pathlib.Path):
         with filepath.open("rt", encoding="utf8") as f:
             data = json.load(f)
+
+        data["model_conf"] = AlphaNetConfig(**data["model_conf"])
         return Config(**data)
 
 
@@ -102,7 +112,14 @@ def fit(config: Config, model, datamodule, generation_output_dir: pathlib.Path):
 
 
 def start_rl(config: Config):
-    model = AlphaNet(learning_rate=config.learning_rate)
+    model = AlphaNet(
+        filters=config.model_conf.res_channels,
+        res_blocks=config.model_conf.res_blocks,
+        policy_channels=config.model_conf.policy_channels,
+        value_channels=config.model_conf.value_channels,
+        value_fc_hidden=config.model_conf.value_lin_channels,
+        learning_rate=config.learning_rate,
+    )
     output_dir = pathlib.Path.cwd() / "data" / "rl_data"
 
     model_file = output_dir / "model_init.ckpt"
