@@ -112,6 +112,8 @@ def fit(config: Config, model, datamodule, generation_output_dir: pathlib.Path):
 
 
 def start_rl(config: Config):
+    run = wandb.init(job_type="rl", project="dinora-chess", config=asdict(config))
+
     model = AlphaNet(
         filters=config.model_conf.res_channels,
         res_blocks=config.model_conf.res_blocks,
@@ -130,8 +132,6 @@ def start_rl(config: Config):
         artifact = wandb.Artifact("rl_model", type="rl_model")
         artifact.add_file(str(model_file.absolute()))
         wandb.log_artifact(artifact)
-
-    run = wandb.init(job_type="rl", project="dinora-chess", config=asdict(config))
 
     for generation in range(config.generations):
         generation_output_dir = output_dir / f"generation-{generation}"
