@@ -15,6 +15,7 @@ from dinora.models.alphanet import AlphaNet
 from rl.selfplay import analyze_pgn, selfplay
 from train.datamodules import CompactDataModule
 from train.fit import AlphaNetConfig
+from train.train_callbacks import CPLoss
 
 
 @dataclass
@@ -33,6 +34,11 @@ class Config:
     batch_size_train: int = 128
     batch_size_selfplay: int = 128
     learning_rate: float = 0.001
+
+    enable_cploss: bool = True
+    cploss_label: str = "saegl/dinora-chess/elite_cploss:latest"
+    cploss_batch_size: int = 2048
+    cploss_positions: int = 3500
 
     selfplay_log_interval: int = 10 * 60
     selfplay_num_batch_workers: int = 4
@@ -89,7 +95,13 @@ def collect_games(
     return pgn_file
 
 
-def fit(config: Config, model, datamodule, generation_output_dir: pathlib.Path):
+def fit(
+    config: Config,
+    model: AlphaNet,
+    datamodule: CompactDataModule,
+    generation_output_dir: pathlib.Path,
+    callbacks: list[pl.Callback],
+):
     print("STAGE: Fit")
     start_time = time.time()
     wandb_logger = WandbLogger(project="dinora-chess")
@@ -102,6 +114,12 @@ def fit(config: Config, model, datamodule, generation_output_dir: pathlib.Path):
 
     model_file = generation_output_dir / "model.ckpt"
     torch.save(model, model_file)
+
+    model.to("cuda")  # pl.Trainer puts model back to CPU?
+    # There is no validation dataset in RL
+    # trigger validation callbacks manually
+    for callback in callbacks:
+        callback.on_validation_end(trainer, model)
 
     if config.upload_model:
         artifact = wandb.Artifact("rl_model", type="rl_model")
@@ -121,7 +139,21 @@ def start_rl(config: Config):
         value_channels=config.model_conf.value_channels,
         value_fc_hidden=config.model_conf.value_lin_channels,
         learning_rate=config.learning_rate,
-    )
+    ).to("cuda")
+
+    callbacks = []
+    if config.enable_cploss:
+        cploss = CPLoss(
+            config.cploss_label,
+            config.cploss_positions,
+            config.cploss_batch_size,
+        )
+        callbacks.append(cploss)
+
+        wandb_logger = WandbLogger(project="dinora-chess")
+        log_trainer = pl.Trainer(logger=wandb_logger)
+        cploss.on_validation_end(log_trainer, model)
+
     output_dir = pathlib.Path.cwd() / "data" / "rl_data"
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -157,6 +189,6 @@ def start_rl(config: Config):
         datamodule = CompactDataModule(
             dataset_dir, z_weight=1.0, q_weight=0.0, batch_size=config.batch_size_train
         )
-        fit(config, model, datamodule, generation_output_dir)
+        fit(config, model, datamodule, generation_output_dir, callbacks)
 
     run.finish()

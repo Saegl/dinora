@@ -155,12 +155,12 @@ class CPLoss(Callback):
         value_cploss = calc_value_cploss(
             pl_module, self.positions, self.value_boards, self.batch_size
         )
-        trainer.logger.log_metrics(
-            {
-                "validation/policy_cploss": policy_cploss,
-                "validation/value_cploss": value_cploss,
-            }
-        )
+        metrics = {
+            "validation/policy_cploss": policy_cploss,
+            "validation/value_cploss": value_cploss,
+        }
+        print(f"CPLoss: {metrics}")
+        trainer.logger.log_metrics(metrics)
         print(
             f"Callback {self.__class__.__name__} took {time.time() - start_time:.3f} seconds"
         )

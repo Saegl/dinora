@@ -2,19 +2,29 @@
     "opening_noise_moves": 15,
     "dirichlet_alpha": 0.4,
     "noise_fraction": 0.4,
+
     "cpuct": 4.0,
-    "generations": 1,
-    "games_per_generation": 3,
+
+    "generations": 2,
+    "games_per_generation": 12,
     "epochs_per_generation": 1,
     "nodes_per_move": 10,
+
     "batch_size_train": 128,
-    "batch_size_selfplay": 3,
+    "batch_size_selfplay": 4,
     "learning_rate": 0.001,
+
+    "enable_cploss": true,
+    "cploss_label": "saegl/dinora-chess/elite_cploss:latest",
+    "cploss_batch_size": 2048,
+    "cploss_positions": 3500,
+
     "selfplay_log_interval": 5,
     "selfplay_num_batch_workers": 4,
     "selfplay_cuda_devices": [
         "cuda:0"
     ],
+
     "upload_model": false,
     "model_conf": {
         "res_channels": 128,
