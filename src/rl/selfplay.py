@@ -22,7 +22,7 @@ from dinora.search.noise import apply_noise
 npf32 = npt.NDArray[np.float32]
 
 GPU_WORKER_LOG_TEMPLATE = """\
-GPU WORKER INFO
+GPU WORKER INFO {cuda_device}
 {timers}
 GPU Utilization: {gpu_util:.3f}%
 Number of batch calls: {batch_calls}
@@ -352,6 +352,7 @@ def gpu_worker(
             times_sum = sum(timers.total_time.values()) + 0.0000001
             print(
                 GPU_WORKER_LOG_TEMPLATE.format(
+                    cuda_device=device,
                     timers=timers.dump(),
                     gpu_util=(timers.total_time["inference"] / times_sum) * 100,
                     batch_calls=batch_calls,
