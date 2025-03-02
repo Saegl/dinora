@@ -1,10 +1,8 @@
-import datetime
 import multiprocessing as mp
 import os
 import pathlib
 import time
 from contextlib import contextmanager
-from io import TextIOWrapper
 from multiprocessing.shared_memory import SharedMemory
 
 import chess
@@ -18,6 +16,7 @@ from dinora.models.alphanet import AlphaNet
 from dinora.models.base import Priors, StateValue
 from dinora.search.mcts import mcts
 from dinora.search.noise import apply_noise
+from rl.replay_buffer import ReplayBuffer
 
 npf32 = npt.NDArray[np.float32]
 
@@ -174,34 +173,6 @@ class Game:
         mcts.backup(self.leaf, self.board, value)
 
 
-def save_game_pgn(played_moves: list[chess.Move], pgn_output: TextIOWrapper):
-    current_datetime = datetime.datetime.now()
-    utc_datetime = datetime.datetime.now(datetime.timezone.utc)
-
-    game_pgn = chess.pgn.Game(
-        headers={
-            "Event": "RL selfplay",
-            "Site": "Dinora engine",
-            "Date": current_datetime.date().strftime(r"%Y.%m.%d"),
-            "UTCDate": utc_datetime.date().strftime(r"%Y.%m.%d"),
-            "Time": current_datetime.strftime("%H:%M:%S"),
-            "UTCTime": utc_datetime.strftime("%H:%M:%S"),
-        }
-    )
-    node: chess.pgn.GameNode = game_pgn
-    board = chess.Board()
-    for move in played_moves:
-        node = node.add_variation(move)
-        board.push(move)
-
-    if board.ply() >= 256 * 2:
-        result = "1/2-1/2"
-    else:
-        result = board.result(claim_draw=True)
-    game_pgn.headers["Result"] = result
-    print(game_pgn, end="\n\n", flush=True, file=pgn_output)
-
-
 class GamesBatch:
     def __init__(
         self,
@@ -252,13 +223,12 @@ class GamesBatch:
 def database_worker(
     games_count: int,
     completed_games,  # mp.Value
-    pgn_output: pathlib.Path,
+    replay_buffer: ReplayBuffer,
     games_queue: mp.Queue,
 ):
-    with pgn_output.open("w") as f:
-        while completed_games.value < games_count:
-            moves = games_queue.get()
-            save_game_pgn(moves, f)
+    while completed_games.value < games_count:
+        moves = games_queue.get()
+        replay_buffer.add_game(moves)
 
 
 def cpu_worker(
@@ -358,7 +328,7 @@ def gpu_worker(
                     batch_calls=batch_calls,
                     completed_games=completed_games.value,
                     games_count=games_count,
-                    batch_speed=positions / times_sum,
+                    batch_speed=batch_calls / times_sum,
                     pos_speed=positions / times_sum,
                     # TODO: divide by total_times_sum
                     game_speed=completed_games.value / times_sum,
@@ -380,7 +350,7 @@ def selfplay(
     opening_noise_moves: int,
     dirichlet_alpha: float,
     noise_eps: float,
-    pgn_file: pathlib.Path,
+    replay_buffer: ReplayBuffer,
     log_interval: int,
     num_batch_workers: int,
     cuda_devices: list[str],
@@ -430,12 +400,6 @@ def selfplay(
     )
     games_queue = mp.Queue()
 
-    database_process = mp.Process(
-        target=database_worker,
-        args=(games_count, completed_games, pgn_file, games_queue),
-    )
-    database_process.start()
-
     batch_workers = [
         mp.Process(
             target=cpu_worker,
@@ -484,7 +448,7 @@ def selfplay(
     for p in batch_workers + gpu_workers:
         p.start()
 
-    database_process.join()
+    database_worker(games_count, completed_games, replay_buffer, games_queue)
 
     for p in batch_workers + gpu_workers:
         p.kill()
@@ -536,6 +500,8 @@ def analyze_pgn(pgn_file: pathlib.Path):
         game_hash = "".join(first_moves) + board.fen()
         uniq_games.add(game_hash)
 
+    pgn_output.close()
+
     print(f"Uniq games {(len(uniq_games) / games_count) * 100:.3f}%")
     print(f"Uniq positions rate {(len(uniq_positions) / positions_count) * 100:.3f}%")
     print(f"Average plies {positions_count / games_count}")
@@ -553,6 +519,8 @@ if __name__ == "__main__":
     model = model_selector("alphanet", model_path, "cpu")
     pgn_file = pathlib.Path("example.pgn")
     assert isinstance(model, AlphaNet)
+    replay_buffer_dir = pathlib.Path("selfplay_rb")
+    replay_buffer_dir.mkdir(exist_ok=True)
     selfplay(
         model,
         games_count=128,
@@ -562,7 +530,7 @@ if __name__ == "__main__":
         opening_noise_moves=15,
         dirichlet_alpha=0.3,
         noise_eps=0.25,
-        pgn_file=pgn_file,
+        replay_buffer=ReplayBuffer(replay_buffer_dir, 1000, 1000, 128),
         log_interval=15,
         num_batch_workers=3,
         cuda_devices=["cuda:0"],

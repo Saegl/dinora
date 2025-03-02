@@ -9,9 +9,9 @@ import torch
 from lightning.pytorch.loggers import WandbLogger
 
 import wandb
-from dataset.make import convert_dir as dataset_convert_dir
 from dinora import PROJECT_ROOT
 from dinora.models.alphanet import AlphaNet
+from rl.replay_buffer import ReplayBuffer
 from rl.selfplay import analyze_pgn, selfplay
 from train.datamodules import CompactDataModule
 from train.fit import AlphaNetConfig
@@ -30,6 +30,10 @@ class Config:
     games_per_generation: int = 200
     epochs_per_generation: int = 1
     nodes_per_move: int = 15
+
+    upload_pgn: bool = True
+    pgn_chunk_games_size: int = 10_000
+    window_games_size: int = 500_000
 
     batch_size_train: int = 128
     batch_size_selfplay: int = 128
@@ -62,12 +66,9 @@ class Config:
         return Config(**data)
 
 
-def collect_games(
-    config: Config, model: AlphaNet, output_dir: pathlib.Path
-) -> pathlib.Path:
+def collect_games(config: Config, model: AlphaNet, replay_buffer: ReplayBuffer):
     print("STAGE: Game collection")
     start_time = time.time()
-    pgn_file = output_dir / "games.pgn"
 
     selfplay(
         model,
@@ -78,21 +79,18 @@ def collect_games(
         config.opening_noise_moves,
         config.dirichlet_alpha,
         config.noise_fraction,
-        pgn_file,
+        replay_buffer,
         config.selfplay_log_interval,
         config.selfplay_num_batch_workers,
         config.selfplay_cuda_devices,
     )
-    analyze_pgn(pgn_file)
+    replay_buffer.current_chunk_file.close()
+    analyze_pgn(replay_buffer.current_chunk_path)
+    replay_buffer.current_chunk_file = replay_buffer.current_chunk_path.open("a")
+
     print(
         f"STAGE: Game collection took {timedelta(seconds=int(time.time() - start_time))}"
     )
-
-    artifact = wandb.Artifact("selfplay_pgn", type="selfplay_pgn")
-    artifact.add_file(str(pgn_file.absolute()))
-    wandb.log_artifact(artifact)
-
-    return pgn_file
 
 
 def fit(
@@ -157,6 +155,17 @@ def start_rl(config: Config):
     output_dir = pathlib.Path.cwd() / "data" / "rl_data"
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    replay_buffer_dir = output_dir / "replay_buffer"
+    replay_buffer_dir.mkdir(exist_ok=True)
+
+    replay_buffer = ReplayBuffer(
+        replay_buffer_dir,
+        pgn_chunk_games_size=config.pgn_chunk_games_size,
+        window_games_size=config.window_games_size,
+        batch_size=config.batch_size_train,
+        upload_pgn=config.upload_pgn,
+    )
+
     model_file = output_dir / "model_init.ckpt"
     torch.save(model, model_file)
 
@@ -167,28 +176,9 @@ def start_rl(config: Config):
 
     for generation in range(config.generations):
         generation_output_dir = output_dir / f"generation-{generation}"
+        collect_games(config, model, replay_buffer)
 
-        pgns_output_dir = generation_output_dir / "pgns"
-        pgns_output_dir.mkdir(parents=True, exist_ok=True)
-
-        collect_games(config, model, pgns_output_dir)
-
-        dataset_dir = generation_output_dir / "dataset"
-        dataset_dir.mkdir(parents=True, exist_ok=True)
-
-        dataset_convert_dir(
-            pgns_output_dir,
-            dataset_dir,
-            None,
-            q_nodes=0,
-            train_percentage=1.0,
-            val_percentage=0.0,
-            test_percentage=0.0,
-        )
-
-        datamodule = CompactDataModule(
-            dataset_dir, z_weight=1.0, q_weight=0.0, batch_size=config.batch_size_train
-        )
+        datamodule = replay_buffer.prepare_dataset()
         fit(config, model, datamodule, generation_output_dir, callbacks)
 
     run.finish()

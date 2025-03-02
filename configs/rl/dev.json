@@ -10,6 +10,10 @@
     "epochs_per_generation": 1,
     "nodes_per_move": 10,
 
+    "upload_pgn": true,
+    "pgn_chunk_games_size": 10000,
+    "window_games_size": 500000,
+
     "batch_size_train": 128,
     "batch_size_selfplay": 4,
     "learning_rate": 0.001,
