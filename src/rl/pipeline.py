@@ -176,6 +176,8 @@ def start_rl(config: Config):
 
     for generation in range(config.generations):
         generation_output_dir = output_dir / f"generation-{generation}"
+        generation_output_dir.mkdir(exist_ok=True)
+
         collect_games(config, model, replay_buffer)
 
         datamodule = replay_buffer.prepare_dataset()
