@@ -21,6 +21,25 @@ from dinora.search.noise import apply_noise
 
 npf32 = npt.NDArray[np.float32]
 
+GPU_WORKER_LOG_TEMPLATE = """\
+GPU WORKER INFO
+{timers}
+GPU Utilization: {gpu_util:.3f}%
+Number of batch calls: {batch_calls}
+Number of generated games {completed_games} / {games_count}
+Batch speed: {batch_speed:.3f} batches/second
+Positions speed: {pos_speed:.3f} pos/second
+Game generation speed: {game_speed:.3f} games/second
+================================================================================\
+"""
+
+CPU_WORKER_LOG_TEMPLATE = """\
+CPU WORKER INFO {batch_worker_id}
+Plies {plies}
+{timers}
+================================================================================\
+"""
+
 
 class Timers:
     def __init__(self, log_interval: int, *names: str):
@@ -48,9 +67,11 @@ class Timers:
         else:
             return False
 
-    def dump(self):
+    def dump(self) -> str:
+        lines = []
         for name, value in self.total_time.items():
-            print(f"{name} time: {value:.3f} seconds")
+            lines.append(f"{name} time: {value:.3f} seconds")
+        return "\n".join(lines)
 
     def reset(self):
         self.total_time = {name: 0.0 for name in self.total_time}
@@ -282,10 +303,14 @@ def cpu_worker(
             games_batch.backprop(evals)
 
         if batch_worker_id == 0 and timers.log_interval_tick():
-            print(f"CPU WORKER INFO {batch_worker_id}")
-            print(f"Plies {[game.board.ply() for game in games_batch.games]}")
-            timers.dump()
-            print("=" * 80)
+            print(
+                CPU_WORKER_LOG_TEMPLATE.format(
+                    batch_worker_id=batch_worker_id,
+                    plies=[game.board.ply() for game in games_batch.games],
+                    timers=timers.dump(),
+                ),
+                flush=True,
+            )
             timers.reset()
 
 
@@ -325,20 +350,20 @@ def gpu_worker(
 
         if timers.log_interval_tick():
             times_sum = sum(timers.total_time.values()) + 0.0000001
-
-            print("GPU WORKER INFO")
-            timers.dump()
             print(
-                f"GPU Utilization: {(timers.total_time['inference'] / times_sum) * 100:.3f}%"
+                GPU_WORKER_LOG_TEMPLATE.format(
+                    timers=timers.dump(),
+                    gpu_util=(timers.total_time["inference"] / times_sum) * 100,
+                    batch_calls=batch_calls,
+                    completed_games=completed_games.value,
+                    games_count=games_count,
+                    batch_speed=positions / times_sum,
+                    pos_speed=positions / times_sum,
+                    # TODO: divide by total_times_sum
+                    game_speed=completed_games.value / times_sum,
+                ),
+                flush=True,
             )
-            print(f"Number of batch calls: {batch_calls}")
-            print(f"Number of generated games {completed_games.value} / {games_count}")
-            print(f"Batch speed: {batch_calls / times_sum:.3f} batches/second")
-            print(f"Positions speed: {positions / times_sum:.3f} pos/second")
-            print(  # TODO: divide by total_times_sum
-                f"Game generation speed: {completed_games.value / times_sum:.3f} games/second"
-            )
-            print("=" * 80)
 
             batch_calls = 0
             positions = 0
