@@ -1,4 +1,5 @@
 import pathlib
+import time
 from io import BytesIO
 from typing import Any
 
@@ -23,6 +24,7 @@ class SampleGameGenerator(Callback):
     def on_validation_end(
         self, trainer: pl.Trainer, pl_module: pl.LightningModule
     ) -> None:
+        start_time = time.time()
         board = chess.Board()
         while board.result() == "*" and board.ply() != 120:
             policy, _ = pl_module.evaluate(board)
@@ -30,6 +32,9 @@ class SampleGameGenerator(Callback):
             board.push(bestmove)
         moves = " ".join(map(lambda m: m.uci(), board.move_stack))
         trainer.logger.log_text(key="sample_game", columns=["moves"], data=[[moves]])  # type: ignore
+        print(
+            f"Callback {self.__class__.__name__} took {time.time() - start_time:.3f} seconds"
+        )
 
 
 class BoardsEvaluator(Callback):
@@ -48,6 +53,7 @@ class BoardsEvaluator(Callback):
     def on_validation_end(
         self, trainer: pl.Trainer, pl_module: pl.LightningModule
     ) -> None:
+        start_time = time.time()
         data = []
         COLUMNS = ["image"] * self.render_image + [
             "fen",
@@ -81,6 +87,9 @@ class BoardsEvaluator(Callback):
             data.append(entry)
 
         trainer.logger.log_text(key="val_positions", columns=COLUMNS, data=data)  # type: ignore
+        print(
+            f"Callback {self.__class__.__name__} took {time.time() - start_time:.3f} seconds"
+        )
 
 
 class ValidationCheckpointer(Callback):
@@ -102,7 +111,11 @@ class ValidationCheckpointer(Callback):
     def on_validation_end(
         self, trainer: pl.Trainer, pl_module: pl.LightningModule
     ) -> None:
+        start_time = time.time()
         self.save_model(pl_module, f"valid-state-{self.saves_counter}")
+        print(
+            f"Callback {self.__class__.__name__} took {time.time() - start_time:.3f} seconds"
+        )
 
     def on_train_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
         self.save_model(pl_module, "valid-state-final")
@@ -131,6 +144,7 @@ class CPLoss(Callback):
     def on_validation_end(
         self, trainer: pl.Trainer, pl_module: pl.LightningModule
     ) -> None:
+        start_time = time.time()
         if trainer.logger is None:
             print("Cant log cploss metrics")
             return
@@ -146,4 +160,7 @@ class CPLoss(Callback):
                 "validation/policy_cploss": policy_cploss,
                 "validation/value_cploss": value_cploss,
             }
+        )
+        print(
+            f"Callback {self.__class__.__name__} took {time.time() - start_time:.3f} seconds"
         )
