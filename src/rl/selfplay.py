@@ -359,6 +359,7 @@ def selfplay(
     num_batch_workers: int,
     cuda_devices: list[str],
 ):
+    mp.set_start_method("spawn", force=True)  # Needed for proper cuda init
     completed_games = mp.Value("i", 0)
 
     batch_queue = mp.Queue()
