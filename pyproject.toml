@@ -70,6 +70,7 @@ lint.ignore = [
     "T201", # print
     "T203", # pprint
     "RET505", # Unnecessary `elif` after `return` statement
+    "RET506", # Unnecessary else after raise
     "RET504", # Unnecessary assignment to {name} before return statement
     "SIM108", # Use ternary operator {contents} instead of if-else-block
     "A003", # Class attribute {name} is shadowing a Python builtin

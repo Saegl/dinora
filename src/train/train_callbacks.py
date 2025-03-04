@@ -130,16 +130,25 @@ class CPLoss(Callback):
         self.batch_size = batch_size
 
     def download_from_wandb(self, cploss_label: str) -> pathlib.Path:
-        import wandb
-
         folder_name = cploss_label.replace(":", "-").replace("/", "-")
-
         cploss_folder = PROJECT_ROOT / "data/cploss" / folder_name
-        cploss_folder.mkdir(parents=True, exist_ok=True)
 
-        dataset_artifact = wandb.run.use_artifact(cploss_label)  # type: ignore
-        dataset_artifact.download(root=cploss_folder)
-        return cploss_folder
+        is_wandb_offline = wandb.run and wandb.run.offline
+        cached_data_exists = cploss_folder.exists()
+
+        if is_wandb_offline and not cached_data_exists:
+            raise Exception("Wandb in offline mode and there is no cached cploss data")
+        elif is_wandb_offline and cached_data_exists:
+            return cploss_folder
+        else:
+            assert wandb.run, (
+                "Wandb run must be initialized to sync cploss data,"
+                "run `wandb offline` if you have cached cploss data"
+            )
+            cploss_folder.mkdir(parents=True, exist_ok=True)
+            dataset_artifact = wandb.run.use_artifact(cploss_label)
+            dataset_artifact.download(root=cploss_folder)
+            return cploss_folder
 
     def on_validation_end(
         self, trainer: pl.Trainer, pl_module: pl.LightningModule
