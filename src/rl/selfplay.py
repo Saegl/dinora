@@ -502,13 +502,17 @@ def analyze_pgn(pgn_file: pathlib.Path):
 
     pgn_output.close()
 
-    print(f"Uniq games {(len(uniq_games) / games_count) * 100:.3f}%")
-    print(f"Uniq positions rate {(len(uniq_positions) / positions_count) * 100:.3f}%")
-    print(f"Average plies {positions_count / games_count}")
-    print("White wins:", white)
-    print("Black wins:", black)
-    print("Draw:", draw)
-    print("Total games", white + black + draw)
+    # avoid division by zero in empty pgn file
+    if games_count != 0:
+        print(f"Uniq games {(len(uniq_games) / games_count) * 100:.3f}%")
+        print(
+            f"Uniq positions rate {(len(uniq_positions) / positions_count) * 100:.3f}%"
+        )
+        print(f"Average plies {positions_count / games_count}")
+        print("White wins:", white)
+        print("Black wins:", black)
+        print("Draw:", draw)
+        print("Total games", white + black + draw)
 
 
 if __name__ == "__main__":
