@@ -6,16 +6,17 @@ from datetime import timedelta
 
 import lightning.pytorch as pl
 import torch
+import wandb
 from lightning.pytorch.loggers import WandbLogger
 
-import wandb
-from dinora import PROJECT_ROOT
 from dinora.models.alphanet import AlphaNet
 from rl.replay_buffer import ReplayBuffer
 from rl.selfplay import analyze_pgn, selfplay
 from train.datamodules import CompactDataModule
 from train.fit import AlphaNetConfig
 from train.train_callbacks import CPLoss
+
+WANDB_LOGS_DIR = pathlib.Path("logs/wandb_logs")
 
 
 @dataclass
@@ -106,7 +107,7 @@ def fit(
     trainer = pl.Trainer(
         max_epochs=config.epochs_per_generation,
         logger=wandb_logger,
-        default_root_dir=PROJECT_ROOT / "checkpoints",
+        enable_checkpointing=False,
     )
     trainer.fit(model=model, datamodule=datamodule)
 
@@ -128,7 +129,12 @@ def fit(
 
 
 def start_rl(config: Config):
-    run = wandb.init(job_type="rl", project="dinora-chess", config=asdict(config))
+    run = wandb.init(
+        job_type="rl",
+        project="dinora-chess",
+        config=asdict(config),
+        dir=WANDB_LOGS_DIR,
+    )
 
     model = AlphaNet(
         filters=config.model_conf.res_channels,
@@ -149,7 +155,10 @@ def start_rl(config: Config):
         callbacks.append(cploss)
 
         wandb_logger = WandbLogger(project="dinora-chess")
-        log_trainer = pl.Trainer(logger=wandb_logger)
+        log_trainer = pl.Trainer(
+            logger=wandb_logger,
+            enable_checkpointing=False,
+        )
         cploss.on_validation_end(log_trainer, model)
 
     output_dir = pathlib.Path.cwd() / "data" / "rl_data"

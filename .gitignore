@@ -8,6 +8,8 @@ artifacts/*
 lightning_logs/*
 checkpoints/*
 !checkpoints/.gitkeep
+logs/wandb_logs/*
+!logs/wandb_logs/.gitkeep
 data/datasets/
 data/treeviz/*
 data/elo_estimator/
@@ -169,3 +171,8 @@ dmypy.json
 cython_debug/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+
+
+# Added by cargo
+
+/target

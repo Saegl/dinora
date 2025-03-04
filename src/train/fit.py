@@ -8,6 +8,7 @@ from typing import Any, Literal
 
 import lightning.pytorch as pl
 import torch
+import wandb
 from lightning.pytorch.callbacks import Callback, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 from lightning.pytorch.tuner import Tuner  # type: ignore
@@ -26,6 +27,9 @@ logging.getLogger("wandb").setLevel(logging.WARNING)
 logging.getLogger("git").setLevel(logging.WARNING)
 logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)
 logging.getLogger("fsspec").setLevel(logging.WARNING)
+
+
+WANDB_LOGS_DIR = pathlib.Path("logs/wandb_logs")
 
 
 @dataclass(frozen=True)
@@ -129,15 +133,12 @@ def get_model(config: Config) -> pl.LightningModule:
 
 
 def fit(config: Config) -> None:
+    run = wandb.init(project="dinora-chess", dir=WANDB_LOGS_DIR)
     wandb_logger = WandbLogger(
         project="dinora-chess",
         log_model="all",  # save model weights to wandb
         config={"config_file": asdict(config)},
     )
-    if not wandb_logger.experiment:
-        # Calling .experiment prop causes wandb run to init
-        # before creating WandbDataModule
-        raise Exception("wandb run not initialized")
 
     torch.set_float32_matmul_precision(config.matmul_precision)
     max_time = timedelta(**config.max_time) if config.max_time else None
@@ -210,6 +211,7 @@ def fit(config: Config) -> None:
         model=model,
         datamodule=datamodule,
     )
+    run.finish()
 
 
 def validate(config: Config) -> None:
@@ -218,7 +220,7 @@ def validate(config: Config) -> None:
 
     import wandb
 
-    wandb.init(project="dinora-chess")
+    wandb.init(project="dinora-chess", dir=WANDB_LOGS_DIR)
 
     datamodule = WandbDataModule(
         dataset_label=config.dataset_label,
