@@ -534,7 +534,9 @@ if __name__ == "__main__":
         opening_noise_moves=15,
         dirichlet_alpha=0.3,
         noise_eps=0.25,
-        replay_buffer=ReplayBuffer(replay_buffer_dir, 1000, 1000, 128),
+        replay_buffer=ReplayBuffer(
+            replay_buffer_dir, 1000, 1000, 128, upload_pgn=False
+        ),
         log_interval=15,
         num_batch_workers=3,
         cuda_devices=["cuda:0"],
