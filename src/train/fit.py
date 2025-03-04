@@ -1,10 +1,10 @@
 import json
 import logging
-import sys
+import pathlib
 import warnings
 from dataclasses import asdict, dataclass
 from datetime import timedelta
-from typing import Literal
+from typing import Any, Literal
 
 import lightning.pytorch as pl
 import torch
@@ -82,10 +82,15 @@ class Config:
     model_type: Literal["alphanet", "senet"]
     model_conf: AlphaNetConfig | SeNetConfig
 
-    # TODO: def from_json, also use this in jupyter notebook
+    # TODO: add use example to jupyter notebook
+    @staticmethod
+    def from_file(path: pathlib.Path) -> "Config":
+        with path.open("r") as f:
+            config = Config.from_dict(json.load(f))
+        return config
 
     @staticmethod
-    def from_dict(d):
+    def from_dict(d: dict[str, Any]) -> "Config":
         ModelConfig = AlphaNetConfig if d["model_type"] == "alphanet" else SeNetConfig
         model_conf = ModelConfig(**d["model_conf"])
         conf = Config(**(d | {"model_conf": model_conf}))
@@ -229,12 +234,18 @@ def validate(config: Config) -> None:
 
 
 if __name__ == "__main__":
-    try:
-        path = sys.argv[1]
-    except IndexError:
-        print("Provide path to config, examples at train_configs/dev.json")
-        sys.exit(1)
+    import argparse
 
-    with open(path, encoding="utf") as f:
-        config = Config.from_dict(json.load(f))
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "config",
+        help="Provide path to config, examples at configs/train/dev.json",
+        type=pathlib.Path,
+    )
+
+    args = parser.parse_args()
+    config_path = args.config
+
+    config = Config.from_file(config_path)
+
     fit(config)
