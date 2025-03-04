@@ -23,9 +23,11 @@ from dataset.encoders.compact_board_tensor import (
     compact_state_to_board_tensor,
 )
 from dataset.encoders.outcome import z_value
-from dinora.encoders.board_tensor import board_to_tensor
+from dinora.encoders.board_tensor import board_to_tensor, boards_to_tensor
 from dinora.encoders.policy import index_to_move, policy_index
 from dinora.models import model_selector
+from dinora.models.alphanet import AlphaNet
+from dinora.models.onnxmodel import OnnxModel
 
 model = model_selector("alphanet", Path("models/alphanet_mini.ckpt"), device="cuda")
 
