@@ -8,11 +8,11 @@ from typing import Any, Literal
 
 import lightning.pytorch as pl
 import torch
-import wandb
 from lightning.pytorch.callbacks import Callback, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 from lightning.pytorch.tuner import Tuner  # type: ignore
 
+import wandb
 from dinora import PROJECT_ROOT
 from train.datamodules import WandbDataModule
 from train.train_callbacks import (
@@ -54,6 +54,7 @@ class Config:
     dataset_label: str
     z_weight: float
     q_weight: float
+    value_loss_weight: float
 
     tune_batch: bool
     batch_size: int  # will be overwritten if tune_batch = True
@@ -111,6 +112,7 @@ def get_model(config: Config) -> pl.LightningModule:
             policy_channels=config.model_conf.policy_channels,
             value_channels=config.model_conf.value_channels,
             value_fc_hidden=config.model_conf.value_lin_channels,
+            value_loss_weight=config.value_loss_weight,
             learning_rate=config.learning_rate,
             lr_scheduler_gamma=config.lr_scheduler_gamma,
             lr_scheduler_freq=config.lr_scheduler_freq,
@@ -124,6 +126,7 @@ def get_model(config: Config) -> pl.LightningModule:
             policy_channels=config.model_conf.policy_channels,
             value_channels=config.model_conf.value_channels,
             value_fc_hidden=config.model_conf.value_lin_channels,
+            value_loss_weight=config.value_loss_weight,
             learning_rate=config.learning_rate,
             lr_scheduler_gamma=config.lr_scheduler_gamma,
             lr_scheduler_freq=config.lr_scheduler_freq,

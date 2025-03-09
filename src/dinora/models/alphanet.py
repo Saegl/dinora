@@ -109,11 +109,13 @@ class AlphaNet(pl.LightningModule, BaseModel):
         policy_channels: int = 64,
         value_channels: int = 8,
         value_fc_hidden: int = 256,
+        value_loss_weight: float = 0.1,
         learning_rate: float = 0.001,
         lr_scheduler_gamma: float = 1.0,
         lr_scheduler_freq: int = 1000,
     ):
         super().__init__()
+        self.value_loss_weight = value_loss_weight
         self.learning_rate = learning_rate
         self.lr_scheduler_gamma = lr_scheduler_gamma
         self.lr_scheduler_freq = lr_scheduler_freq
@@ -174,7 +176,7 @@ class AlphaNet(pl.LightningModule, BaseModel):
 
         policy_loss = F.cross_entropy(y_hat_policy, y_policy)
         value_loss = F.mse_loss(y_hat_value, y_value)
-        cumulative_loss = policy_loss + value_loss
+        cumulative_loss = policy_loss + self.value_loss_weight * value_loss
 
         policy_accuracy = (
             (y_hat_policy.argmax(1) == y_policy).float().sum().item()

@@ -72,6 +72,7 @@ class SeNet(AlphaNet):
         policy_channels: int = 64,
         value_channels: int = 8,
         value_fc_hidden: int = 256,
+        value_loss_weight: float = 0.1,
         learning_rate: float = 0.001,
         lr_scheduler_gamma: float = 1.0,
         lr_scheduler_freq: int = 1000,
@@ -82,6 +83,7 @@ class SeNet(AlphaNet):
         BaseModel.__init__(self)
 
         super().__init__()
+        self.value_loss_weight = value_loss_weight
         self.learning_rate = learning_rate
         self.lr_scheduler_gamma = lr_scheduler_gamma
         self.lr_scheduler_freq = lr_scheduler_freq

@@ -5,6 +5,7 @@
     "dataset_label": "saegl/dinora-chess/saegl-2023:latest",
     "z_weight": 0.5,
     "q_weight": 0.5,
+    "value_loss_weight": 0.1,
 
     "tune_batch": true,
     "batch_size": 512,
