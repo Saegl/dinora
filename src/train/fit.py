@@ -4,6 +4,7 @@ import pathlib
 import warnings
 from dataclasses import asdict, dataclass
 from datetime import timedelta
+from pprint import pprint
 from typing import Any, Literal
 
 import lightning.pytorch as pl
@@ -142,6 +143,8 @@ def get_model(config: Config) -> pl.LightningModule:
 
 def fit(config: Config) -> None:
     run = wandb.init(project="dinora-chess", dir=WANDB_LOGS_DIR)
+    pprint(config)
+
     wandb_logger = WandbLogger(
         project="dinora-chess",
         log_model="all",  # save model weights to wandb
