@@ -14,6 +14,7 @@ from dinora.search.stoppers import Stopper
 class MctsParams:
     # exploration constant
     cpuct: float = field(default=3.0)
+    fpu: float = field(default=-1.0)
     # batch
     batch_size: int = field(default=16)
     virtual_visits: int = field(default=1)
@@ -90,9 +91,9 @@ def select(root: Node, board: chess.Board, cpuct: float, virtual_visits: int) ->
     return node
 
 
-def expand(node: Node, child_priors):
+def expand(node: Node, child_priors, fpu: float):
     for move, prior in child_priors.items():
-        node.children[move] = Node(node, 0.0, prior, move)
+        node.children[move] = Node(node, fpu, prior, move)
 
 
 def backup(leaf: Node, value_leaf: float):
@@ -147,13 +148,16 @@ def collect_batch(
 
 
 def process_batch(
-    batch_boards: list[chess.Board], batch_leaves: list[Node], evaluator: BaseModel
+    batch_boards: list[chess.Board],
+    batch_leaves: list[Node],
+    evaluator: BaseModel,
+    fpu: float,
 ):
     if len(batch_boards) > 0:
         for leaf, (priors, value) in zip(
             batch_leaves, evaluator.evaluate_batch(batch_boards)
         ):
-            expand(leaf, priors)
+            expand(leaf, priors, fpu)
             backup(leaf, value)
 
 
@@ -196,7 +200,7 @@ class MctsBatch(BaseSearcher[MctsParams]):
                 noise_eps=self.params.noise_eps,
             )
 
-        expand(root, priors)
+        expand(root, priors, self.params.fpu)
 
         while not stopper.should_stop():
             batch_boards, batch_leaves = collect_batch(
@@ -208,7 +212,7 @@ class MctsBatch(BaseSearcher[MctsParams]):
                 self.params.max_collisions,
             )
 
-            process_batch(batch_boards, batch_leaves, evaluator)
+            process_batch(batch_boards, batch_leaves, evaluator, self.params.fpu)
 
         print(f"info nodes {root.visits}")
         return most_visited_move(root)

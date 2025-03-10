@@ -14,6 +14,7 @@ from dinora.search.stoppers import Stopper
 class MctsParams:
     # exploration constant
     cpuct: float = field(default=3.0)
+    fpu: float = field(default=-1.0)
     # random
     opening_noise_moves: int = field(default=15)
     dirichlet_alpha: float = field(default=0.3)
@@ -70,9 +71,9 @@ def select_leaf(root: Node, board: chess.Board, cpuct: float) -> Node:
     return node
 
 
-def expand(node: Node, child_priors):
+def expand(node: Node, child_priors, fpu: float):
     for move, prior in child_priors.items():
-        node.children[move] = Node(node, 0.0, prior, move)
+        node.children[move] = Node(node, fpu, prior, move)
 
 
 def backup(leaf: Node, board: chess.Board, value_leaf: float):
@@ -131,7 +132,7 @@ class MCTS(BaseSearcher[MctsParams]):
                 noise_eps=self.params.noise_eps,
             )
 
-        expand(root, priors)
+        expand(root, priors, self.params.fpu)
 
         while not stopper.should_stop():
             leaf = select_leaf(root, board, self.params.cpuct)
@@ -140,7 +141,7 @@ class MCTS(BaseSearcher[MctsParams]):
                 priors, value = {}, terminal_value
             else:
                 priors, value = evaluator.evaluate(board)
-            expand(leaf, priors)
+            expand(leaf, priors, self.params.fpu)
             backup(leaf, board, value)
 
         print(f"info nodes {root.visits}")
