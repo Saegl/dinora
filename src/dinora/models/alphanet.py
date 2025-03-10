@@ -64,6 +64,7 @@ import numpy.typing as npt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.optim.adam import Adam
 from torch.optim.lr_scheduler import StepLR
 
 from dinora.encoders.board_tensor import boards_to_tensor
@@ -213,7 +214,7 @@ class AlphaNet(pl.LightningModule, BaseModel):
         )
 
     def configure_optimizers(self) -> Any:
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)  # type: ignore
+        optimizer = Adam(self.parameters(), lr=self.learning_rate)
         scheduler = StepLR(optimizer, step_size=1, gamma=self.lr_scheduler_gamma)
         return {
             "optimizer": optimizer,
