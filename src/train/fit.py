@@ -8,9 +8,14 @@ from typing import Any, Literal
 
 import lightning.pytorch as pl
 import torch
-from lightning.pytorch.callbacks import Callback, ModelCheckpoint
+from lightning.pytorch.callbacks import (
+    Callback,
+    LearningRateMonitor,
+    ModelCheckpoint,
+    ModelSummary,
+)
 from lightning.pytorch.loggers import WandbLogger
-from lightning.pytorch.tuner import Tuner  # type: ignore
+from lightning.pytorch.tuner.tuning import Tuner
 
 import wandb
 from dinora import PROJECT_ROOT
@@ -146,7 +151,10 @@ def fit(config: Config) -> None:
     torch.set_float32_matmul_precision(config.matmul_precision)
     max_time = timedelta(**config.max_time) if config.max_time else None
 
-    callbacks: list[Callback] = []
+    callbacks: list[Callback] = [
+        LearningRateMonitor(log_momentum=True),
+        ModelSummary(max_depth=-1),
+    ]
 
     if config.enable_sample_game_generator:
         callbacks.append(SampleGameGenerator())
