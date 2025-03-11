@@ -1,12 +1,17 @@
 import abc
+import dataclasses
 import datetime
 import itertools
+import json
+import pathlib
 import random
 import typing
 
 import chess
 import chess.engine
 import chess.pgn
+import tqdm
+from colorama import Fore, just_fix_windows_console
 
 from elofish.glicko2 import glicko2
 
@@ -274,21 +279,229 @@ def play_match(
         player.close()
 
 
-def load_players(config: dict) -> tuple[TeacherPlayer, RatedPlayer]:  # type: ignore
-    if "mu" in config["teacher_player"]["start_rating"]:
-        raise ValueError("Cannot set teacher `mu`, it will be similar to student")
+PLAYER_CLASSES = {
+    "StockfishPlayer": StockfishPlayer,
+    "UCIPlayer": UCIPlayer,
+}
 
-    Teacher = globals()[config["teacher_player"]["class"]]
-    teacher_init = config["teacher_player"]["init"]
-    teacher_rating = glicko2.Rating(phi=config["teacher_player"]["start_rating"]["phi"])  # type: ignore
-    teacher_player: TeacherPlayer = Teacher(teacher_rating, **teacher_init)
 
-    Student = globals()[config["student_player"]["class"]]
-    student_init = config["student_player"]["init"]
-    student_start_rating = config["student_player"]["start_rating"]
-    student_rating = glicko2.Rating(  # type: ignore
-        mu=student_start_rating["mu"], phi=student_start_rating["phi"]
+@dataclasses.dataclass
+class Rating:
+    deviation: float
+    rating: float | None = None
+
+    @staticmethod
+    def from_dict(d: dict[str, typing.Any]) -> "Rating":
+        rating_conf = Rating(deviation=d["phi"], rating=d.get("mu"))
+        return rating_conf
+
+    def to_dict(self) -> dict[str, typing.Any]:
+        d = {"phi": self.deviation}
+        if self.rating is not None:
+            d["mu"] = self.rating
+        return d
+
+
+@dataclasses.dataclass
+class PlayerConfig:
+    player_class: str
+    start_rating: Rating
+    init: dict
+
+    @staticmethod
+    def from_dict(d: dict[str, typing.Any]) -> "PlayerConfig":
+        player_conf = PlayerConfig(
+            player_class=d["class"],
+            start_rating=Rating.from_dict(d["start_rating"]),
+            init=d["init"],
+        )
+        return player_conf
+
+    def to_dict(self) -> dict[str, typing.Any]:
+        return {
+            "class": self.player_class,
+            "start_rating": self.start_rating.to_dict(),
+            "init": self.init,
+        }
+
+    def load_player(self):
+        PlayerClass = PLAYER_CLASSES[self.player_class]
+        if self.start_rating.rating is not None:
+            rating = glicko2.Rating(
+                phi=self.start_rating.deviation,  # type: ignore
+                mu=self.start_rating.rating,  # type: ignore
+            )
+        else:
+            rating = glicko2.Rating(phi=int(self.start_rating.deviation))
+        player = PlayerClass(rating, **self.init)
+        return player
+
+
+@dataclasses.dataclass
+class MatchConfig:
+    max_games: int
+    min_phi: float
+    min_mu: float
+    teacher_player: PlayerConfig
+    student_player: PlayerConfig
+
+    @staticmethod
+    def from_file(path: pathlib.Path):
+        with path.open("r") as f:
+            config = MatchConfig.from_dict(json.load(f))
+        return config
+
+    @staticmethod
+    def from_dict(d: dict[str, typing.Any]) -> "MatchConfig":
+        config = MatchConfig(
+            max_games=d["max_games"],
+            min_phi=d["min_phi"],
+            min_mu=d["min_mu"],
+            teacher_player=PlayerConfig.from_dict(d["teacher_player"]),
+            student_player=PlayerConfig.from_dict(d["student_player"]),
+        )
+        return config
+
+    def to_dict(self) -> dict[str, typing.Any]:
+        return {
+            "max_games": self.max_games,
+            "min_phi": self.min_phi,
+            "min_mu": self.min_mu,
+            "teacher_player": self.teacher_player.to_dict(),
+            "student_player": self.student_player.to_dict(),
+        }
+
+
+@dataclasses.dataclass
+class EvaluationResult:
+    new_rating: int
+    new_deviation: int
+    report_dir: pathlib.Path
+
+
+def run_elo_evaluation(config: MatchConfig, enable_game_tick=False) -> EvaluationResult:
+    just_fix_windows_console()
+
+    env = glicko2.Glicko2()  # type: ignore
+    teacher_player: StockfishPlayer = config.teacher_player.load_player()
+    student_player: UCIPlayer = config.student_player.load_player()
+
+    start_datetime = datetime.datetime.now(datetime.timezone.utc)
+    dir_name = f"{start_datetime.strftime('%Y-%m-%d %H:%M')} {student_player.name}"
+
+    output_dir = pathlib.Path("reports") / dir_name
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    pgn_file = output_dir / "game.pgn"
+    pgn_output = pgn_file.open("wt", encoding="utf8")
+
+    report_file = output_dir / "report.txt"
+    report_output = report_file.open("wt", encoding="utf8")
+
+    logs_file = output_dir / "logs.txt"
+    logs_output = logs_file.open("wt", encoding="utf8")
+
+    config_file = output_dir / "config.json"
+    with config_file.open("w") as f:
+        json.dump(config.to_dict(), f, indent=4)
+
+    options_file = output_dir / "options.json"
+    json.dump(
+        [
+            teacher_player.dump_info(),
+            teacher_player.dump_options(),
+            student_player.dump_info(),
+            student_player.dump_options(),
+        ],
+        options_file.open("wt", encoding="utf8"),
     )
-    student_player = Student(student_rating, **student_init)
 
-    return teacher_player, student_player
+    report_output.write(f"Start date {start_datetime.strftime('%Y-%m-%d')}\n")
+    report_output.write(f"Start time {start_datetime.strftime('%H:%M')}\n")
+    report_output.write(
+        f"Initial Rating {student_player.rating.mu} ({student_player.rating.phi})\n"
+    )
+
+    wins = 0
+    draws = 0
+    losses = 0
+
+    try:
+        for game in tqdm.tqdm(
+            play_match(
+                env,
+                student_player,
+                teacher_player,
+                max_games=config.max_games,
+                min_phi=config.min_phi,
+                min_mu=config.min_mu,
+                game_tick=enable_game_tick,
+            )
+        ):
+            # print(game, end="\n\n", flush=True)
+            print(game, end="\n\n", flush=True, file=pgn_output)
+
+            round_ind = game.headers["Round"]
+            elo = game.headers[
+                "WhiteElo"
+            ]  # Doesn't matter white or black since Teacher copycats Student
+            student_rating_deviation = game.headers["StudentRatingDeviation"]
+            student_nodes = game.headers["AvgStudentNodes"]
+            teacher_nodes = game.headers["AvgTeacherNodes"]
+
+            result = game.headers["Result"]
+            student_is_white = game.headers["White"] == student_player.fullname
+
+            if (
+                student_is_white
+                and result == "1-0"
+                or not student_is_white
+                and result == "0-1"
+            ):
+                result_string = f"{Fore.GREEN}Win{Fore.RESET}"
+                wins += 1
+            elif (
+                student_is_white
+                and result == "0-1"
+                or not student_is_white
+                and result == "1-0"
+            ):
+                result_string = f"{Fore.RED}Loss{Fore.RESET}"
+                losses += 1
+            else:
+                result_string = f"{Fore.YELLOW}Draw{Fore.RESET}"
+                draws += 1
+
+            termination = game.headers["TerminationEnum"]
+
+            game_log = (
+                f"{Fore.BLUE}{round_ind}{Fore.RESET}:"
+                f" {result_string} by {termination}"
+                f", Elo = {elo} ({student_rating_deviation})"
+                f", {Fore.MAGENTA}StudentSpeed{Fore.RESET} = {student_nodes} n/ply"
+                f", {Fore.CYAN}TeacherSpeed{Fore.RESET} = {teacher_nodes} n/ply"
+            )
+
+            tqdm.tqdm.write(game_log)
+            print(game_log, file=logs_output)
+
+    except KeyboardInterrupt:
+        print(f"{Fore.YELLOW}Elo estimator early stopping{Fore.RESET}")
+
+    end_datetime = datetime.datetime.now(datetime.timezone.utc)
+
+    report_output.write(f"Wins {wins}\n")
+    report_output.write(f"Draws {draws}\n")
+    report_output.write(f"Losses {losses}\n")
+    report_output.write(f"End time {end_datetime.strftime('%H:%M')}\n")
+    report_output.write(f"Time taken {(end_datetime - start_datetime)}\n")
+    report_output.write(
+        f"Final rating {student_player.rating.mu} ({student_player.rating.phi})\n"
+    )
+
+    print(f"{Fore.GREEN}Result saved at {output_dir}{Fore.RESET}")
+    return EvaluationResult(
+        student_player.rating.mu,
+        student_player.rating.phi,
+        output_dir,
+    )

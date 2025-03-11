@@ -27,7 +27,17 @@
     "cploss_batch_size": 1024,
     "cploss_positions": 3000,
 
-    "log_every_n_steps": 50,
+    "enable_elofish": true,
+    "elofish_games_count": 1,
+    "elofish_step_freq": 5,
+    "elofish_time_limit": 0.5,
+    "elofish_rating": 1400,
+    "elofish_student_deviation": 350.0,
+    "elofish_student_command_prefix": ["python", "-m", "dinora", "--model", "alphanet"],
+    "elofish_teacher_command": ["stockfish"],
+    "elofish_upload_reports": true,
+
+    "log_every_n_steps": 5,
     "val_check_interval": 0.33,
 
     "limit_train_batches": 50,

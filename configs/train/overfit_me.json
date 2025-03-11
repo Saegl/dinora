@@ -27,6 +27,16 @@
     "cploss_batch_size": 1024,
     "cploss_positions": 3000,
 
+    "enable_elofish": false,
+    "elofish_games_count": 10,
+    "elofish_step_freq": 10000,
+    "elofish_time_limit": 0.5,
+    "elofish_rating": 1400,
+    "elofish_student_deviation": 350.0,
+    "elofish_student_command_prefix": [],
+    "elofish_teacher_command": [],
+    "elofish_upload_reports": false,
+
     "log_every_n_steps": 1,
     "val_check_interval": 0.0,
 

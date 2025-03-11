@@ -21,6 +21,7 @@ from lightning.pytorch.tuner.tuning import Tuner
 import wandb
 from dinora import PROJECT_ROOT
 from train.datamodules import WandbDataModule
+from train.elofish_callback import ElofishRatingEstimator
 from train.train_callbacks import (
     BoardsEvaluator,
     CPLoss,
@@ -81,6 +82,16 @@ class Config:
     cploss_label: str
     cploss_batch_size: int
     cploss_positions: int
+
+    enable_elofish: bool
+    elofish_games_count: int
+    elofish_step_freq: int
+    elofish_time_limit: float
+    elofish_rating: float
+    elofish_student_deviation: float
+    elofish_student_command_prefix: list[str]
+    elofish_teacher_command: list[str]
+    elofish_upload_reports: bool
 
     log_every_n_steps: int
 
@@ -186,6 +197,20 @@ def fit(config: Config) -> None:
                 config.cploss_label,
                 config.cploss_positions,
                 config.cploss_batch_size,
+            )
+        )
+
+    if config.enable_elofish:
+        callbacks.append(
+            ElofishRatingEstimator(
+                config.elofish_games_count,
+                config.elofish_step_freq,
+                config.elofish_time_limit,
+                config.elofish_rating,
+                config.elofish_student_deviation,
+                config.elofish_student_command_prefix,
+                config.elofish_teacher_command,
+                config.elofish_upload_reports,
             )
         )
 
