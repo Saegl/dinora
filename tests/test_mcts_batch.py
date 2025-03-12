@@ -33,15 +33,6 @@ def test_collect_batch():
     batch_boards, batch_leaves = collect_batch(root, board, 3.0, 16, 1, 1)
 
     assert len(batch_leaves) == len(batch_boards), "Sanity check"
-    for batch_leaf in batch_leaves:
-        if batch_leaf.virtual_visits != 1:
-            raise Exception(
-                f"Selected {batch_leaf} more than once {batch_leaf.virtual_visits}"
-            )
-
-    print(f"Batch size {len(batch_boards)}")
-    print()
-
     check_no_duplicate_leaves(batch_leaves)
 
 
