@@ -2,6 +2,7 @@ import chess
 
 from dinora.models import model_selector
 from dinora.search.mcts_batch.mcts_batch import (
+    MctsParams,
     Node,
     collect_batch,
     expand,
@@ -9,6 +10,7 @@ from dinora.search.mcts_batch.mcts_batch import (
 )
 
 evaluator = model_selector("handcrafted", None, None)
+DEFAULT_PARAMS = MctsParams()
 
 
 def check_no_virtual_visits(node: Node):
@@ -26,7 +28,7 @@ def test_collect_batch():
     board = chess.Board()
     priors, value = evaluator.evaluate(board)
     root = Node(None, -value, 1.0, chess.Move.null())
-    expand(root, priors)
+    expand(root, priors, DEFAULT_PARAMS.fpu)
 
     batch_boards, batch_leaves = collect_batch(root, board, 3.0, 16, 1, 1)
 
@@ -47,8 +49,8 @@ def test_process_batch():
     board = chess.Board()
     priors, value = evaluator.evaluate(board)
     root = Node(None, -value, 1.0, chess.Move.null())
-    expand(root, priors)
+    expand(root, priors, DEFAULT_PARAMS.fpu)
 
     batch_boards, batch_leaves = collect_batch(root, board, 3.0, 16, 1, 1)
-    process_batch(batch_boards, batch_leaves, evaluator)
+    process_batch(batch_boards, batch_leaves, evaluator, DEFAULT_PARAMS.fpu)
     check_no_virtual_visits(root)
