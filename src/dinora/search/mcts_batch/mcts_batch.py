@@ -128,7 +128,9 @@ def collect_batch(
     for _ in range(batch_size):
         leaf_board = board.copy()
         leaf = select(root, leaf_board, cpuct, virtual_visits)
-        if leaf.virtual_visits > virtual_visits:
+
+        leaf_already_taken = leaf.virtual_visits > virtual_visits
+        if leaf_already_taken:
             collisions += 1
 
             if collisions >= max_collisions:
@@ -137,8 +139,7 @@ def collect_batch(
 
         terminal_value = terminal_solver(leaf_board)
         if terminal_value is not None:
-            value = terminal_value
-            backup(leaf, value)
+            backup(leaf, terminal_value)
             continue
 
         batch_boards.append(leaf_board)
