@@ -46,9 +46,23 @@ def load_default() -> BaseModel:
     raise Exception("No available models :-(")
 
 
+def guess_model_from_weights(weights_path: pathlib.Path):
+    if str(weights_path).endswith(".ckpt"):
+        return "alphanet"
+    elif str(weights_path).endswith(".onnx"):
+        return "onnx"
+    else:
+        raise Exception("Unknown weights file extension")
+
+
 def model_selector(
     model: str | None, weights_path: pathlib.Path | None, device: str | None
 ) -> BaseModel:
+    if model is None and weights_path is not None:
+        return model_selector(
+            guess_model_from_weights(weights_path), weights_path, device
+        )
+
     if model is None:
         return load_default()
 
