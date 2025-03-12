@@ -1,7 +1,7 @@
 import chess
 import pylru
 
-from dinora.models.base import BaseModel, Priors, StateValue
+from dinora.models.base import BaseModel, Evaluation, Priors, StateValue
 
 
 class CachedModel(BaseModel):
@@ -34,6 +34,9 @@ class CachedModel(BaseModel):
             policy, value = self.model.evaluate(board)
             self.cache[epd] = [policy, value]
             return policy, value
+
+    def evaluate_batch(self, boards: list[chess.Board]) -> list[Evaluation]:
+        raise Exception("Batch evaluation is not currently supported on cached model")
 
     def reset(self) -> None:
         self.clear()
