@@ -89,6 +89,7 @@ def model_selector(  # noqa: C901
         # TODO: Do I really need `weights_only`?
         alphanet = torch.load(weights_path, map_location=device, weights_only=False)
         alphanet = alphanet.to(device)
+        alphanet.eval()
         return alphanet  # type: ignore
 
     elif model == "onnx":

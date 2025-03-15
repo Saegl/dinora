@@ -88,7 +88,9 @@ class ElofishRatingEstimator(Callback):
         weights_path = Path("reports/models/")
         weights_path.mkdir(parents=True, exist_ok=True)
         weights_path = weights_path / "elofish.ckpt"
+        pl_module.eval()
         torch.save(pl_module, weights_path)
+        pl_module.train()
 
         if self.current_rating <= self.min_rating:
             self.current_rating = self.min_rating + 1
