@@ -2,6 +2,7 @@ import pathlib
 
 from dinora import PROJECT_ROOT
 from dinora.models.base import BaseModel, Priors, StateValue
+from dinora.models.empty_model import EmptyModel
 from dinora.models.handcrafted import DummyModel
 
 DEFAULT_ALPHANET_WEIGHTS_FILENAME = "alphanet_classic.ckpt"
@@ -14,6 +15,7 @@ AVAILABLE_MODELS = [
     "alphanet",
     "onnx",
     "handcrafted",
+    "empty",
 ]
 
 DEFAULT_MODELS = [
@@ -55,7 +57,7 @@ def guess_model_from_weights(weights_path: pathlib.Path):
         raise Exception("Unknown weights file extension")
 
 
-def model_selector(
+def model_selector(  # noqa: C901
     model: str | None, weights_path: pathlib.Path | None, device: str | None
 ) -> BaseModel:
     if model is None and weights_path is not None:
@@ -96,6 +98,8 @@ def model_selector(
 
     elif model == "handcrafted":
         return DummyModel()
+    elif model == "empty":
+        return EmptyModel()
     else:
         raise ValueError("Unknown model name")
 
