@@ -8,7 +8,13 @@ import torch
 from lightning.pytorch.callbacks import Callback
 
 import wandb
-from elofish.elofish import MatchConfig, PlayerConfig, Rating, run_elo_evaluation
+from elofish.elofish import (
+    EvaluationResult,
+    MatchConfig,
+    PlayerConfig,
+    Rating,
+    run_elo_evaluation,
+)
 
 
 class ElofishRatingEstimator(Callback):
@@ -36,6 +42,41 @@ class ElofishRatingEstimator(Callback):
         self.min_start_deviation = 150
         self.current_id = 0
         self.current_deviation = self.student_deviation
+
+    def prepare_weights(self, pl_module: pl.LightningModule):
+        weights_dir = Path("reports/models/")
+        weights_dir.mkdir(parents=True, exist_ok=True)
+        weights_path = weights_dir / "elofish.ckpt"
+        pl_module.eval()
+        torch.save(pl_module, weights_path)
+        pl_module.train()
+        return weights_path
+
+    def prepare_ratings(self):
+        if self.current_deviation < self.min_start_deviation:
+            self.current_deviation = self.min_start_deviation
+
+        start_from_scratch = self.current_rating <= self.min_rating
+        if start_from_scratch:
+            self.current_rating = self.min_rating + 1
+            self.current_deviation = self.student_deviation
+
+    def upload_metrics(self, trainer: pl.Trainer, evalres: EvaluationResult):
+        metrics = {
+            "elofish/rating": self.current_rating,
+            "elofish/deviation": self.current_deviation,
+        }
+        print(f"Elofish results: {metrics}")
+
+        if trainer.logger is not None:
+            trainer.logger.log_metrics(metrics)
+
+        if self.upload_reports and wandb.run is not None:
+            elofish_report = wandb.Artifact(
+                name=f"elofish{self.current_id}", type="elofish-report"
+            )
+            elofish_report.add_dir(str(evalres.report_dir.absolute()))
+            wandb.log_artifact(elofish_report)
 
     def bulid_match_config(self, weights_path: Path) -> MatchConfig:
         student_command = self.student_command_prefix + [
@@ -85,40 +126,17 @@ class ElofishRatingEstimator(Callback):
 
         start_time = time.time()
         print(f"Elofish {self.current_id} started")
-        weights_path = Path("reports/models/")
-        weights_path.mkdir(parents=True, exist_ok=True)
-        weights_path = weights_path / "elofish.ckpt"
-        pl_module.eval()
-        torch.save(pl_module, weights_path)
-        pl_module.train()
 
-        if self.current_rating <= self.min_rating:
-            self.current_rating = self.min_rating + 1
-            self.current_deviation = self.student_deviation
-
+        weights_path = self.prepare_weights(pl_module)
+        self.prepare_ratings()
         match_config = self.bulid_match_config(weights_path)
         pprint(match_config)
-        evalresult = run_elo_evaluation(match_config)
+        evalres = run_elo_evaluation(match_config)
         self.current_rating, self.current_deviation = (
-            float(evalresult.new_rating),
-            float(evalresult.new_deviation),
+            float(evalres.new_rating),
+            float(evalres.new_deviation),
         )
-
-        metrics = {
-            "elofish/rating": self.current_rating,
-            "elofish/deviation": self.current_deviation,
-        }
-        print(f"Elofish results: {metrics}")
-
-        if trainer.logger is not None:
-            trainer.logger.log_metrics(metrics)
-
-        if self.upload_reports and wandb.run is not None:
-            elofish_report = wandb.Artifact(
-                name=f"elofish{self.current_id}", type="elofish-report"
-            )
-            elofish_report.add_dir(str(evalresult.report_dir.absolute()))
-            wandb.log_artifact(elofish_report)
+        self.upload_metrics(trainer, evalres)
 
         self.current_id += 1
         print(
