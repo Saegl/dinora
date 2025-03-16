@@ -99,9 +99,17 @@ class ValidationCheckpointer(Callback):
 
     def save_model(self, pl_module: pl.LightningModule, label: str) -> None:
         self.saves_counter += 1
+        is_module_training = pl_module.training
+
         filepath = pathlib.Path(f"{label}.ckpt").absolute()
 
+        if is_module_training:
+            pl_module.eval()
+
         torch.save(pl_module, filepath)
+
+        if is_module_training:
+            pl_module.train()
 
         import wandb
 
