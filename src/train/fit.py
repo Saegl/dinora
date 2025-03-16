@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 import lightning.pytorch as pl
 import torch
+import wandb
 from lightning.pytorch.callbacks import (
     Callback,
     LearningRateMonitor,
@@ -18,7 +19,6 @@ from lightning.pytorch.callbacks import (
 from lightning.pytorch.loggers import WandbLogger
 from lightning.pytorch.tuner.tuning import Tuner
 
-import wandb
 from dinora import PROJECT_ROOT
 from train.datamodules import WandbDataModule
 from train.elofish_callback import ElofishRatingEstimator
@@ -26,6 +26,7 @@ from train.train_callbacks import (
     BoardsEvaluator,
     CPLoss,
     SampleGameGenerator,
+    TrainerCheckpointer,
     ValidationCheckpointer,
 )
 
@@ -59,6 +60,8 @@ class Config:
     max_time: dict | None  # type: ignore
     max_epochs: int  # set -1 to ignore
     dataset_label: str
+    trainer_ckpt_label: str | None
+
     z_weight: float
     q_weight: float
     value_loss_weight: float
@@ -77,6 +80,7 @@ class Config:
     enable_sample_game_generator: bool
     enable_boards_evaluator: bool
     enable_validation_checkpointer: bool
+    enable_trainer_checkpointer: bool
 
     enable_cploss: bool
     cploss_label: str
@@ -152,7 +156,7 @@ def get_model(config: Config) -> pl.LightningModule:
         raise ValueError("This model is not supported")
 
 
-def fit(config: Config) -> None:
+def fit(config: Config) -> None:  # noqa: C901
     run = wandb.init(project="dinora-chess", dir=WANDB_LOGS_DIR)
     pprint(config)
 
@@ -190,6 +194,9 @@ def fit(config: Config) -> None:
             train_time_interval=checkpoint_train_time_interval,
         )
         callbacks.append(mc)
+
+    if config.enable_trainer_checkpointer:
+        callbacks.append(TrainerCheckpointer())
 
     if config.enable_cploss:
         callbacks.append(
@@ -246,9 +253,19 @@ def fit(config: Config) -> None:
     if config.tune_learning_rate:
         tuner.lr_find(model, datamodule=datamodule)
 
+    ckpt_path = None
+
+    if config.trainer_ckpt_label:
+        ckpt_dir = pathlib.Path()
+        ckpt_path = ckpt_dir / "trainer.ckpt"
+
+        file = run.use_artifact(config.trainer_ckpt_label)
+        file.download(root=ckpt_dir)
+
     trainer.fit(
         model=model,
         datamodule=datamodule,
+        ckpt_path=ckpt_path,
     )
     run.finish()
 

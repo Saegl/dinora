@@ -9,10 +9,10 @@ import chess.svg
 import lightning.pytorch as pl
 import numpy as np
 import torch
+import wandb
 from lightning.pytorch.callbacks import Callback
 from PIL import Image
 
-import wandb
 from cploss.evaluate import calc_policy_cploss, calc_value_cploss, load_cploss
 from dinora import PROJECT_ROOT
 from train.handmade_val_dataset.dataset import POSITIONS
@@ -128,6 +128,18 @@ class ValidationCheckpointer(Callback):
 
     def on_train_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
         self.save_model(pl_module, "valid-state-final")
+
+
+class TrainerCheckpointer(Callback):
+    def on_train_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
+        ckpt_filepath = pathlib.Path("trainer.ckpt")
+        trainer.save_checkpoint(ckpt_filepath)
+
+        final_state = wandb.Artifact(
+            name=f"trainer_checkpoint_{trainer.global_step}", type="trainer_checkpoint"
+        )
+        final_state.add_file(str(ckpt_filepath.absolute()))
+        wandb.log_artifact(final_state)
 
 
 class CPLoss(Callback):

@@ -3,6 +3,8 @@
     "max_time": null,
     "max_epochs": -1,
     "dataset_label": "saegl/dinora-chess/saegl-2023:latest",
+    "trainer_ckpt_label": null,
+
     "z_weight": 0.5,
     "q_weight": 0.5,
     "value_loss_weight": 0.1,
@@ -21,6 +23,7 @@
     "enable_sample_game_generator": true,
     "enable_boards_evaluator": true,
     "enable_validation_checkpointer": true,
+    "enable_trainer_checkpointer": false,
 
     "enable_cploss": true,
     "cploss_label": "saegl/dinora-chess/elite_cploss:latest",
