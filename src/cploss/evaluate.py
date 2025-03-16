@@ -4,6 +4,7 @@ import pathlib
 
 import chess
 import numpy as np
+import numpy.typing as npt
 import torch
 
 from dataset.encoders.compact_board_tensor import compact_state_to_board_tensor
@@ -15,10 +16,12 @@ from dinora.search.stoppers import MoveTime, NodesCount
 
 device = "cuda"
 
+npf64 = npt.NDArray[np.float64]
 
-def calc_policy_cploss(model, positions, policy_boards, batch_size: int) -> float:
-    total_cploss = 0
+
+def calc_policy_cploss(model, positions, policy_boards, batch_size: int) -> npf64:
     total_positions = len(positions)
+    move_losses = []
 
     for batch_start in range(0, total_positions, batch_size):
         batch_end = batch_start + batch_size
@@ -32,7 +35,6 @@ def calc_policy_cploss(model, positions, policy_boards, batch_size: int) -> floa
         with torch.no_grad():
             policy, _ = model(boards_tensor)
 
-        batch_cploss = 0
         for i, position in enumerate(batch_positions):
             flip = position["flip"]
             uci_moves = list(position["actions"])
@@ -45,16 +47,13 @@ def calc_policy_cploss(model, positions, policy_boards, batch_size: int) -> floa
             )
             best_move_index = move_logits.argmax()
             best_move = uci_moves[best_move_index]
-            cploss = position["actions"][best_move]
+            move_loss = position["actions"][best_move]
+            move_losses.append(move_loss)
 
-            batch_cploss += cploss
-
-        total_cploss += batch_cploss
-
-    return total_cploss / total_positions
+    return np.array(move_losses)
 
 
-def calc_value_cploss(model, positions, value_boards, batch_size: int) -> float:
+def calc_value_cploss(model, positions, value_boards, batch_size: int) -> npf64:
     def load_batch(batch_offset: int):
         value_boards_np = np.array(
             [
@@ -92,7 +91,7 @@ def calc_value_cploss(model, positions, value_boards, batch_size: int) -> float:
 
         return np.concatenate([prefix, get_value_positions(batch_offset, pos_end)])
 
-    total_cploss = 0
+    move_losses = []
     moves_offset = 0
     for i in range(len(positions)):
         position = positions[i]
@@ -109,28 +108,28 @@ def calc_value_cploss(model, positions, value_boards, batch_size: int) -> float:
         assert len(moves_uci_seq) == len(values)
 
         move_loss = position["actions"][best_move]
-        total_cploss += move_loss
+        move_losses.append(move_loss)
 
         moves_offset += len(moves_uci_seq)
 
-    return total_cploss / len(positions)
+    return np.array(move_losses)
 
 
 def calc_engine_cploss(
     model: AlphaNet, positions: dict, searcher: str, stopper_creator, params
-) -> float:
+) -> npf64:
     engine = Engine(searcher=searcher)
     engine._model = model
     engine.searcher.update_from_dict(params)
 
-    total_cploss = 0
+    move_losses = []
     for position in positions:
         board = chess.Board(fen=position["fen"])
         move = engine.get_best_move(board, stopper=stopper_creator())
         move_loss = position["actions"][move.uci()]
-        total_cploss += move_loss
+        move_losses.append(move_loss)
 
-    return total_cploss / len(positions)
+    return np.array(move_losses)
 
 
 def make_stopper_creator(movetime=None, nodes=None):
@@ -159,6 +158,7 @@ def main():
     argparser.add_argument("model_path")
     argparser.add_argument("batch_size")
     argparser.add_argument("loaddir")
+    argparser.add_argument("--enable_engine", default=False)
     argparser.add_argument("--max_positions", default=99_999, type=int)
     argparser.add_argument("--searcher", default="auto")
     argparser.add_argument("--movetime", default=1.0, type=float)
@@ -174,10 +174,6 @@ def main():
     nodes = args.nodes
     params = {}  # TODO: pass custom params from somewhere?
 
-    stopper_creator = make_stopper_creator(movetime, nodes)
-
-    print(f"Chosen Engine {searcher} {stopper_creator()}")
-
     print("Model loading")
     model = model_selector("alphanet", model_path, "cuda")
     print("Model loaded")
@@ -189,16 +185,55 @@ def main():
 
     print(f"Positions: {len(positions)}")
 
-    value_cploss = calc_value_cploss(model, positions, value_boards, batch_size)
-    print("Value loss", value_cploss)
-
     policy_cploss = calc_policy_cploss(model, positions, policy_boards, batch_size)
-    print("Policy loss", policy_cploss)
+    policy_percentiles = np.percentile(policy_cploss, [10, 25, 50, 75, 90])
+    print("Policy loss:")
+    print(f"\tAverage: {np.mean(policy_cploss):.3f}")
+    print(f"\tStd Dev: {np.std(policy_cploss):.3f}")
+    print(f"\tMax: {np.max(policy_cploss):.3f}")
+    print(f"\tTop 0cp: {np.mean(policy_cploss <= 0.0) * 100:.3f}%")
+    print(f"\tTop 50cp: {np.mean(policy_cploss <= 50.0) * 100:.3f}%")
+    print(f"\t10th Percentile: {policy_percentiles[0]:.3f}")
+    print(f"\t25th Percentile: {policy_percentiles[1]:.3f}")
+    print(f"\t50th Percentile: {policy_percentiles[2]:.3f}")
+    print(f"\t75th Percentile: {policy_percentiles[3]:.3f}")
+    print(f"\t90th Percentile: {policy_percentiles[4]:.3f}")
+    print()
 
-    engine_cploss = calc_engine_cploss(
-        model, positions, searcher, stopper_creator, params
-    )
-    print("Engine loss", engine_cploss)
+    value_cploss = calc_value_cploss(model, positions, value_boards, batch_size)
+    val_percentiles = np.percentile(value_cploss, [10, 25, 50, 75, 90])
+    print("Value loss:")
+    print(f"\tAverage: {np.mean(value_cploss):.3f}")
+    print(f"\tStd Dev: {np.std(value_cploss):.3f}")
+    print(f"\tMax: {np.max(value_cploss):.3f}")
+    print(f"\tTop 0cp: {np.mean(value_cploss <= 0.0) * 100:.3f}%")
+    print(f"\tTop 50cp: {np.mean(value_cploss <= 50.0) * 100:.3f}%")
+    print(f"\t10th Percentile: {val_percentiles[0]:.3f}")
+    print(f"\t25th Percentile: {val_percentiles[1]:.3f}")
+    print(f"\t50th Percentile: {val_percentiles[2]:.3f}")
+    print(f"\t75th Percentile: {val_percentiles[3]:.3f}")
+    print(f"\t90th Percentile: {val_percentiles[4]:.3f}")
+    print()
+
+    if args.enable_engine:
+        stopper_creator = make_stopper_creator(movetime, nodes)
+        print(f"Chosen Engine {searcher} {stopper_creator()}")
+        engine_cploss = calc_engine_cploss(
+            model, positions, searcher, stopper_creator, params
+        )
+        engine_percentiles = np.percentile(engine_cploss, [10, 25, 50, 75, 90])
+        print("Engine loss:")
+        print(f"\tAverage: {np.mean(engine_cploss):.3f}")
+        print(f"\tStd Dev: {np.std(engine_cploss):.3f}")
+        print(f"\tMax: {np.max(engine_cploss):.3f}")
+        print(f"\tTop 0cp: {np.mean(engine_cploss <= 0.0) * 100:.3f}%")
+        print(f"\tTop 50cp: {np.mean(engine_cploss <= 50.0) * 100:.3f}%")
+        print(f"\t10th Percentile: {engine_percentiles[0]:.3f}")
+        print(f"\t25th Percentile: {engine_percentiles[1]:.3f}")
+        print(f"\t50th Percentile: {engine_percentiles[2]:.3f}")
+        print(f"\t75th Percentile: {engine_percentiles[3]:.3f}")
+        print(f"\t90th Percentile: {engine_percentiles[4]:.3f}")
+        print()
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ WIP: this is pretty much in draft state, don't expect meaningful results
 import random
 from pathlib import Path
 
+import numpy as np
 import optuna
 
 from cploss.evaluate import calc_engine_cploss, load_cploss, make_stopper_creator
@@ -38,8 +39,16 @@ class CPLossObjective:
             "max_collisions": max_collisions,
         }
 
-        return calc_engine_cploss(
-            self.model, self.positions, "mcts_batch", self.stopper_creator, params
+        return float(
+            np.mean(
+                calc_engine_cploss(
+                    self.model,
+                    self.positions,
+                    "mcts_batch",
+                    self.stopper_creator,
+                    params,
+                )
+            )
         )
 
 

@@ -7,6 +7,7 @@ import cairosvg
 import chess
 import chess.svg
 import lightning.pytorch as pl
+import numpy as np
 import torch
 from lightning.pytorch.callbacks import Callback
 from PIL import Image
@@ -165,8 +166,16 @@ class CPLoss(Callback):
             pl_module, self.positions, self.value_boards, self.batch_size
         )
         metrics = {
-            "validation/policy_cploss": policy_cploss,
-            "validation/value_cploss": value_cploss,
+            "cploss/policy_mean": float(np.mean(policy_cploss)),
+            "cploss/policy_std": float(np.std(policy_cploss)),
+            "cploss/policy_max": float(np.max(policy_cploss)),
+            "cploss/policy_top0cp": float(np.mean(policy_cploss <= 0.0) * 100),
+            "cploss/policy_top50cp": float(np.mean(policy_cploss <= 50.0) * 100),
+            "cploss/value_mean": float(np.mean(value_cploss)),
+            "cploss/value_std": float(np.std(value_cploss)),
+            "cploss/value_max": float(np.max(value_cploss)),
+            "cploss/value_top0cp": float(np.mean(value_cploss <= 0.0) * 100),
+            "cploss/value_top50cp": float(np.mean(value_cploss <= 50.0) * 100),
         }
         print(f"CPLoss: {metrics}")
         trainer.logger.log_metrics(metrics)
