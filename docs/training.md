@@ -1,3 +1,11 @@
+### Warning  
+The dataset **`saegl/dinora-chess/traindocs:v0`** mentioned in this documentation is **deprecated**.  
+
+Using it will **silently fail to train**.  
+
+To proceed, **create a new dataset** or **checkout to GitHub tag `v0.2.3`** for a working version.  
+This documentation will be updated in the next release.  
+
 # Training
 
 For training you need [wandb account](https://wandb.ai), to store various
