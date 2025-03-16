@@ -45,41 +45,50 @@ with open(args.pgn) as pgn_file:
                 break
 
             moves_uci_seq = [move.uci() for move in moves_seq]
+            current_output_value_boards = []
+
+            # filter out positions with mate
+            filter_out = False
 
             for legal_move in moves_seq:
                 board.push(legal_move)
                 info = engine.analyse(board, chess.engine.Limit(nodes=nodes))
                 flip = not board.turn
-                output_value_boards.append(board_to_compact_state(board, flip))
+                current_output_value_boards.append(board_to_compact_state(board, flip))
                 board.pop()
 
                 assert "score" in info
-                # TODO: filter out positions with mate or not in range (-500, +500)
-                score = info["score"].relative.score(mate_score=3000)
+                score = info["score"].relative.score()
+                if score is None:  # mate
+                    filter_out = True
+                    break
                 actions.append((score, legal_move.uci()))
 
-            best_score = min(actions)[0]
+            if not filter_out:
+                best_score = min(actions)[0]
 
-            normalized_actions = {move: score - best_score for score, move in actions}
-
-            flip = not board.turn
-
-            output_policy_boards.append(board_to_compact_state(board, flip))
-            output_positions.append(
-                {
-                    "flip": flip,
-                    "moves_uci_seq": moves_uci_seq,
-                    "actions": normalized_actions,
-                    "fen": board.fen(),
+                normalized_actions = {
+                    move: score - best_score for score, move in actions
                 }
-            )
 
-            if pos % 100 == 0:
-                print(pos)
+                flip = not board.turn
 
-            pos += 1
-            if pos >= positions:
-                break
+                output_value_boards.extend(current_output_value_boards)
+                output_policy_boards.append(board_to_compact_state(board, flip))
+                output_positions.append(
+                    {
+                        "flip": flip,
+                        "moves_uci_seq": moves_uci_seq,
+                        "actions": normalized_actions,
+                        "fen": board.fen(),
+                    }
+                )
+                if pos % 100 == 0:
+                    print(pos)
+
+                pos += 1
+                if pos >= positions:
+                    break
 
             board.push(move)
 
