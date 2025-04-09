@@ -9,6 +9,8 @@ export PYTHONSTARTUP=bin/rc.py
 Or run with `python -i bin/rc.py`
 """
 
+print("Loading RC...")
+
 import pathlib
 import sys
 from pathlib import Path
@@ -17,6 +19,7 @@ import chess
 import numpy as np
 import torch
 from chess import Board
+import lightning.pytorch as pl
 
 from dataset.encoders.compact_board_tensor import (
     board_to_compact_state,
@@ -63,4 +66,4 @@ fens = [
 
 boards = [Board(fen=fen) for fen in fens]
 
-print("rc.py loaded")
+print("RC loaded")
