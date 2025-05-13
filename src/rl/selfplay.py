@@ -1,9 +1,12 @@
 import multiprocessing as mp
+import multiprocessing.queues as mpqt
 import os
 import pathlib
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from multiprocessing.shared_memory import SharedMemory
+from typing import Any
 
 import chess
 import chess.pgn
@@ -13,12 +16,13 @@ import numpy.typing as npt
 from dinora.encoders.board_tensor import boards_to_tensor
 from dinora.encoders.policy import legal_policy
 from dinora.models.alphanet import AlphaNet
-from dinora.models.base import Priors, StateValue
+from dinora.models.base import Evaluation, Priors, StateValue
 from dinora.search.mcts import mcts
 from dinora.search.noise import apply_noise
 from rl.replay_buffer import ReplayBuffer
 
 npf32 = npt.NDArray[np.float32]
+mp_value = Any  # `multiprocessing.Value` cannot be used directly
 
 GPU_WORKER_LOG_TEMPLATE = """\
 GPU WORKER INFO {cuda_device}
@@ -42,23 +46,23 @@ Plies {plies}
 
 class Timers:
     def __init__(self, log_interval: int, *names: str):
-        self.total_time = {}
+        self.total_time: dict[str, float] = {}
         self.log_interval = log_interval
         for name in names:
             self.add(name)
         self.last_log_time = time.time()
 
-    def add(self, name):
+    def add(self, name: str) -> None:
         self.total_time[name] = 0.0
 
     @contextmanager
-    def timing_section(self, name: str):
+    def timing_section(self, name: str) -> Iterator[None]:
         start_time = time.time()
         yield
         time_took = time.time() - start_time
         self.total_time[name] += time_took
 
-    def log_interval_tick(self):
+    def log_interval_tick(self) -> bool:
         current_time = time.time()
         if current_time - self.last_log_time >= self.log_interval:
             self.last_log_time = time.time()
@@ -72,7 +76,7 @@ class Timers:
             lines.append(f"{name} time: {value:.3f} seconds")
         return "\n".join(lines)
 
-    def reset(self):
+    def reset(self) -> None:
         self.total_time = {name: 0.0 for name in self.total_time}
 
 
@@ -94,22 +98,22 @@ def sample_softmax_move(node: mcts.Node) -> chess.Move:
         probs = adjusted_visits / adjusted_visits.sum()
 
     move = np.random.choice(moves, p=probs)  # type: ignore
+    assert isinstance(move, chess.Move)
     return move
 
 
 class Game:
-    def __init__(self, nodes_per_move: int, cpuct: float, opening_noise_moves: int):
-        self.root = None
-        self.leaf = None
+    def __init__(self, search_cfg: mcts.MctsParams, nodes_per_move: int):
+        self.root: mcts.Node | None = None
+        self.leaf: mcts.Node | None = None
         self.board = chess.Board()
-        self.played_moves = []
+        self.played_moves: list[chess.Move] = []
+        self.search_cfg = search_cfg
         self.nodes_per_move = nodes_per_move
-        self.cpuct = cpuct
-        self.opening_noise_moves = opening_noise_moves
 
-    def advance(self):
+    def advance(self) -> None:
         assert self.root
-        if self.board.ply() < 2 * self.opening_noise_moves:
+        if self.board.ply() < 2 * self.search_cfg.opening_noise_moves:
             move = sample_softmax_move(self.root)
         else:
             move = mcts.most_visited_move(self.root)
@@ -118,7 +122,7 @@ class Game:
         self.root = self.root.children[move]
         self.root.parent = None
 
-    def root_ended(self):
+    def root_ended(self) -> bool:
         terminal_value = mcts.terminal_solver(self.board)
         game_too_long = self.board.ply() >= 256 * 2
         return terminal_value is not None or game_too_long
@@ -134,11 +138,12 @@ class Game:
 
         leaf_selected = False
         while not leaf_selected:
-            self.leaf = mcts.select_leaf(self.root, self.board, self.cpuct)
+            self.leaf = mcts.select_leaf(self.root, self.board, self.search_cfg.cpuct)
             terminal_value = mcts.terminal_solver(self.board)
             if terminal_value is not None:
-                priors, value = {}, terminal_value
-                mcts.expand(self.leaf, priors)
+                priors: Priors = {}
+                value = terminal_value
+                mcts.expand(self.leaf, priors, self.search_cfg.fpu)
                 mcts.backup(self.leaf, self.board, value)
 
                 if self.root.visits > self.nodes_per_move:
@@ -157,7 +162,7 @@ class Game:
         value: StateValue,
         dirichlet_alpha: float,
         noise_eps: float,
-    ):
+    ) -> None:
         if self.root is None:
             self.root = mcts.Node(None, value, 1.0, chess.Move.null())
             priors = apply_noise(
@@ -165,11 +170,11 @@ class Game:
                 dirichlet_alpha=dirichlet_alpha,
                 noise_eps=noise_eps,
             )
-            mcts.expand(self.root, priors)
+            mcts.expand(self.root, priors, self.search_cfg.fpu)
             return
 
         assert self.leaf
-        mcts.expand(self.leaf, priors)
+        mcts.expand(self.leaf, priors, self.search_cfg.fpu)
         mcts.backup(self.leaf, self.board, value)
 
 
@@ -178,37 +183,30 @@ class GamesBatch:
         self,
         batch_size: int,
         nodes_per_move: int,
-        completed_games,
+        completed_games: mp_value,
         search_cfg: mcts.MctsParams,
-        games_queue: mp.Queue,
+        games_queue: mpqt.Queue[list[chess.Move]],
     ):
         self.nodes_per_move = nodes_per_move
-        self.games = [
-            Game(nodes_per_move, search_cfg.cpuct, search_cfg.opening_noise_moves)
-            for _ in range(batch_size)
-        ]
+        self.games = [Game(search_cfg, nodes_per_move) for _ in range(batch_size)]
         self.completed_games = completed_games
         self.search_cfg = search_cfg
         self.games_queue = games_queue
 
-    def gather_batch(self):
+    def gather_batch(self) -> list[chess.Board]:
         for i in range(len(self.games)):
             game = self.games[i]
             done = game.next()
             if done:
                 self.completed_games.value += 1
                 self.games_queue.put(game.played_moves)
-                self.games[i] = Game(
-                    self.nodes_per_move,
-                    self.search_cfg.cpuct,
-                    self.search_cfg.opening_noise_moves,
-                )
+                self.games[i] = Game(self.search_cfg, self.nodes_per_move)
                 game = self.games[i]
                 game.next()
         batch = [game.board for game in self.games]
         return batch
 
-    def backprop(self, evals):
+    def backprop(self, evals: list[Evaluation]) -> None:
         for i in range(len(self.games)):
             game = self.games[i]
             priors, value = evals[i]
@@ -222,10 +220,10 @@ class GamesBatch:
 
 def database_worker(
     games_count: int,
-    completed_games,  # mp.Value
+    completed_games: mp_value,
     replay_buffer: ReplayBuffer,
-    games_queue: mp.Queue,
-):
+    games_queue: mpqt.Queue[list[chess.Move]],
+) -> None:
     while completed_games.value < games_count:
         moves = games_queue.get()
         replay_buffer.add_game(moves)
@@ -235,16 +233,16 @@ def cpu_worker(
     batch_worker_id: int,
     batch_size: int,
     nodes_per_move: int,
-    batch_queue: mp.Queue,
-    eval_queue: mp.Queue,
-    completed_games,  # mp.Value
+    batch_queue: mpqt.Queue[int],
+    eval_queue: mpqt.Queue[int],
+    completed_games: mp_value,
     search_cfg: mcts.MctsParams,
     log_interval: int,
     shared_board_tensor: npf32,
     raw_policy: npf32,
     raw_value: npf32,
-    games_queue: mp.Queue,
-):
+    games_queue: mpqt.Queue[list[chess.Move]],
+) -> None:
     np.random.seed((os.getpid() * int(time.time())) % 123456789)
     games_batch = GamesBatch(
         batch_size, nodes_per_move, completed_games, search_cfg, games_queue
@@ -286,16 +284,16 @@ def cpu_worker(
 
 def gpu_worker(
     device: str,
-    batch_queue: mp.Queue,
-    eval_queues: list[mp.Queue],
+    batch_queue: mpqt.Queue[int],
+    eval_queues: list[mpqt.Queue[int]],
     model: AlphaNet,
-    completed_games,  # mp.Value
+    completed_games: mp_value,
     games_count: int,
     log_interval: int,
     shared_boards_tensors: npf32,
     shared_policy_tensors: npf32,
     shared_value_tensors: npf32,
-):
+) -> None:
     model = model.to(device)
     timers = Timers(log_interval, "get", "inference", "put")
 
@@ -354,11 +352,11 @@ def selfplay(
     log_interval: int,
     num_batch_workers: int,
     cuda_devices: list[str],
-):
+) -> None:
     mp.set_start_method("spawn", force=True)  # Needed for proper cuda init
     completed_games = mp.Value("i", 0)
 
-    batch_queue = mp.Queue()
+    batch_queue: mpqt.Queue[int] = mp.Queue()
 
     boards_shape = (batch_size, 18, 8, 8)
     policy_shape = (batch_size, 1880)
@@ -369,7 +367,7 @@ def selfplay(
         for _ in range(num_batch_workers)
     ]
 
-    shared_boards_tensors = [
+    shared_boards_tensors: list[npf32] = [
         np.ndarray(boards_shape, np.float32, buffer=shm.buf) for shm in boards_shms
     ]
 
@@ -378,7 +376,7 @@ def selfplay(
         for _ in range(num_batch_workers)
     ]
 
-    shared_policy_tensors = [
+    shared_policy_tensors: list[npf32] = [
         np.ndarray(policy_shape, np.float32, buffer=shm.buf) for shm in policy_shms
     ]
 
@@ -387,18 +385,18 @@ def selfplay(
         for _ in range(num_batch_workers)
     ]
 
-    shared_value_tensors = [
+    shared_value_tensors: list[npf32] = [
         np.ndarray(value_shape, np.float32, buffer=shm.buf) for shm in value_shms
     ]
 
-    eval_queues = [mp.Queue() for _ in range(num_batch_workers)]
+    eval_queues: list[mpqt.Queue[int]] = [mp.Queue() for _ in range(num_batch_workers)]
     search_cfg = mcts.MctsParams(
         cpuct=cpuct,
         opening_noise_moves=opening_noise_moves,
         dirichlet_alpha=dirichlet_alpha,
         noise_eps=noise_eps,
     )
-    games_queue = mp.Queue()
+    games_queue: mpqt.Queue[list[chess.Move]] = mp.Queue()
 
     batch_workers = [
         mp.Process(
@@ -459,7 +457,7 @@ def selfplay(
     print("Selfplay generation complete")
 
 
-def analyze_pgn(pgn_file: pathlib.Path):
+def analyze_pgn(pgn_file: pathlib.Path) -> None:
     uniq_positions = set()
     uniq_games = set()
 
@@ -521,7 +519,7 @@ if __name__ == "__main__":
     model_path = pathlib.Path("models/alphanet_mini.ckpt")
     # model_path = pathlib.Path("models/alphanet_classic.ckpt")
     model = model_selector("alphanet", model_path, "cpu")
-    pgn_file = pathlib.Path("example.pgn")
+    # pgn_file = pathlib.Path("example.pgn")
     assert isinstance(model, AlphaNet)
     replay_buffer_dir = pathlib.Path("selfplay_rb")
     replay_buffer_dir.mkdir(exist_ok=True)
@@ -542,4 +540,4 @@ if __name__ == "__main__":
         cuda_devices=["cuda:0"],
     )
     print()
-    analyze_pgn(pgn_file)
+    # analyze_pgn(pgn_file)
