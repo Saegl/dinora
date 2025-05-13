@@ -5,9 +5,9 @@ from pprint import pprint
 
 import lightning.pytorch as pl
 import torch
+import wandb
 from lightning.pytorch.callbacks import Callback
 
-import wandb
 from elofish.elofish import (
     EvaluationResult,
     MatchConfig,
@@ -43,7 +43,7 @@ class ElofishRatingEstimator(Callback):
         self.current_id = 0
         self.current_deviation = self.student_deviation
 
-    def prepare_weights(self, pl_module: pl.LightningModule):
+    def prepare_weights(self, pl_module: pl.LightningModule) -> Path:
         weights_dir = Path("reports/models/")
         weights_dir.mkdir(parents=True, exist_ok=True)
         weights_path = weights_dir / "elofish.ckpt"
@@ -52,7 +52,7 @@ class ElofishRatingEstimator(Callback):
         pl_module.train()
         return weights_path
 
-    def prepare_ratings(self):
+    def prepare_ratings(self) -> None:
         if self.current_deviation < self.min_start_deviation:
             self.current_deviation = self.min_start_deviation
 
@@ -61,7 +61,7 @@ class ElofishRatingEstimator(Callback):
             self.current_rating = self.min_rating + 1
             self.current_deviation = self.student_deviation
 
-    def upload_metrics(self, trainer: pl.Trainer, evalres: EvaluationResult):
+    def upload_metrics(self, trainer: pl.Trainer, evalres: EvaluationResult) -> None:
         metrics = {
             "elofish/rating": self.current_rating,
             "elofish/deviation": self.current_deviation,

@@ -1,6 +1,8 @@
 import argparse
 import json
 import pathlib
+from collections.abc import Callable
+from typing import Any
 
 import chess
 import numpy as np
@@ -12,14 +14,23 @@ from dinora.encoders.policy import extract_logit
 from dinora.engine import Engine
 from dinora.models import model_selector
 from dinora.models.alphanet import AlphaNet
-from dinora.search.stoppers import MoveTime, NodesCount
+from dinora.search.stoppers import MoveTime, NodesCount, Stopper
 
 device = "cuda"
 
+npuint64 = npt.NDArray[np.uint64]
+npf32 = npt.NDArray[np.float32]
 npf64 = npt.NDArray[np.float64]
 
+StopperCreator = Callable[[], Stopper]
 
-def calc_policy_cploss(model, positions, policy_boards, batch_size: int) -> npf64:
+
+def calc_policy_cploss(
+    model: AlphaNet,
+    positions: list[dict[Any, Any]],
+    policy_boards: npuint64,
+    batch_size: int,
+) -> npf64:
     total_positions = len(positions)
     move_losses = []
 
@@ -53,8 +64,15 @@ def calc_policy_cploss(model, positions, policy_boards, batch_size: int) -> npf6
     return np.array(move_losses)
 
 
-def calc_value_cploss(model, positions, value_boards, batch_size: int) -> npf64:
-    def load_batch(batch_offset: int):
+def calc_value_cploss(
+    model: AlphaNet,
+    positions: list[dict[Any, Any]],
+    value_boards: npuint64,
+    batch_size: int,
+) -> npf64:
+    npf32 = npt.NDArray[np.float32]
+
+    def load_batch(batch_offset: int) -> npf32:
         value_boards_np = np.array(
             [
                 compact_state_to_board_tensor(b)
@@ -64,16 +82,16 @@ def calc_value_cploss(model, positions, value_boards, batch_size: int) -> npf64:
         boards = torch.from_numpy(value_boards_np).to(device)
 
         with torch.no_grad():
-            _, value = model(boards)
+            _, raw_value = model(boards)
 
-        value_count = len(value)
-        value = value.cpu().numpy().reshape(value_count)
+        value_count = len(raw_value)
+        value: npf32 = raw_value.cpu().numpy().reshape(value_count)
         return value
 
     batch_offset = 0
     value = load_batch(batch_offset)
 
-    def get_value_positions(pos_start: int, pos_end: int):
+    def get_value_positions(pos_start: int, pos_end: int) -> npf32:
         nonlocal batch_offset, value
         if pos_start > pos_end:
             return np.array([])
@@ -116,7 +134,11 @@ def calc_value_cploss(model, positions, value_boards, batch_size: int) -> npf64:
 
 
 def calc_engine_cploss(
-    model: AlphaNet, positions: dict, searcher: str, stopper_creator, params
+    model: AlphaNet,
+    positions: list[dict[Any, Any]],
+    searcher: str,
+    stopper_creator: StopperCreator,
+    params: dict[str, Any],
 ) -> npf64:
     engine = Engine(searcher=searcher)
     engine._model = model
@@ -132,7 +154,9 @@ def calc_engine_cploss(
     return np.array(move_losses)
 
 
-def make_stopper_creator(movetime=None, nodes=None):
+def make_stopper_creator(
+    movetime: float | None = None, nodes: int | None = None
+) -> StopperCreator:
     if nodes is not None:
         return lambda: NodesCount(nodes)
     elif movetime is not None:
@@ -141,7 +165,9 @@ def make_stopper_creator(movetime=None, nodes=None):
         raise Exception("Cant create stopper")
 
 
-def load_cploss(loaddir: pathlib.Path, count: int):
+def load_cploss(
+    loaddir: pathlib.Path, count: int
+) -> tuple[npuint64, npuint64, list[dict[Any, Any]]]:
     value_boards_file = loaddir / "value_boards.npz"
     boards_file = loaddir / "policy_boards.npz"
     positions_file = loaddir / "positions.json"
@@ -153,7 +179,7 @@ def load_cploss(loaddir: pathlib.Path, count: int):
     return value_boards, policy_boards, positions[:count]
 
 
-def main():
+def main() -> None:
     argparser = argparse.ArgumentParser()
     argparser.add_argument("model_path")
     argparser.add_argument("batch_size")
@@ -172,7 +198,7 @@ def main():
     searcher = args.searcher
     movetime = args.movetime
     nodes = args.nodes
-    params = {}  # TODO: pass custom params from somewhere?
+    params: dict[str, str] = {}  # TODO: pass custom params from somewhere?
 
     print("Model loading")
     model = model_selector("alphanet", model_path, "cuda")

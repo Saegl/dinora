@@ -15,6 +15,7 @@ from PIL import Image
 
 from cploss.evaluate import calc_policy_cploss, calc_value_cploss, load_cploss
 from dinora import PROJECT_ROOT
+from dinora.models.alphanet import AlphaNet
 from train.handmade_val_dataset.dataset import POSITIONS
 
 
@@ -178,6 +179,10 @@ class CPLoss(Callback):
         if trainer.logger is None:
             print("Cant log cploss metrics")
             return
+
+        assert isinstance(pl_module, AlphaNet), (
+            "CPLoss Callback doesn't work with non AlphaNet models"
+        )
 
         policy_cploss = calc_policy_cploss(
             pl_module, self.positions, self.policy_boards, self.batch_size

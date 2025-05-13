@@ -5,13 +5,13 @@ from pathlib import Path
 
 import chess
 import chess.pgn
-
 import wandb
+
 from dataset.make import convert_dir as dataset_convert_dir
 from train.datamodules import CompactDataModule
 
 
-def save_game_to_pgn(played_moves: list[chess.Move], pgn_output: TextIOWrapper):
+def save_game_to_pgn(played_moves: list[chess.Move], pgn_output: TextIOWrapper) -> None:
     game_pgn = chess.pgn.Game(
         headers={
             "Event": "RL selfplay",
@@ -63,14 +63,14 @@ class ReplayBuffer:
         self.chunk_names: list[str] = []
         self.new_chunk()
 
-    def new_chunk(self):
+    def new_chunk(self) -> None:
         self.current_chunk_name = f"{len(self.chunk_names)}.pgn"
         self.current_chunk_games = 0
         self.current_chunk_path = self.workdir / self.current_chunk_name
         self.current_chunk_file = self.current_chunk_path.open("w")
         self.chunk_names.append(self.current_chunk_name)
 
-    def prepare_dataset(self):
+    def prepare_dataset(self) -> CompactDataModule:
         self.current_chunk_file.close()
 
         num_chunks = math.ceil(self.window_games_size / self.pgn_chunk_games_size)
@@ -126,7 +126,7 @@ class ReplayBuffer:
         print("Batches in replaybuffer:", len(datamodule.train_dataloader()))
         return datamodule
 
-    def add_game(self, moves: list[chess.Move]):
+    def add_game(self, moves: list[chess.Move]) -> None:
         # print("Writing game to ", self.current_chunk_path)
         save_game_to_pgn(moves, self.current_chunk_file)
         self.current_chunk_games += 1

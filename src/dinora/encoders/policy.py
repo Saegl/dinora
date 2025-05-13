@@ -29,6 +29,8 @@ import chess
 import numpy as np
 import numpy.typing as npt
 
+from dinora.models.base import Priors
+
 npf32 = npt.NDArray[np.float32]
 # rank (letter, horizontal), file (number, vertical)
 Position = tuple[int, int]
@@ -189,7 +191,7 @@ def softmax(x: npf32, tau: float = 1.0) -> npf32:
     return e_x / e_x.sum()  # type: ignore
 
 
-def legal_policy(raw_policy: npf32, board: chess.Board):
+def legal_policy(raw_policy: npf32, board: chess.Board) -> Priors:
     moves = list(board.legal_moves)
     move_logits = [extract_logit(raw_policy, move, not board.turn) for move in moves]
 

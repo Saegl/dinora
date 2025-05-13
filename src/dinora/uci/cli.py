@@ -60,7 +60,7 @@ def run_cli(args: Args) -> None:
             print(f.read())
 
 
-def main():
+def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
     run_cli(args)

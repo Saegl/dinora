@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 import dataclasses
 import datetime
@@ -291,7 +293,7 @@ class Rating:
     rating: float | None = None
 
     @staticmethod
-    def from_dict(d: dict[str, typing.Any]) -> "Rating":
+    def from_dict(d: dict[str, typing.Any]) -> Rating:
         rating_conf = Rating(deviation=d["phi"], rating=d.get("mu"))
         return rating_conf
 
@@ -306,10 +308,10 @@ class Rating:
 class PlayerConfig:
     player_class: str
     start_rating: Rating
-    init: dict
+    init: dict[str, typing.Any]
 
     @staticmethod
-    def from_dict(d: dict[str, typing.Any]) -> "PlayerConfig":
+    def from_dict(d: dict[str, typing.Any]) -> PlayerConfig:
         player_conf = PlayerConfig(
             player_class=d["class"],
             start_rating=Rating.from_dict(d["start_rating"]),
@@ -324,12 +326,12 @@ class PlayerConfig:
             "init": self.init,
         }
 
-    def load_player(self):
+    def load_player(self) -> typing.Any:
         PlayerClass = PLAYER_CLASSES[self.player_class]
         if self.start_rating.rating is not None:
             rating = glicko2.Rating(
-                phi=self.start_rating.deviation,  # type: ignore
-                mu=self.start_rating.rating,  # type: ignore
+                phi=self.start_rating.deviation,
+                mu=self.start_rating.rating,
             )
         else:
             rating = glicko2.Rating(phi=int(self.start_rating.deviation))
@@ -346,13 +348,13 @@ class MatchConfig:
     student_player: PlayerConfig
 
     @staticmethod
-    def from_file(path: pathlib.Path):
+    def from_file(path: pathlib.Path) -> MatchConfig:
         with path.open("r") as f:
             config = MatchConfig.from_dict(json.load(f))
         return config
 
     @staticmethod
-    def from_dict(d: dict[str, typing.Any]) -> "MatchConfig":
+    def from_dict(d: dict[str, typing.Any]) -> MatchConfig:
         config = MatchConfig(
             max_games=d["max_games"],
             min_phi=d["min_phi"],
@@ -374,12 +376,14 @@ class MatchConfig:
 
 @dataclasses.dataclass
 class EvaluationResult:
-    new_rating: int
-    new_deviation: int
+    new_rating: float
+    new_deviation: float
     report_dir: pathlib.Path
 
 
-def run_elo_evaluation(config: MatchConfig, enable_game_tick=False) -> EvaluationResult:
+def run_elo_evaluation(
+    config: MatchConfig, enable_game_tick: bool = False
+) -> EvaluationResult:
     just_fix_windows_console()
 
     env = glicko2.Glicko2()  # type: ignore

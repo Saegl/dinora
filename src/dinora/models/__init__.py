@@ -48,7 +48,7 @@ def load_default() -> BaseModel:
     raise Exception("No available models :-(")
 
 
-def guess_model_from_weights(weights_path: pathlib.Path):
+def guess_model_from_weights(weights_path: pathlib.Path) -> str:
     if str(weights_path).endswith(".ckpt"):
         return "alphanet"
     elif str(weights_path).endswith(".onnx"):

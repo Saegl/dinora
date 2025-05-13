@@ -1,10 +1,12 @@
+from typing import Any
+
 from dinora.search.base import BaseSearcher
 from dinora.search.ext_mcts.searcher import ExtMcts
 from dinora.search.mcts.mcts import MCTS
 from dinora.search.mcts_batch.mcts_batch import MctsBatch
 from dinora.search.onemove.onemove import OneMove
 
-registered_searchers: dict[str, type[BaseSearcher]] = {
+registered_searchers: dict[str, type[BaseSearcher[Any]]] = {
     "auto": MctsBatch,
     "ext_mcts": ExtMcts,
     "mcts": MCTS,
@@ -13,6 +15,6 @@ registered_searchers: dict[str, type[BaseSearcher]] = {
 }
 
 
-def get_searcher(searcher_name: str) -> BaseSearcher:
+def get_searcher(searcher_name: str) -> BaseSearcher[Any]:
     cls = registered_searchers[searcher_name]
     return cls()

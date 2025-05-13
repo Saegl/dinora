@@ -4,7 +4,7 @@ from typing import Optional
 
 import chess
 
-from dinora.models.base import BaseModel
+from dinora.models.base import BaseModel, Priors
 from dinora.search.base import BaseSearcher
 from dinora.search.noise import apply_noise
 from dinora.search.stoppers import Stopper
@@ -39,13 +39,13 @@ class Node:
         self.prior = prior
         self.move = move
 
-    def puct(self, cpuct: float):
+    def puct(self, cpuct: float) -> float:
         assert self.parent
         exploitation = self.value_sum / self.visits
         exploration = cpuct * math.sqrt(self.parent.visits) * self.prior / self.visits
         return exploitation + exploration
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Node <{self.move} {self.visits} {self.value_sum}>"
 
 
@@ -71,12 +71,12 @@ def select_leaf(root: Node, board: chess.Board, cpuct: float) -> Node:
     return node
 
 
-def expand(node: Node, child_priors, fpu: float):
+def expand(node: Node, child_priors: Priors, fpu: float) -> None:
     for move, prior in child_priors.items():
         node.children[move] = Node(node, fpu, prior, move)
 
 
-def backup(leaf: Node, board: chess.Board, value_leaf: float):
+def backup(leaf: Node, board: chess.Board, value_leaf: float) -> None:
     node = leaf
     value = value_leaf
     while node.parent:
@@ -117,7 +117,7 @@ def terminal_solver(board: chess.Board) -> float | None:
 
 
 class MCTS(BaseSearcher[MctsParams]):
-    def __init__(self):
+    def __init__(self) -> None:
         self.params = MctsParams()
 
     def search(

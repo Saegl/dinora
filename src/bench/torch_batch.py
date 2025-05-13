@@ -9,7 +9,7 @@ from dinora.models.alphanet import AlphaNet
 
 def benchmark_throughput(
     model: AlphaNet, batch_size: int, warmup_iters: int, test_iters: int
-):
+) -> float:
     input_tensor = torch.randn(batch_size, 18, 8, 8, device=model.device)
 
     # Warm-up
@@ -36,7 +36,7 @@ def bench_torch(
     warmup_iters: int,
     test_iters: int,
     batch_sizes: list[int],
-):
+) -> None:
     # This tunes conv algorithm, increases throughput, but makes latency worse
     # torch.backends.cudnn.benchmark = True
 

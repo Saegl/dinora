@@ -10,7 +10,7 @@ class Stopper:
     Stoppers control when to stop searching
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.early_stop = threading.Event()
         self.called = False
 
@@ -90,7 +90,7 @@ class NodesCount(Stopper):
 
 
 class Infinite(Stopper):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     def should_stop(self) -> bool:

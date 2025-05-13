@@ -28,7 +28,7 @@ EPSILON = 0.000001
 
 
 class Rating:
-    def __init__(self, mu=MU, phi=PHI, sigma=SIGMA):
+    def __init__(self, mu: float = MU, phi: float = PHI, sigma: float = SIGMA):
         self.mu = mu
         self.phi = phi
         self.sigma = sigma

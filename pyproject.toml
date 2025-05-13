@@ -86,6 +86,7 @@ plugins = [
     'numpy.typing.mypy_plugin'
 ]
 exclude = [
+    'src/elofish/glicko2/glicko2.py',
     'docs',
     'tests',
     'trash',

@@ -7,7 +7,7 @@ import onnxruntime as ort
 
 def benchmark_throughput(
     session: ort.InferenceSession, batch_size: int, warmup_iters: int, test_iters: int
-):
+) -> float:
     input_data = np.random.randn(batch_size, 18, 8, 8).astype(np.float32)
 
     # Warm-up
@@ -30,7 +30,7 @@ def bench_onnx(
     warmup_iters: int,
     test_iters: int,
     batch_sizes: list[int],
-):
+) -> None:
     for i, batch_size in enumerate(batch_sizes):
         throughput = benchmark_throughput(session, batch_size, warmup_iters, test_iters)
         print(f"{i}: Batch Size: {batch_size}, Throughput: {throughput:.2f} images/sec")

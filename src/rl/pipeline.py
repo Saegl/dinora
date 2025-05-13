@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import pathlib
 import time
@@ -59,7 +61,7 @@ class Config:
     )
 
     @staticmethod
-    def from_file(filepath: pathlib.Path):
+    def from_file(filepath: pathlib.Path) -> Config:
         with filepath.open("rt", encoding="utf8") as f:
             data = json.load(f)
 
@@ -67,7 +69,7 @@ class Config:
         return Config(**data)
 
 
-def collect_games(config: Config, model: AlphaNet, replay_buffer: ReplayBuffer):
+def collect_games(config: Config, model: AlphaNet, replay_buffer: ReplayBuffer) -> None:
     print("STAGE: Game collection")
     start_time = time.time()
 
@@ -100,7 +102,7 @@ def fit(
     datamodule: CompactDataModule,
     generation_output_dir: pathlib.Path,
     callbacks: list[pl.Callback],
-):
+) -> None:
     print("STAGE: Fit")
     start_time = time.time()
     wandb_logger = WandbLogger(project="dinora-chess")
@@ -128,7 +130,7 @@ def fit(
     print(f"STAGE: Fit took {timedelta(seconds=int(time.time() - start_time))}")
 
 
-def start_rl(config: Config):
+def start_rl(config: Config) -> None:
     run = wandb.init(
         job_type="rl",
         project="dinora-chess",
@@ -145,7 +147,7 @@ def start_rl(config: Config):
         learning_rate=config.learning_rate,
     ).to("cuda")
 
-    callbacks = []
+    callbacks: list[pl.Callback] = []
     if config.enable_cploss:
         cploss = CPLoss(
             config.cploss_label,

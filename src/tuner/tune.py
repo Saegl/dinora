@@ -14,7 +14,7 @@ from dinora.models.alphanet import AlphaNet
 
 
 class CPLossObjective:
-    def __init__(self):
+    def __init__(self) -> None:
         model_path = Path("models/alphanet_rerun-valid-state-4.ckpt")
         loaddir = Path("data/cploss/elite")
 
@@ -27,7 +27,7 @@ class CPLossObjective:
         random.shuffle(self.positions)
         self.positions = self.positions[0:100]
 
-    def __call__(self, trial: optuna.Trial):
+    def __call__(self, trial: optuna.Trial) -> float:
         batch_size = trial.suggest_int("batch_size", 1, 256)
         virtual_visits = trial.suggest_int("virtual_visits", 1, batch_size)
         max_collisions = trial.suggest_int("max_collisions", 1, virtual_visits)
@@ -52,7 +52,7 @@ class CPLossObjective:
         )
 
 
-def start_tuner():
+def start_tuner() -> None:
     objective = CPLossObjective()
 
     # run `optuna-dashboard sqlite:///tuner.sqlite3` to see realtime progress

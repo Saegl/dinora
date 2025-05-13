@@ -1,6 +1,6 @@
 import abc
 from dataclasses import fields
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 import chess
 
@@ -24,7 +24,7 @@ class BaseSearcher(abc.ABC, Generic[ParamsType]):
             if field.name == k:
                 setattr(self.params, field.name, field.type(v))
 
-    def update_from_dict(self, d: dict) -> None:
+    def update_from_dict(self, d: dict[str, Any]) -> None:
         for field in fields(self.params):  # type: ignore
             assert callable(field.type)
             if field.name in d:

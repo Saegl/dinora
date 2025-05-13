@@ -44,7 +44,7 @@ class Quit(UciCommand):
     pass
 
 
-def uci_start(engine: Engine):
+def uci_start(engine: Engine) -> None:
     commands_queue: queue.Queue[UciCommand] = queue.Queue()
     uciloop = UciCommunicator(
         commands_queue,
@@ -63,7 +63,7 @@ class UciEngine:
     commands_queue: queue.Queue[UciCommand]
     engine: Engine
 
-    def loop(self):
+    def loop(self) -> None:
         running = True
         while running:
             command = self.commands_queue.get()
@@ -93,14 +93,14 @@ class UciCommunicator:
     board: chess.Board
     running: bool
 
-    def __init__(self, commands_queue: queue.Queue[UciCommand], params):
+    def __init__(self, commands_queue: queue.Queue[UciCommand], params: Any):
         self.commands_queue = commands_queue
         self.params = params
         self.active_stopper = None
         self.board = chess.Board()
         self.running = True
 
-    def start_communication(self):
+    def start_communication(self) -> None:
         send("Dinora chess engine")
         while self.running:
             try:
@@ -111,7 +111,7 @@ class UciCommunicator:
 
             self.dispatcher(line)
 
-    def dispatcher(self, line: str):
+    def dispatcher(self, line: str) -> None:
         command, *tokens = line.strip().split()
         supported_commands = [
             "uci",

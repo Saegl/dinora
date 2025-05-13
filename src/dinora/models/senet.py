@@ -11,7 +11,7 @@ npf32 = npt.NDArray[np.float32]
 
 
 class ChannelAttentionModule(torch.nn.Module):
-    def __init__(self, channels, reduction=2):
+    def __init__(self, channels: int, reduction: int = 2) -> None:
         """
         Channel-wise attention module, Squeeze-and-Excitation Networks Jie Hu1, Li Shen, Gang Sun - https://arxiv.org/pdf/1709.01507v2.pdf
         """
@@ -26,7 +26,7 @@ class ChannelAttentionModule(torch.nn.Module):
             nn.Sigmoid(),
         )
 
-    def forward(self, x):
+    def forward(self, x):  # type: ignore
         batch_size, channels, _, _ = x.size()
         y = self.avg_pool(x).view(batch_size, channels)
         y = self.fc(y).view(batch_size, channels, 1, 1)
@@ -58,7 +58,7 @@ class ResBlockSE(nn.Module):
         self.relu = nn.ReLU()
         self.se = ChannelAttentionModule(channels=filters)
 
-    def forward(self, x):
+    def forward(self, x):  # type: ignore
         out = self.body(x)
         out = self.se(out)
         return self.relu(x + out)

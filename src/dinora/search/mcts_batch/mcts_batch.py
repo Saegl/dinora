@@ -4,7 +4,7 @@ from typing import Optional
 
 import chess
 
-from dinora.models.base import BaseModel
+from dinora.models.base import BaseModel, Priors
 from dinora.search.base import BaseSearcher
 from dinora.search.noise import apply_noise
 from dinora.search.stoppers import Stopper
@@ -49,7 +49,7 @@ class Node:
         self.prior = prior
         self.move = move
 
-    def puct(self, cpuct: float):
+    def puct(self, cpuct: float) -> float:
         assert self.parent
         exploitation = self.value_sum / (self.visits + self.virtual_visits)
         exploration = (
@@ -60,7 +60,7 @@ class Node:
         )
         return exploitation + exploration
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Node <{self.move} prior={self.prior:.3f} "
             f" visits={self.visits} value={self.value_sum / self.visits:.3f} "
@@ -91,12 +91,12 @@ def select(root: Node, board: chess.Board, cpuct: float, virtual_visits: int) ->
     return node
 
 
-def expand(node: Node, child_priors, fpu: float):
+def expand(node: Node, child_priors: Priors, fpu: float) -> None:
     for move, prior in child_priors.items():
         node.children[move] = Node(node, fpu, prior, move)
 
 
-def backup(leaf: Node, value_leaf: float):
+def backup(leaf: Node, value_leaf: float) -> None:
     node = leaf
     value = value_leaf
     while node.parent:
@@ -153,7 +153,7 @@ def process_batch(
     batch_leaves: list[Node],
     evaluator: BaseModel,
     fpu: float,
-):
+) -> None:
     if len(batch_boards) > 0:
         for leaf, (priors, value) in zip(
             batch_leaves, evaluator.evaluate_batch(batch_boards)
@@ -185,7 +185,7 @@ def terminal_solver(board: chess.Board) -> float | None:
 
 
 class MctsBatch(BaseSearcher[MctsParams]):
-    def __init__(self):
+    def __init__(self) -> None:
         self.params = MctsParams()
 
     def search(
