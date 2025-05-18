@@ -7,6 +7,7 @@ from typing import Any
 
 import chess
 
+import dinora
 from dinora.engine import Engine, ParamNotFound
 from dinora.search.stoppers import Stopper
 from dinora.uci.uci_go_parser import parse_go_params
@@ -101,7 +102,7 @@ class UciCommunicator:
         self.running = True
 
     def start_communication(self) -> None:
-        send("Dinora chess engine")
+        send(f"Dinora chess engine v{dinora.__version__}")
         while self.running:
             try:
                 line = input()
