@@ -29,6 +29,12 @@ class OnnxModel(BaseModel):
             weights = search_weights(DEFAULT_WEIGHTS_FILENAME)
 
         self.ort_session = onnxruntime.InferenceSession(weights, providers=providers)
+        self.weights_path = weights
+
+    def name(self) -> str:
+        classname = self.__class__.__name__
+        providers = self.ort_session.get_providers()
+        return f"{classname} {providers} {self.weights_path}"
 
     def inference_np(self, batch_np: npf32) -> tuple[npf32, npf32]:
         raw_policy, raw_value = self.ort_session.run(None, {"input": batch_np})

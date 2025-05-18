@@ -1,3 +1,3 @@
-from dinora.uci.cli import main
+from dinora.uci.cli import DefaultArgs, main
 
-main()
+main(DefaultArgs())

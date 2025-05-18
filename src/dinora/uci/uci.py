@@ -70,7 +70,18 @@ class UciEngine:
             command = self.commands_queue.get()
             match command:
                 case IsReady():
+                    model_was_loaded = self.engine.loaded()
+
+                    if not model_was_loaded:
+                        send(f"info string searcher <{self.engine.searcher.name()}>")
+                        send("info string model is loading")
+
                     self.engine.load_model()
+
+                    if not model_was_loaded:
+                        send(
+                            f"info string model loaded type <{self.engine.model.name()}>"
+                        )
 
                 case Go(board, stopper):
                     move = self.engine.get_best_move(board, stopper)

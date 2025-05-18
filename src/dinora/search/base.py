@@ -17,6 +17,10 @@ class BaseSearcher(abc.ABC, Generic[ParamsType]):
     def __init__(self) -> None:
         pass
 
+    def name(self) -> str:
+        """Return searcher name for logs/debug_info"""
+        return self.__class__.__name__
+
     def set_config_param(self, k: str, v: str) -> None:
         # linear search is fast enough for 3 params
         for field in fields(self.params):  # type: ignore
