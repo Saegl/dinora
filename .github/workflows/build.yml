@@ -24,14 +24,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pyinstaller chess numpy onnxruntime
+          pip install -r py_installer/requirements_onnx_cpu.txt
 
       - name: Build executable
         run: |
-          pyinstaller -n dinora --onefile src/dinora/__main__.py
+          pyinstaller py_installer/dinora_onnx_cpu.spec
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dinora-${{ matrix.os }}
+          name: dinora-onnx-cpu-${{ matrix.os }}
           path: dist/dinora*

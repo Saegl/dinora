@@ -1,0 +1,5 @@
+pyinstaller==6.13.0
+pyinstaller-hooks-contrib==2025.4
+chess==1.11.2
+numpy==2.2.5
+onnxruntime==1.22.0
