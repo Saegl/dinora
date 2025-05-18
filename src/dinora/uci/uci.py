@@ -117,9 +117,12 @@ class UciCommunicator:
         while self.running:
             try:
                 line = input()
-            except KeyboardInterrupt:
+            except (EOFError, KeyboardInterrupt):
                 self.quit([])
                 break
+
+            if not line.strip():
+                continue  # Ignore empty or whitespace-only lines
 
             self.dispatcher(line)
 
