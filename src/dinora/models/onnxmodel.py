@@ -11,7 +11,7 @@ from dinora.models import search_weights
 from dinora.models.base import BaseModel, Evaluation
 
 npf32 = npt.NDArray[np.float32]
-DEFAULT_WEIGHTS_FILENAME = "alphanet_classic.ckpt.onnx"
+DEFAULT_WEIGHTS_FILENAME = "default.onnx"
 
 
 class OnnxModel(BaseModel):

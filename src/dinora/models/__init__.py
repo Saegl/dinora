@@ -5,7 +5,7 @@ from dinora.models.base import BaseModel, Priors, StateValue
 from dinora.models.empty_model import EmptyModel
 from dinora.models.handcrafted import DummyModel
 
-DEFAULT_ALPHANET_WEIGHTS_FILENAME = "alphanet_classic.ckpt"
+DEFAULT_ALPHANET_WEIGHTS_FILENAME = "default.ckpt"
 
 
 AVAILABLE_MODELS = [
@@ -26,9 +26,9 @@ DEFAULT_MODELS = [
 
 def search_weights(filename: str) -> pathlib.Path:
     places = [
-        PROJECT_ROOT / "models" / filename,
-        pathlib.Path.cwd() / "models" / filename,
         pathlib.Path.cwd() / filename,
+        pathlib.Path.cwd() / "models" / filename,
+        PROJECT_ROOT / "models" / filename,
     ]
 
     for place in places:
