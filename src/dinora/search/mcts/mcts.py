@@ -6,6 +6,7 @@ import chess
 
 from dinora.models.base import BaseModel, Priors
 from dinora.search.base import BaseSearcher
+from dinora.search.logger import UCILogger
 from dinora.search.noise import apply_noise
 from dinora.search.stoppers import Stopper
 
@@ -116,6 +117,36 @@ def terminal_solver(board: chess.Board) -> float | None:
     return None
 
 
+def get_pv(root: Node, cpuct: float, maxlen: int = 15) -> tuple[str, int]:
+    """
+    Returns principal variation (PV) as a UCI move string and its depth in plies.
+    The PV may be truncated by `maxlen`, but the actual depth reached is still returned.
+    """
+    node = root
+    moves: list[str] = []
+    depth = 1
+
+    while len(node.children) != 0:
+        node = select_best_puct(node, cpuct)
+        depth += 1
+        if len(moves) < maxlen:
+            moves.append(node.move.uci())
+
+    pvline = " ".join(moves)
+    return (pvline, depth)
+
+
+def cp(q: float) -> int:
+    """
+    Converts MCTS `q` value to Stockfish-like centipawn score.
+
+    See `src/train/cp` to learn how these coefficients were obtained.
+    """
+    a = 85.59159393
+    b = 584.76371188
+    return int(a * q + b * q**3)
+
+
 class MCTS(BaseSearcher[MctsParams]):
     def __init__(self) -> None:
         self.params = MctsParams()
@@ -123,6 +154,8 @@ class MCTS(BaseSearcher[MctsParams]):
     def search(
         self, board: chess.Board, stopper: Stopper, evaluator: BaseModel
     ) -> chess.Move:
+        logger = UCILogger()
+
         priors, value = evaluator.evaluate(board)
         root = Node(None, value, 1.0, chess.Move.null())
         if board.ply() < 2 * self.params.opening_noise_moves:
@@ -144,5 +177,11 @@ class MCTS(BaseSearcher[MctsParams]):
             expand(leaf, priors, self.params.fpu)
             backup(leaf, board, value)
 
-        print(f"info nodes {root.visits}")
+            if logger.should_log():
+                q = root.value_sum / root.visits
+                v = -q  # q is evaluation on child, not root itself
+                pv, depth = get_pv(root, self.params.cpuct)
+                logger.on_search_iter(nodes=root.visits, pv=pv, depth=depth, cp=cp(v))
+
+        logger.on_search_finish(nodes=root.visits)
         return most_visited_move(root)
