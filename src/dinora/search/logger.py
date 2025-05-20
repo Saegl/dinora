@@ -21,17 +21,22 @@ class UCILogger:
             return
 
         now = time.time()
-        time_searched = int((now - self.start_time) * 1000)
         self.prev_iter_time = now
+
+        time_searched = int((now - self.start_time) * 1000)
         nps = int(nodes / (time_searched / 1000)) if time_searched > 0 else 0
         print(
             f"info depth {depth} time {time_searched} nodes {nodes} score cp {cp} nps {nps} pv {pv}"
         )
 
-    def on_search_finish(self, nodes: int) -> None:
+    def on_search_finish(self, nodes: int, depth: int, pv: str, cp: int) -> None:
         if not self.enabled:
             return
 
         now = time.time()
+
         time_searched = int((now - self.start_time) * 1000)
-        print(f"info time {time_searched} nodes {nodes}")
+        nps = int(nodes / (time_searched / 1000)) if time_searched > 0 else 0
+        print(
+            f"info depth {depth} time {time_searched} nodes {nodes} score cp {cp} nps {nps} pv {pv}"
+        )

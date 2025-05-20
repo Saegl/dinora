@@ -40,9 +40,15 @@ class Node:
         self.prior = prior
         self.move = move
 
+    def q(self) -> float:
+        return self.value_sum / self.visits
+
+    def v(self) -> float:
+        return -self.q()
+
     def puct(self, cpuct: float) -> float:
         assert self.parent
-        exploitation = self.value_sum / self.visits
+        exploitation = self.q()
         exploration = cpuct * math.sqrt(self.parent.visits) * self.prior / self.visits
         return exploitation + exploration
 
@@ -178,10 +184,11 @@ class MCTS(BaseSearcher[MctsParams]):
             backup(leaf, board, value)
 
             if logger.should_log():
-                q = root.value_sum / root.visits
-                v = -q  # q is evaluation on child, not root itself
                 pv, depth = get_pv(root, self.params.cpuct)
-                logger.on_search_iter(nodes=root.visits, pv=pv, depth=depth, cp=cp(v))
+                logger.on_search_iter(
+                    nodes=root.visits, pv=pv, depth=depth, cp=cp(root.v())
+                )
 
-        logger.on_search_finish(nodes=root.visits)
+        pv, depth = get_pv(root, self.params.cpuct)
+        logger.on_search_finish(nodes=root.visits, pv=pv, depth=depth, cp=cp(root.v()))
         return most_visited_move(root)
