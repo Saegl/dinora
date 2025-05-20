@@ -113,7 +113,7 @@ class UciCommunicator:
         self.running = True
 
     def start_communication(self) -> None:
-        send(f"Dinora chess engine v{dinora.__version__}")
+        send(f"Dinora Chess Engine v{dinora.__version__}")
         while self.running:
             try:
                 line = input()
@@ -148,7 +148,7 @@ class UciCommunicator:
             send(f"info string command is not processed: {line}")
 
     def uci(self, _: list[str]) -> None:
-        send("id name Dinora")
+        send(f"id name Dinora v{dinora.__version__}")
         send("id author Saegl")
         for field in fields(self.params):
             if field.type is int:
