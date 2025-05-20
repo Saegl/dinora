@@ -2,7 +2,7 @@ import threading
 from math import cos
 from time import time
 
-extra_time = 0.5
+MS_TO_S = 1 / 1000
 
 
 class Stopper:
@@ -21,24 +21,31 @@ class Stopper:
         return self.early_stop.is_set()
 
 
-def time_manager(moves_number: int, time_left: int, inc: int = 0) -> float:
-    moves_left = (23 * cos(moves_number / 25) + 26) / (0.01 * moves_number + 1)
-    remaining_time = time_left / 1000 + moves_left * inc / 1000
-    move_time = remaining_time / moves_left - extra_time
-    return move_time
-
-
 class Time(Stopper):
     def __init__(
         self,
         moves_number: int,
         engine_time: int,
         engine_inc: int,
+        move_overhead: int,
     ) -> None:
         super().__init__()
-        self.move_time = time_manager(moves_number, engine_time, engine_inc)
+        self.movetime = (
+            self.calc_movetime(moves_number, engine_time, engine_inc, move_overhead)
+            * MS_TO_S
+        )
         self.starttime = time()
-        self.steps = 0
+
+    @staticmethod
+    def calc_movetime(
+        moves_number: int, time_left: int, inc: int, move_overhead: int
+    ) -> float:
+        # TODO: this one made in desmos, should be simpler
+        moves_left = (23 * cos(moves_number / 25) + 26) / (0.01 * moves_number + 1)
+
+        remaining_time = time_left + moves_left * inc
+        movetime = remaining_time / moves_left - move_overhead
+        return movetime
 
     def should_stop(self) -> bool:
         if not self.called:
@@ -46,19 +53,19 @@ class Time(Stopper):
             return False
         if super().should_stop():
             return True
-        return time() - self.starttime > self.move_time
+        return time() - self.starttime > self.movetime
 
     def __str__(self) -> str:
-        return f"<Time: {self.move_time=} {self.starttime=}>"
+        return f"<Time: {self.movetime=} {self.starttime=}>"
 
 
 class MoveTime(Stopper):
-    movetime: int
+    movetime: float
     starttime: float
 
     def __init__(self, movetime: int) -> None:
         super().__init__()
-        self.movetime = movetime
+        self.movetime = movetime * MS_TO_S
         self.starttime = time()
 
     def should_stop(self) -> bool:
@@ -67,7 +74,7 @@ class MoveTime(Stopper):
             return False
         if super().should_stop():
             return True
-        return time() - self.starttime > (self.movetime / 1000)
+        return time() - self.starttime > self.movetime
 
     def __str__(self) -> str:
         return f"<MoveTime: {self.movetime=} {self.starttime=}>"

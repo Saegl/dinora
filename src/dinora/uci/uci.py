@@ -12,6 +12,8 @@ from dinora.engine import Engine, ParamNotFound
 from dinora.search.stoppers import Stopper
 from dinora.uci.uci_go_parser import parse_go_params
 
+DEFAULT_MOVE_OVERHEAD_MS = 600
+
 
 def send(s: str) -> None:
     sys.stdout.write(s)
@@ -112,6 +114,8 @@ class UciCommunicator:
         self.board = chess.Board()
         self.running = True
 
+        self.option_move_overhead_ms = DEFAULT_MOVE_OVERHEAD_MS
+
     def start_communication(self) -> None:
         send(f"Dinora Chess Engine v{dinora.__version__}")
         while self.running:
@@ -150,6 +154,7 @@ class UciCommunicator:
     def uci(self, _: list[str]) -> None:
         send(f"id name Dinora v{dinora.__version__}")
         send("id author Saegl")
+
         for field in fields(self.params):
             if field.type is int:
                 uci_type_name = "spin"
@@ -161,6 +166,10 @@ class UciCommunicator:
             send(
                 f"option name {field.name} type {uci_type_name} default {field.default}"
             )
+
+        send(
+            f"option name move_overhead_ms type spin default {DEFAULT_MOVE_OVERHEAD_MS} min 0 max 10000"
+        )
         send("uciok")
 
     def ucinewgame(self, _: list[str]) -> None:
@@ -169,6 +178,10 @@ class UciCommunicator:
     def setoption(self, tokens: list[str]) -> None:
         name = tokens[tokens.index("name") + 1].lower()
         value = tokens[tokens.index("value") + 1]
+
+        if name == "move_overhead_ms":
+            self.option_move_overhead_ms = int(value)
+
         self.commands_queue.put(SetOption(name, value))
 
     def isready(self, _: list[str]) -> None:
@@ -196,7 +209,9 @@ class UciCommunicator:
         go_params = parse_go_params(tokens)
         send(f"info string parsed params {go_params}")
 
-        self.active_stopper = go_params.get_search_stopper(self.board)
+        self.active_stopper = go_params.get_search_stopper(
+            self.board, self.option_move_overhead_ms
+        )
         send(f"info string chosen stopper {self.active_stopper}")
 
         self.commands_queue.put(Go(self.board.copy(), self.active_stopper))

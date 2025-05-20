@@ -21,7 +21,7 @@ class UciGoParams:
     movetime: int | None = None
     infinite: bool = False
 
-    def is_time(self, turn: bool) -> tuple[int, int] | None:
+    def extract_time(self, turn: bool) -> tuple[int, int] | None:
         """
         Time for whole game or whole game with increment
         from parsed wtime, btime, winc, binc
@@ -33,7 +33,7 @@ class UciGoParams:
         engine_inc = (self.winc if turn else self.binc) or 0
         return engine_time, engine_inc
 
-    def get_search_stopper(self, board: chess.Board) -> Stopper:
+    def get_search_stopper(self, board: chess.Board, move_overhead: int) -> Stopper:
         stopper: Stopper
         if self.infinite:
             stopper = Infinite()
@@ -41,12 +41,13 @@ class UciGoParams:
         elif isinstance(self.movetime, int):
             stopper = MoveTime(self.movetime)
 
-        elif time := self.is_time(board.turn):
+        elif time := self.extract_time(board.turn):
             engine_time, engine_inc = time
             stopper = Time(
                 moves_number=board.fullmove_number,
                 engine_time=engine_time,
                 engine_inc=engine_inc,
+                move_overhead=move_overhead,
             )
 
         elif nodes := self.nodes:
