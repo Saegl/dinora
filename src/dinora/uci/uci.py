@@ -191,14 +191,16 @@ class UciCommunicator:
     def position(self, tokens: list[str]) -> None:
         if tokens[0] == "startpos":
             self.board = chess.Board()
-            if "moves" in tokens:
-                moves = tokens[tokens.index("moves") + 1 :]
-                for move_token in moves:
-                    self.board.push_uci(move_token)
-
-        if tokens[0] == "fen":
+        elif tokens[0] == "fen":
             fen = " ".join(tokens[1:7])
             self.board = chess.Board(fen)
+        else:
+            raise ValueError('Unexpected token after "position"')
+
+        if "moves" in tokens:
+            moves = tokens[tokens.index("moves") + 1 :]
+            for move_token in moves:
+                self.board.push_uci(move_token)
 
     def go(self, tokens: list[str]) -> None:
         if self.active_stopper and not self.active_stopper.early_stop.is_set():
