@@ -1,4 +1,11 @@
+import sys
 import time
+
+
+def send(s: str) -> None:
+    sys.stdout.write(s)
+    sys.stdout.write("\n")
+    sys.stdout.flush()
 
 
 class UCILogger:
@@ -25,7 +32,7 @@ class UCILogger:
 
         time_searched = int((now - self.start_time) * 1000)
         nps = int(nodes / (time_searched / 1000)) if time_searched > 0 else 0
-        print(
+        send(
             f"info depth {depth} time {time_searched} nodes {nodes} score cp {cp} nps {nps} pv {pv}"
         )
 
@@ -37,6 +44,6 @@ class UCILogger:
 
         time_searched = int((now - self.start_time) * 1000)
         nps = int(nodes / (time_searched / 1000)) if time_searched > 0 else 0
-        print(
+        send(
             f"info depth {depth} time {time_searched} nodes {nodes} score cp {cp} nps {nps} pv {pv}"
         )
