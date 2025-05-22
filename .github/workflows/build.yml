@@ -28,7 +28,7 @@ jobs:
 
       - name: Build executable
         run: |
-          pyinstaller py_installer/dinora_onnx_cpu.spec
+          pyinstaller -n dinora --onefile py_installer/dinora_onnx_cpu.py -p src/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
