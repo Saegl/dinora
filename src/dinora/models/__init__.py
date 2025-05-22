@@ -1,4 +1,5 @@
 import pathlib
+import sys
 
 from dinora import PROJECT_ROOT
 from dinora.models.base import BaseModel, Priors, StateValue
@@ -25,9 +26,13 @@ DEFAULT_MODELS = [
 
 
 def search_weights(filename: str) -> pathlib.Path:
+    app_dir = pathlib.Path(sys.argv[0]).resolve().parent
+
     places = [
         pathlib.Path.cwd() / filename,
         pathlib.Path.cwd() / "models" / filename,
+        app_dir / filename,
+        app_dir / "models" / filename,
         PROJECT_ROOT / "models" / filename,
     ]
 
