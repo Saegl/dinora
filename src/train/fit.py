@@ -71,8 +71,13 @@ class Config:
 
     tune_learning_rate: bool
     learning_rate: float  # will be overwritten if tune_learning_rate = True
-    lr_scheduler_gamma: float  # Multiplicative factor for StepLR
-    lr_scheduler_freq: int  # change each steps
+
+    optimizer_name: str
+    optimizer_params: dict[str, Any]
+
+    scheduler_name: str
+    scheduler_params: dict[str, Any]
+    scheduler_frequency: int
 
     enable_checkpointing: bool
     checkpoint_train_time_interval: dict  # type: ignore
@@ -135,8 +140,11 @@ def get_model(config: Config) -> pl.LightningModule:
             value_fc_hidden=config.model_conf.value_lin_channels,
             value_loss_weight=config.value_loss_weight,
             learning_rate=config.learning_rate,
-            lr_scheduler_gamma=config.lr_scheduler_gamma,
-            lr_scheduler_freq=config.lr_scheduler_freq,
+            optimizer_name=config.optimizer_name,
+            optimizer_params=config.optimizer_params,
+            scheduler_name=config.scheduler_name,
+            scheduler_params=config.scheduler_params,
+            scheduler_frequency=config.scheduler_frequency,
         )
     elif config.model_type == "senet":
         from dinora.models.senet import SeNet
@@ -149,8 +157,11 @@ def get_model(config: Config) -> pl.LightningModule:
             value_fc_hidden=config.model_conf.value_lin_channels,
             value_loss_weight=config.value_loss_weight,
             learning_rate=config.learning_rate,
-            lr_scheduler_gamma=config.lr_scheduler_gamma,
-            lr_scheduler_freq=config.lr_scheduler_freq,
+            optimizer_name=config.optimizer_name,
+            optimizer_params=config.optimizer_params,
+            scheduler_name=config.scheduler_name,
+            scheduler_params=config.scheduler_params,
+            scheduler_frequency=config.scheduler_frequency,
         )
     else:
         raise ValueError("This model is not supported")

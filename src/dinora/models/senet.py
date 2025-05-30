@@ -1,3 +1,5 @@
+from typing import Any
+
 import lightning.pytorch as pl
 import numpy as np
 import numpy.typing as npt
@@ -74,19 +76,30 @@ class SeNet(AlphaNet):
         value_fc_hidden: int = 256,
         value_loss_weight: float = 0.1,
         learning_rate: float = 0.001,
-        lr_scheduler_gamma: float = 1.0,
-        lr_scheduler_freq: int = 1000,
+        optimizer_name: str = "Adam",
+        optimizer_params: dict[str, Any] | None = None,
+        scheduler_name: str = "StepLR",
+        scheduler_params: dict[str, Any] | None = None,
+        scheduler_frequency: int = 1000,
     ):
         # Call __init__ on parents except AlphaNet
         # because we are substituting ResBlock with ResBlockSE
         pl.LightningModule.__init__(self)
         BaseModel.__init__(self)
 
-        super().__init__()
         self.value_loss_weight = value_loss_weight
         self.learning_rate = learning_rate
-        self.lr_scheduler_gamma = lr_scheduler_gamma
-        self.lr_scheduler_freq = lr_scheduler_freq
+        if optimizer_params is None:
+            raise ValueError("optimizer_params is None")
+
+        if scheduler_params is None:
+            raise ValueError("scheduler_params is None")
+
+        self.optimizer_name = optimizer_name
+        self.optimizer_params = optimizer_params
+        self.scheduler_name = scheduler_name
+        self.scheduler_params = scheduler_params
+        self.scheduler_frequency = scheduler_frequency
 
         self.convblock = nn.Sequential(
             nn.Conv2d(

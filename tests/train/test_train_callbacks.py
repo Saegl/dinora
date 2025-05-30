@@ -16,8 +16,14 @@ micro_alphanet_conf = {
     "value_channels": 2,
     "value_fc_hidden": 32,
     "learning_rate": 0.001,
-    "lr_scheduler_gamma": 1.0,
-    "lr_scheduler_freq": 1000,
+    "optimizer_name": "Adam",
+    "optimizer_params": {},
+    "scheduler_name": "StepLR",
+    "scheduler_params": {
+        "step_size": 1,
+        "gamma": 1.0,
+    },
+    "scheduler_frequency": 1000,
 }
 
 

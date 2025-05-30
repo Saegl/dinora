@@ -14,8 +14,14 @@
 
     "tune_learning_rate": false,
     "learning_rate": 0.001,
-    "lr_scheduler_gamma": 0.5,
-    "lr_scheduler_freq": 130000,
+    "optimizer_name": "Adam",
+    "optimizer_params": {},
+    "scheduler_name": "StepLR",
+    "scheduler_params": {
+        "step_size": 1,
+        "gamma": 0.5
+    },
+    "scheduler_frequency": 130000,
 
     "enable_checkpointing": true,
     "checkpoint_train_time_interval": {"minutes": 15},

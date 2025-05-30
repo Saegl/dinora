@@ -65,13 +65,24 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim.adam import Adam
-from torch.optim.lr_scheduler import StepLR
+from torch.optim.lr_scheduler import CosineAnnealingLR, LRScheduler, StepLR
+from torch.optim.sgd import SGD
 
 from dinora.encoders.board_tensor import boards_to_tensor
 from dinora.encoders.policy import legal_policy
 from dinora.models.base import BaseModel, Evaluation
 
 npf32 = npt.NDArray[np.float32]
+
+OPTIMIZERS = {
+    "Adam": Adam,
+    "SGD": SGD,
+}
+
+SCHEDULERS: dict[str, type[LRScheduler]] = {
+    "StepLR": StepLR,
+    "CosineAnnealingLR": CosineAnnealingLR,
+}
 
 
 class ResBlock(nn.Module):
@@ -112,14 +123,26 @@ class AlphaNet(pl.LightningModule, BaseModel):
         value_fc_hidden: int = 256,
         value_loss_weight: float = 0.1,
         learning_rate: float = 0.001,
-        lr_scheduler_gamma: float = 1.0,
-        lr_scheduler_freq: int = 1000,
+        optimizer_name: str = "Adam",
+        optimizer_params: dict[str, Any] | None = None,
+        scheduler_name: str = "StepLR",
+        scheduler_params: dict[str, Any] | None = None,
+        scheduler_frequency: int = 1000,
     ):
         super().__init__()
         self.value_loss_weight = value_loss_weight
+        if optimizer_params is None:
+            raise ValueError("optimizer_params is None")
+
+        if scheduler_params is None:
+            raise ValueError("scheduler_params is None")
+
         self.learning_rate = learning_rate
-        self.lr_scheduler_gamma = lr_scheduler_gamma
-        self.lr_scheduler_freq = lr_scheduler_freq
+        self.optimizer_name = optimizer_name
+        self.optimizer_params = optimizer_params
+        self.scheduler_name = scheduler_name
+        self.scheduler_params = scheduler_params
+        self.scheduler_frequency = scheduler_frequency
 
         self.convblock = nn.Sequential(
             nn.Conv2d(
@@ -214,14 +237,20 @@ class AlphaNet(pl.LightningModule, BaseModel):
         )
 
     def configure_optimizers(self) -> Any:
-        optimizer = Adam(self.parameters(), lr=self.learning_rate)
-        scheduler = StepLR(optimizer, step_size=1, gamma=self.lr_scheduler_gamma)
+        optimizer_cls = OPTIMIZERS[self.optimizer_name]
+        optimizer = optimizer_cls(
+            self.parameters(), lr=self.learning_rate, **self.optimizer_params
+        )
+
+        scheduler_cls = SCHEDULERS[self.scheduler_name]
+        scheduler = scheduler_cls(optimizer, **self.scheduler_params)
+
         return {
             "optimizer": optimizer,
             "lr_scheduler": {
                 "scheduler": scheduler,
                 "interval": "step",
-                "frequency": self.lr_scheduler_freq,
+                "frequency": self.scheduler_frequency,
             },
         }
 
