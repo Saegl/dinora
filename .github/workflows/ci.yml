@@ -19,6 +19,10 @@ jobs:
           version: "0.7.12"
           python-version-file: ".python_version"
 
+      - name: Download model weights
+        run: |
+          wget -O models/default.onnx https://github.com/Saegl/dinora/releases/download/v0.3.0/default.onnx
+
       - name: Install the project
         run: uv sync --locked --all-extras --dev
 
