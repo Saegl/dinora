@@ -153,14 +153,14 @@ if __name__ == "__main__":
 
     for _ in range(25):
         replay_buffer.add_game(
-            [chess.Move.from_uci(move) for move in "f2f4 e7e5 g2g4 d8h4".split()]
+            [chess.Move.from_uci(move) for move in ["f2f4", "e7e5", "g2g4", "d8h4"]]
         )
 
     datamodule = replay_buffer.prepare_dataset()
 
     for _ in range(25):
         replay_buffer.add_game(
-            [chess.Move.from_uci(move) for move in "f2f4 e7e5 g2g4 d8h4".split()]
+            [chess.Move.from_uci(move) for move in ["f2f4", "e7e5", "g2g4", "d8h4"]]
         )
 
     datamodule = replay_buffer.prepare_dataset()

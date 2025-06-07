@@ -6,7 +6,7 @@ from dinora.models.base import BaseModel, Evaluation, Priors
 def uniform_policy(board: chess.Board) -> Priors:
     legal_moves = list(board.legal_moves)
     uniform_prob = 1.0 / len(legal_moves)
-    return {move: uniform_prob for move in legal_moves}
+    return dict.fromkeys(legal_moves, uniform_prob)
 
 
 class EmptyModel(BaseModel):

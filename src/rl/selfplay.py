@@ -77,7 +77,7 @@ class Timers:
         return "\n".join(lines)
 
     def reset(self) -> None:
-        self.total_time = {name: 0.0 for name in self.total_time}
+        self.total_time = dict.fromkeys(self.total_time, 0.0)
 
 
 def sample_softmax_move(node: mcts.Node) -> chess.Move:
