@@ -5,7 +5,7 @@ from dinora.models import model_selector
 
 
 def test_batch() -> None:
-    model = model_selector("alphanet", None, "cuda")
+    model = model_selector("onnx", None, "cpu")
     boards = [
         chess.Board(),
         chess.Board(fen="1r3rk1/2p1qp1p/4p1pB/p6n/B1P5/1P3Q2/2P2PPP/4R1K1 w - - 1 21"),
