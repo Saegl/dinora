@@ -16,25 +16,27 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "cairosvg>=2.7.1",
     "chess>=1.10.0",
+    "numpy>=2.1.1",
+    "cairosvg>=2.7.1",
     "colorama>=0.4.6",
     "graphviz>=0.20.3",
-    "lightning>=2.4.0",
-    "numpy>=2.1.1",
-    "onnxruntime-gpu>=1.19.2",
-    "onnxruntime>=1.19.2",
     "pillow>=10.4.0",
     "pylru>=1.2.1",
     "tqdm>=4.66.5",
     "wandb>=0.18.1",
-    "onnx>=1.17.0",
 ]
 
 
 [project.optional-dependencies]
 torch = [
     "torch>=2.4.1",
+    "lightning>=2.4.0",
+]
+onnx = [
+    "onnx>=1.17.0",
+    "onnxruntime-gpu>=1.19.2",
+    "onnxruntime>=1.19.2",
 ]
 
 [tool.uv]
@@ -48,6 +50,7 @@ dev-dependencies = [
     "snakeviz>=2.2.2",
     "ipython>=8.32.0",
     "scalene>=1.5.51",
+    "ruff>=0.11.13",
 ]
 
 [build-system]
