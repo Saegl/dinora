@@ -1,5 +1,9 @@
 # Dinora
 
+![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FSaegl%2Fdinora%2Frefs%2Fheads%2Fmain%2Fpyproject.toml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+
 [Installation & Usage](/docs/installation_usage.md)
 | [Training](/docs/training.md)
 
