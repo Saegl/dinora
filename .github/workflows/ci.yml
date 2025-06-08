@@ -18,6 +18,8 @@ jobs:
         with:
           version: "0.7.12"
           python-version-file: ".python_version"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Download model weights
         run: |
