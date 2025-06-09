@@ -64,25 +64,13 @@ import numpy.typing as npt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.optim.adam import Adam
-from torch.optim.lr_scheduler import CosineAnnealingLR, LRScheduler, StepLR
-from torch.optim.sgd import SGD
 
 from dinora.encoders.board_tensor import boards_to_tensor
 from dinora.encoders.policy import legal_policy
 from dinora.models.base import BaseModel, Evaluation
+from train.optim_config import OPTIMIZERS, SCHEDULERS
 
 npf32 = npt.NDArray[np.float32]
-
-OPTIMIZERS = {
-    "Adam": Adam,
-    "SGD": SGD,
-}
-
-SCHEDULERS: dict[str, type[LRScheduler]] = {
-    "StepLR": StepLR,
-    "CosineAnnealingLR": CosineAnnealingLR,
-}
 
 
 class ResBlock(nn.Module):
@@ -238,9 +226,8 @@ class AlphaNet(pl.LightningModule, BaseModel):
 
     def configure_optimizers(self) -> Any:
         optimizer_cls = OPTIMIZERS[self.optimizer_name]
-        optimizer = optimizer_cls(
-            self.parameters(), lr=self.learning_rate, **self.optimizer_params
-        )
+        optimizer_params = {"lr": self.learning_rate, **self.optimizer_params}
+        optimizer = optimizer_cls(self.parameters(), **optimizer_params)
 
         scheduler_cls = SCHEDULERS[self.scheduler_name]
         scheduler = scheduler_cls(optimizer, **self.scheduler_params)
