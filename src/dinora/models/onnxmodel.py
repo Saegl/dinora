@@ -15,7 +15,12 @@ DEFAULT_WEIGHTS_FILENAME = "default.onnx"
 
 
 class OnnxModel(BaseModel):
-    def __init__(self, weights: pathlib.Path | None = None, device: str | None = None):
+    def __init__(
+        self,
+        weights: pathlib.Path | None = None,
+        device: str | None = None,
+        limit_threads: bool = False,
+    ):
         if device is None:
             providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
         elif device == "cpu":
@@ -29,8 +34,9 @@ class OnnxModel(BaseModel):
             weights = search_weights(DEFAULT_WEIGHTS_FILENAME)
 
         sess_options = ort.SessionOptions()
-        sess_options.intra_op_num_threads = 1
-        sess_options.inter_op_num_threads = 1
+        if limit_threads:
+            sess_options.intra_op_num_threads = 1
+            sess_options.inter_op_num_threads = 1
 
         self.ort_session = ort.InferenceSession(
             weights, providers=providers, sess_options=sess_options
