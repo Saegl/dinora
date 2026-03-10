@@ -19,12 +19,14 @@ class Engine:
         model_name: str | None = None,
         weights_path: pathlib.Path | None = None,
         device: str | None = None,
+        limit_threads: bool = False,
     ):
         self.searcher = get_searcher(searcher)
         self._model_name = model_name
         self._model: BaseModel | None = None
         self.weights_path = weights_path
         self.device = device
+        self.limit_threads = limit_threads
 
     @property
     def model(self) -> BaseModel:
@@ -39,7 +41,10 @@ class Engine:
     def load_model(self) -> None:
         if self._model is None:
             self._model = model_selector(
-                self._model_name, self.weights_path, self.device
+                self._model_name,
+                self.weights_path,
+                self.device,
+                limit_threads=self.limit_threads,
             )
 
     def reset(self) -> None:

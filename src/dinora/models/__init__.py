@@ -43,10 +43,10 @@ def search_weights(filename: str) -> pathlib.Path:
     raise Exception("Cannot find model weights")
 
 
-def load_default() -> BaseModel:
+def load_default(limit_threads: bool = False) -> BaseModel:
     for model_name in DEFAULT_MODELS:
         try:
-            model = model_selector(model_name, None, None)
+            model = model_selector(model_name, None, None, limit_threads=limit_threads)
             return model
         except ModuleNotFoundError:
             pass
@@ -63,21 +63,29 @@ def guess_model_from_weights(weights_path: pathlib.Path) -> str:
 
 
 def model_selector(  # noqa: C901
-    model: str | None, weights_path: pathlib.Path | None, device: str | None
+    model: str | None,
+    weights_path: pathlib.Path | None,
+    device: str | None,
+    limit_threads: bool = False,
 ) -> BaseModel:
     if model is None and weights_path is not None:
         return model_selector(
-            guess_model_from_weights(weights_path), weights_path, device
+            guess_model_from_weights(weights_path),
+            weights_path,
+            device,
+            limit_threads=limit_threads,
         )
 
     if model is None:
-        return load_default()
+        return load_default(limit_threads=limit_threads)
 
     if model.startswith("cached_"):
         from dinora.models.cached_model import CachedModel
 
         model = model.removeprefix("cached_")
-        return CachedModel(model_selector(model, weights_path, device))
+        return CachedModel(
+            model_selector(model, weights_path, device, limit_threads=limit_threads)
+        )
 
     elif model == "alphanet":
         import torch  # Torch import at the top makes UCI slower
@@ -100,7 +108,7 @@ def model_selector(  # noqa: C901
     elif model == "onnx":
         from dinora.models.onnxmodel import OnnxModel
 
-        return OnnxModel(weights_path, device)
+        return OnnxModel(weights_path, device, limit_threads=limit_threads)
 
     elif model == "handcrafted":
         return DummyModel()
