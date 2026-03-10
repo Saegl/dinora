@@ -39,8 +39,8 @@ onnx = [
     "onnxruntime>=1.19.2",
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pre-commit>=3.8.0",
     "pytest >=8.1.1,<9",
     "pytest-cov>=5.0.0",
