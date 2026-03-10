@@ -33,7 +33,7 @@ def bench_onnx(
 ) -> None:
     for i, batch_size in enumerate(batch_sizes):
         throughput = benchmark_throughput(session, batch_size, warmup_iters, test_iters)
-        print(f"{i}: Batch Size: {batch_size}, Throughput: {throughput:.2f} images/sec")
+        print(f"{i}: Batch Size: {batch_size}, Throughput: {throughput:.2f} boards/sec")
 
 
 if __name__ == "__main__":
