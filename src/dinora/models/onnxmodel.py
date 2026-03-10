@@ -3,7 +3,7 @@ import pathlib
 import chess
 import numpy as np
 import numpy.typing as npt
-import onnxruntime
+import onnxruntime as ort
 
 from dinora.encoders.board_tensor import boards_to_tensor
 from dinora.encoders.policy import legal_policy
@@ -15,7 +15,12 @@ DEFAULT_WEIGHTS_FILENAME = "default.onnx"
 
 
 class OnnxModel(BaseModel):
-    def __init__(self, weights: pathlib.Path | None = None, device: str | None = None):
+    def __init__(
+        self,
+        weights: pathlib.Path | None = None,
+        device: str | None = None,
+        limit_threads: bool = False,
+    ):
         if device is None:
             providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
         elif device == "cpu":
@@ -28,7 +33,14 @@ class OnnxModel(BaseModel):
         if weights is None:
             weights = search_weights(DEFAULT_WEIGHTS_FILENAME)
 
-        self.ort_session = onnxruntime.InferenceSession(weights, providers=providers)
+        sess_options = ort.SessionOptions()
+        if limit_threads:
+            sess_options.intra_op_num_threads = 1
+            sess_options.inter_op_num_threads = 1
+
+        self.ort_session = ort.InferenceSession(
+            weights, providers=providers, sess_options=sess_options
+        )
         self.weights_path = weights
 
     def name(self) -> str:

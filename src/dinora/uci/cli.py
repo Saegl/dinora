@@ -20,6 +20,7 @@ class DefaultArgs:
     searcher: str | None = field(default=None)
     model: str | None = field(default=None)
     device: str | None = field(default=None)
+    limit_threads: bool = False
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -44,16 +45,24 @@ def build_parser() -> argparse.ArgumentParser:
         "--device",
         help="Model device, `cpu` or `cuda`",
     )
+    parser.add_argument(
+        "--limit-threads",
+        action="store_true",
+        help="Limit ONNX/numpy to 1 thread",
+    )
     return parser
 
 
 def run_cli(args: Args, default_args: DefaultArgs) -> None:
     try:
+        limit_threads = args.limit_threads or default_args.limit_threads
+
         engine = Engine(
             args.searcher or default_args.searcher,
             args.model or default_args.model,
             args.weights,
             args.device or default_args.device,
+            limit_threads=limit_threads,
         )
         uci_start(engine)
 
