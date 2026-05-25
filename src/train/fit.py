@@ -1,25 +1,17 @@
 import json
 import logging
 import pathlib
-import warnings
+import time
 from dataclasses import asdict, dataclass
 from datetime import timedelta
 from pprint import pprint
 from typing import Any, Literal
 
-import lightning.pytorch as pl
 import torch
 import wandb
-from lightning.pytorch.callbacks import (
-    Callback,
-    LearningRateMonitor,
-    ModelCheckpoint,
-    ModelSummary,
-)
-from lightning.pytorch.loggers import WandbLogger
-from lightning.pytorch.tuner.tuning import Tuner
 
 from dinora import PROJECT_ROOT
+from train.callback import Callback
 from train.datamodules import WandbDataModule
 from train.elofish_callback import ElofishRatingEstimator
 from train.train_callbacks import (
@@ -29,11 +21,12 @@ from train.train_callbacks import (
     TrainerCheckpointer,
     ValidationCheckpointer,
 )
+from train.trainer import Trainer
+from train.tuner import Tuner
+from train.wandb_logger import WandbLogger
 
-warnings.filterwarnings("ignore", message="The dataloader, .* to improve performance.")
 logging.getLogger("wandb").setLevel(logging.WARNING)
 logging.getLogger("git").setLevel(logging.WARNING)
-logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)
 logging.getLogger("fsspec").setLevel(logging.WARNING)
 
 
@@ -128,7 +121,100 @@ class Config:
         return conf
 
 
-def get_model(config: Config) -> pl.LightningModule:
+class LearningRateMonitor(Callback):
+    """Logs ``lr-<OptimizerClassName>``, suffixed ``/pg1`` etc. for multiple groups.
+
+    A ``-momentum`` key carries ``betas[0]`` for Adam-like optimizers, ``momentum`` for SGD.
+    """
+
+    def _optimizer_stats(self, optimizer: Any) -> dict[str, float]:
+        stats: dict[str, float] = {}
+        name = "lr-" + type(optimizer).__name__
+        param_groups = optimizer.param_groups
+        use_betas = "betas" in optimizer.defaults
+        for i, group in enumerate(param_groups):
+            pg_name = name if len(param_groups) == 1 else f"{name}/pg{i + 1}"
+            stats[pg_name] = group["lr"]
+            momentum = group["betas"][0] if use_betas else group.get("momentum", 0)
+            stats[f"{pg_name}-momentum"] = momentum
+        return stats
+
+    def on_train_batch_start(
+        self, trainer: Trainer, model: Any, batch: Any, batch_idx: int
+    ) -> None:
+        # global_step is not incremented until after this callback
+        next_step = trainer.global_step + 1
+        if next_step % trainer.log_every_n_steps == 0 and trainer.logger:
+            stats: dict[str, float] = {}
+            for optimizer in trainer.optimizers:
+                stats.update(self._optimizer_stats(optimizer))
+            if stats:
+                trainer.logger.log_metrics(stats, step=next_step)
+
+
+class ModelSummary(Callback):
+    def on_fit_start(self, trainer: Trainer, model: Any) -> None:
+        total = sum(p.numel() for p in model.parameters())
+        trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        print(f"\nModel: {type(model).__name__}")
+        print(f"Total parameters:     {total:,}")
+        print(f"Trainable parameters: {trainable:,}\n")
+
+
+class ModelCheckpoint(Callback):
+    def __init__(
+        self,
+        dirpath: pathlib.Path,
+        filename: str,
+        save_weights_only: bool,
+        train_time_interval: timedelta,
+    ) -> None:
+        self.dirpath = pathlib.Path(dirpath)
+        self.filename = filename
+        self.save_weights_only = save_weights_only
+        self.train_time_interval = train_time_interval
+        self._last_save_time: float | None = None
+
+    def on_fit_start(self, trainer: Trainer, model: Any) -> None:
+        self._last_save_time = time.time()
+
+    def on_train_batch_start(
+        self, trainer: Trainer, model: Any, batch: Any, batch_idx: int
+    ) -> None:
+        if self._last_save_time is None:
+            return
+        elapsed = time.time() - self._last_save_time
+        if elapsed >= self.train_time_interval.total_seconds():
+            self._save(trainer, model)
+            self._last_save_time = time.time()
+
+    def _save(self, trainer: Trainer, model: Any) -> None:
+        self.dirpath.mkdir(parents=True, exist_ok=True)
+        filename = self.filename.format(
+            epoch=trainer.current_epoch,
+            step=trainer.global_step,
+        )
+        filepath = self.dirpath / f"{filename}.ckpt"
+        if self.save_weights_only:
+            torch.save(model.state_dict(), filepath)
+        else:
+            torch.save(model, filepath)
+        print(f"Checkpoint saved: {filepath}")
+
+        after_save = getattr(trainer.logger, "after_save_checkpoint", None)
+        if after_save is not None:
+            after_save(
+                filepath,
+                {
+                    "epoch": trainer.current_epoch,
+                    "step": trainer.global_step,
+                    "original_filename": filepath.name,
+                    "save_weights_only": self.save_weights_only,
+                },
+            )
+
+
+def get_model(config: Config) -> Any:
     if config.model_type == "alphanet":
         from dinora.models.alphanet import AlphaNet
 
@@ -169,20 +255,20 @@ def get_model(config: Config) -> pl.LightningModule:
 
 def fit(config: Config) -> None:  # noqa: C901
     run = wandb.init(project="dinora-chess", dir=WANDB_LOGS_DIR)
+    run.config.update({"config_file": asdict(config)})
     pprint(config)
 
     wandb_logger = WandbLogger(
         project="dinora-chess",
         log_model="all",  # save model weights to wandb
-        config={"config_file": asdict(config)},
     )
 
     torch.set_float32_matmul_precision(config.matmul_precision)
     max_time = timedelta(**config.max_time) if config.max_time else None
 
     callbacks: list[Callback] = [
-        LearningRateMonitor(log_momentum=True),
-        ModelSummary(max_depth=-1),
+        LearningRateMonitor(),
+        ModelSummary(),
     ]
 
     if config.enable_sample_game_generator:
@@ -241,7 +327,7 @@ def fit(config: Config) -> None:  # noqa: C901
         q_weight=config.q_weight,
     )
 
-    trainer = pl.Trainer(
+    trainer = Trainer(
         max_time=max_time,
         max_epochs=config.max_epochs,
         logger=wandb_logger,
@@ -258,11 +344,12 @@ def fit(config: Config) -> None:  # noqa: C901
     tuner = Tuner(trainer)
 
     if config.tune_batch:
-        tuner.scale_batch_size(model, datamodule=datamodule)
-        config.batch_size = datamodule.hparams.batch_size  # type: ignore
+        config.batch_size = tuner.scale_batch_size(model, datamodule)
 
     if config.tune_learning_rate:
-        tuner.lr_find(model, datamodule=datamodule)
+        suggested = tuner.lr_find(model, datamodule)
+        if suggested is not None:
+            config.learning_rate = suggested
 
     ckpt_path = None
 
@@ -282,10 +369,7 @@ def fit(config: Config) -> None:  # noqa: C901
 
 
 def validate(config: Config) -> None:
-    model = get_model(config)
-    model.load_from_checkpoint("models/model-eliteq.ckpt")
-
-    import wandb
+    model = torch.load("models/model-eliteq.ckpt")
 
     wandb.init(project="dinora-chess", dir=WANDB_LOGS_DIR)
 
@@ -296,7 +380,7 @@ def validate(config: Config) -> None:
         q_weight=config.q_weight,
     )
 
-    trainer = pl.Trainer(
+    trainer = Trainer(
         limit_val_batches=config.limit_val_batches,
     )
     trainer.validate(model, datamodule)

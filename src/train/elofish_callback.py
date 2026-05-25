@@ -2,11 +2,10 @@ import time
 import typing
 from pathlib import Path
 from pprint import pprint
+from typing import Any
 
-import lightning.pytorch as pl
 import torch
 import wandb
-from lightning.pytorch.callbacks import Callback
 
 from elofish.elofish import (
     EvaluationResult,
@@ -15,6 +14,7 @@ from elofish.elofish import (
     Rating,
     run_elo_evaluation,
 )
+from train.callback import Callback
 
 
 class ElofishRatingEstimator(Callback):
@@ -43,7 +43,7 @@ class ElofishRatingEstimator(Callback):
         self.current_id = 0
         self.current_deviation = self.student_deviation
 
-    def prepare_weights(self, pl_module: pl.LightningModule) -> Path:
+    def prepare_weights(self, pl_module: Any) -> Path:
         weights_dir = Path("reports/models/")
         weights_dir.mkdir(parents=True, exist_ok=True)
         weights_path = weights_dir / "elofish.ckpt"
@@ -61,7 +61,7 @@ class ElofishRatingEstimator(Callback):
             self.current_rating = self.min_rating + 1
             self.current_deviation = self.student_deviation
 
-    def upload_metrics(self, trainer: pl.Trainer, evalres: EvaluationResult) -> None:
+    def upload_metrics(self, trainer: Any, evalres: EvaluationResult) -> None:
         metrics = {
             "elofish/rating": self.current_rating,
             "elofish/deviation": self.current_deviation,
@@ -116,8 +116,8 @@ class ElofishRatingEstimator(Callback):
 
     def on_train_batch_start(
         self,
-        trainer: "pl.Trainer",
-        pl_module: "pl.LightningModule",
+        trainer: Any,
+        pl_module: Any,
         batch: typing.Any,
         batch_idx: int,
     ) -> None:

@@ -31,7 +31,6 @@ dependencies = [
 [project.optional-dependencies]
 torch = [
     "torch>=2.4.1",
-    "lightning>=2.4.0",
 ]
 onnx = [
     "onnx>=1.17.0",

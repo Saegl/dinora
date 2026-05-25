@@ -134,8 +134,8 @@ Or read `src/train/fit.py`
     "lr_scheduler_gamma": 1.0, // lr decay, here is no effect (multiple by 1)
     "lr_scheduler_freq": 30000,
 
-    // pytorch lightning checkpointing, was broken last time I check
-    // use `enable_validation_checkpointer` below
+    // periodic checkpointing: saves weights to `checkpoints/models`
+    // and uploads them to wandb, see also `enable_validation_checkpointer` below
     "enable_checkpointing": true,
     "checkpoint_train_time_interval": {"minutes": 30},
 
