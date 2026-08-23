@@ -4,7 +4,7 @@ from typing import Any
 import chess
 
 from dinora.models import BaseModel, model_selector
-from dinora.search.registered import get_searcher
+from dinora.search.registry import build_searcher
 from dinora.search.stoppers import Stopper
 
 
@@ -21,7 +21,7 @@ class Engine:
         device: str | None = None,
         limit_threads: bool = False,
     ):
-        self.searcher = get_searcher(searcher)
+        self.searcher = build_searcher(searcher)
         self._model_name = model_name
         self._model: BaseModel | None = None
         self.weights_path = weights_path

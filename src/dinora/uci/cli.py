@@ -8,6 +8,8 @@ import typing
 from dataclasses import dataclass, field
 
 from dinora.engine import Engine
+from dinora.search.registry import SEARCHERS
+from dinora.threads import limit_threads
 from dinora.uci.uci import uci_start
 
 if typing.TYPE_CHECKING:
@@ -30,6 +32,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--searcher",
+        choices=sorted(SEARCHERS),
         help="Name of the searcher to use",
     )
     parser.add_argument(
@@ -55,14 +58,17 @@ def build_parser() -> argparse.ArgumentParser:
 
 def run_cli(args: Args, default_args: DefaultArgs) -> None:
     try:
-        limit_threads = args.limit_threads or default_args.limit_threads
+        should_limit_threads = args.limit_threads or default_args.limit_threads
+        if should_limit_threads:
+            # Before `Engine`, which is what pulls in numpy/onnxruntime/torch
+            limit_threads()
 
         engine = Engine(
             args.searcher or default_args.searcher,
             args.model or default_args.model,
             args.weights,
             args.device or default_args.device,
-            limit_threads=limit_threads,
+            limit_threads=should_limit_threads,
         )
         uci_start(engine)
 
