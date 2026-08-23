@@ -58,7 +58,6 @@ since more data was available.'
 from typing import Any
 
 import chess
-import lightning.pytorch as pl
 import numpy as np
 import numpy.typing as npt
 import torch
@@ -101,7 +100,7 @@ class ResBlock(nn.Module):
         return self.relu(self.body(x) + x)
 
 
-class AlphaNet(pl.LightningModule, BaseModel):
+class AlphaNet(nn.Module, BaseModel):
     def __init__(
         self,
         filters: int = 256,
@@ -118,6 +117,7 @@ class AlphaNet(pl.LightningModule, BaseModel):
         scheduler_frequency: int = 1000,
     ):
         super().__init__()
+        self._logged_metrics: dict[str, Any] = {}
         self.value_loss_weight = value_loss_weight
         if optimizer_params is None:
             raise ValueError("optimizer_params is None")
@@ -173,6 +173,15 @@ class AlphaNet(pl.LightningModule, BaseModel):
             nn.ReLU(),
             nn.Linear(in_features=value_fc_hidden, out_features=1),
             nn.Tanh(),
+        )
+
+    @property
+    def device(self) -> torch.device:
+        return next(self.parameters()).device
+
+    def log_dict(self, d: dict[str, Any]) -> None:
+        self._logged_metrics.update(
+            {k: v.item() if isinstance(v, torch.Tensor) else v for k, v in d.items()}
         )
 
     def forward(self, x):  # type: ignore

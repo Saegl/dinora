@@ -1,18 +1,20 @@
 import json
 import pathlib
 
-import lightning.pytorch as pl
 import numpy as np
 import numpy.typing as npt
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, Dataset
 
 from dataset.encoders.compact_board_tensor import compact_state_to_board_tensor
 from dinora import PROJECT_ROOT
 
 npf32 = npt.NDArray[np.float32]
 
+# board tensor, (policy index, outcome)
+Sample = tuple[npf32, tuple[np.int64, npf32]]
 
-class CompactDataset(TensorDataset):
+
+class CompactDataset(Dataset[Sample]):
     def __init__(
         self,
         dataset_folder: pathlib.Path,
@@ -52,7 +54,7 @@ class CompactDataset(TensorDataset):
     def __len__(self) -> int:
         return self.length
 
-    def __getitem__(self, index: int):  # type: ignore
+    def __getitem__(self, index: int) -> Sample:
         if not (self.current_left_bound <= index < self.current_right_bound):
             for chunk_info in self.chunks_bounds:
                 if chunk_info["left_bound"] <= index < chunk_info["right_bound"]:  # type: ignore
@@ -99,7 +101,7 @@ class CompactDataset(TensorDataset):
         return compact_state_to_board_tensor(board), (policy, outcome)
 
 
-class CompactDataModule(pl.LightningDataModule):
+class CompactDataModule:
     def __init__(
         self,
         dataset_folder: pathlib.Path,
@@ -107,46 +109,45 @@ class CompactDataModule(pl.LightningDataModule):
         q_weight: float,
         batch_size: int = 128,
     ) -> None:
-        super().__init__()
-        self.hparams.z_weight = z_weight  # type: ignore
-        self.hparams.q_weight = q_weight  # type: ignore
-        self.hparams.batch_size = batch_size  # type: ignore
+        self.z_weight = z_weight
+        self.q_weight = q_weight
+        self.batch_size = batch_size
         self.dataset_folder = dataset_folder
 
         with open(dataset_folder / "report.json", encoding="utf8") as f:
             self.report = json.load(f)
 
-    def train_dataloader(self) -> DataLoader[CompactDataset]:
+    def train_dataloader(self) -> DataLoader[Sample]:
         return DataLoader(
             CompactDataset(
                 self.dataset_folder,
                 self.report["train"],
-                self.hparams.z_weight,  # type: ignore
-                self.hparams.q_weight,  # type: ignore
+                self.z_weight,
+                self.q_weight,
             ),
-            batch_size=self.hparams.batch_size,  # type: ignore
+            batch_size=self.batch_size,
         )
 
-    def val_dataloader(self) -> DataLoader[CompactDataset]:
+    def val_dataloader(self) -> DataLoader[Sample]:
         return DataLoader(
             CompactDataset(
                 self.dataset_folder,
                 self.report["val"],
-                self.hparams.z_weight,  # type: ignore
-                self.hparams.q_weight,  # type: ignore
+                self.z_weight,
+                self.q_weight,
             ),
-            batch_size=self.hparams.batch_size,  # type: ignore
+            batch_size=self.batch_size,
         )
 
-    def test_dataloader(self) -> DataLoader[CompactDataset]:
+    def test_dataloader(self) -> DataLoader[Sample]:
         return DataLoader(
             CompactDataset(
                 self.dataset_folder,
                 self.report["test"],
-                self.hparams.z_weight,  # type: ignore
-                self.hparams.q_weight,  # type: ignore
+                self.z_weight,
+                self.q_weight,
             ),
-            batch_size=self.hparams.batch_size,  # type: ignore
+            batch_size=self.batch_size,
         )
 
 

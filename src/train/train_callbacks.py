@@ -6,26 +6,23 @@ from typing import Any
 import cairosvg
 import chess
 import chess.svg
-import lightning.pytorch as pl
 import numpy as np
 import torch
 import wandb
-from lightning.pytorch.callbacks import Callback
 from PIL import Image
 
 from cploss.evaluate import calc_policy_cploss, calc_value_cploss, load_cploss
 from dinora import PROJECT_ROOT
 from dinora.models.alphanet import AlphaNet
+from train.callback import Callback
 from train.handmade_val_dataset.dataset import POSITIONS
 
 
 class SampleGameGenerator(Callback):
-    def on_fit_start(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
+    def on_fit_start(self, trainer: Any, pl_module: Any) -> None:
         self.table = wandb.Table(columns=["moves"])  # type: ignore
 
-    def on_validation_end(
-        self, trainer: pl.Trainer, pl_module: pl.LightningModule
-    ) -> None:
+    def on_validation_end(self, trainer: Any, pl_module: Any) -> None:
         start_time = time.time()
         board = chess.Board()
         while board.result() == "*" and board.ply() != 120:
@@ -33,7 +30,7 @@ class SampleGameGenerator(Callback):
             bestmove = max(policy, key=lambda k: policy[k])
             board.push(bestmove)
         moves = " ".join(map(lambda m: m.uci(), board.move_stack))
-        trainer.logger.log_text(key="sample_game", columns=["moves"], data=[[moves]])  # type: ignore
+        trainer.logger.log_text(key="sample_game", columns=["moves"], data=[[moves]])
         print(
             f"Callback {self.__class__.__name__} took {time.time() - start_time:.3f} seconds"
         )
@@ -52,9 +49,7 @@ class BoardsEvaluator(Callback):
         image = Image.open(png_out)
         return image
 
-    def on_validation_end(
-        self, trainer: pl.Trainer, pl_module: pl.LightningModule
-    ) -> None:
+    def on_validation_end(self, trainer: Any, pl_module: Any) -> None:
         start_time = time.time()
         data = []
         COLUMNS = ["image"] * self.render_image + [
@@ -88,7 +83,7 @@ class BoardsEvaluator(Callback):
 
             data.append(entry)
 
-        trainer.logger.log_text(key="val_positions", columns=COLUMNS, data=data)  # type: ignore
+        trainer.logger.log_text(key="val_positions", columns=COLUMNS, data=data)
         print(
             f"Callback {self.__class__.__name__} took {time.time() - start_time:.3f} seconds"
         )
@@ -98,7 +93,7 @@ class ValidationCheckpointer(Callback):
     def __init__(self) -> None:
         self.saves_counter = 0
 
-    def save_model(self, pl_module: pl.LightningModule, label: str) -> None:
+    def save_model(self, pl_module: Any, label: str) -> None:
         self.saves_counter += 1
         is_module_training = pl_module.training
 
@@ -118,21 +113,19 @@ class ValidationCheckpointer(Callback):
         final_state.add_file(filepath)  # type: ignore
         wandb.log_artifact(final_state)
 
-    def on_validation_end(
-        self, trainer: pl.Trainer, pl_module: pl.LightningModule
-    ) -> None:
+    def on_validation_end(self, trainer: Any, pl_module: Any) -> None:
         start_time = time.time()
         self.save_model(pl_module, f"valid-state-{self.saves_counter}")
         print(
             f"Callback {self.__class__.__name__} took {time.time() - start_time:.3f} seconds"
         )
 
-    def on_train_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
+    def on_train_end(self, trainer: Any, pl_module: Any) -> None:
         self.save_model(pl_module, "valid-state-final")
 
 
 class TrainerCheckpointer(Callback):
-    def on_train_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
+    def on_train_end(self, trainer: Any, pl_module: Any) -> None:
         ckpt_filepath = pathlib.Path("trainer.ckpt")
         trainer.save_checkpoint(ckpt_filepath)
 
@@ -144,7 +137,7 @@ class TrainerCheckpointer(Callback):
 
 
 class CPLoss(Callback):
-    def __init__(self, cploss_label: str, max_positions: int, batch_size: int):
+    def __init__(self, cploss_label: str, max_positions: int, batch_size: int) -> None:
         cploss_folder = self.download_from_wandb(cploss_label)
         self.value_boards, self.policy_boards, self.positions = load_cploss(
             cploss_folder, max_positions
@@ -172,9 +165,7 @@ class CPLoss(Callback):
             dataset_artifact.download(root=cploss_folder)
             return cploss_folder
 
-    def on_validation_end(
-        self, trainer: pl.Trainer, pl_module: pl.LightningModule
-    ) -> None:
+    def on_validation_end(self, trainer: Any, pl_module: Any) -> None:
         start_time = time.time()
         if trainer.logger is None:
             print("Cant log cploss metrics")

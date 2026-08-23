@@ -1,6 +1,4 @@
-import lightning.pytorch as pl
 import pytest
-from lightning.pytorch.loggers import Logger
 
 from dinora.models.alphanet import AlphaNet
 from train.train_callbacks import (
@@ -8,6 +6,7 @@ from train.train_callbacks import (
     SampleGameGenerator,
     ValidationCheckpointer,
 )
+from train.trainer import Trainer
 
 micro_alphanet_conf = {
     "filters": 16,
@@ -27,28 +26,28 @@ micro_alphanet_conf = {
 }
 
 
-class MockLogger(Logger):
+class MockLogger:
     @property
-    def name(self):
+    def name(self) -> str:
         return "MockLogger"
 
     @property
-    def version(self):
+    def version(self) -> int:
         return -1
 
     def log_metrics(self, metrics, step=None) -> None:
-        ""
+        pass
 
     def log_hyperparams(self, params, *args, **kwargs) -> None:
-        ""
+        pass
 
-    def log_text(self, *args, **kwargs):
+    def log_text(self, *args, **kwargs) -> None:
         pass
 
 
 def test_sample_game_generator():
     callback = SampleGameGenerator()
-    trainer = pl.Trainer(logger=MockLogger())
+    trainer = Trainer(logger=MockLogger())
     pl_module = AlphaNet(**micro_alphanet_conf)
 
     callback.on_fit_start(trainer, pl_module)
@@ -57,7 +56,7 @@ def test_sample_game_generator():
 
 def test_boards_evaluator():
     callback = BoardsEvaluator()
-    trainer = pl.Trainer(logger=MockLogger())
+    trainer = Trainer(logger=MockLogger())
     pl_module = AlphaNet(**micro_alphanet_conf)
 
     callback.on_validation_end(trainer, pl_module)
@@ -66,7 +65,7 @@ def test_boards_evaluator():
 @pytest.mark.disk_usage
 def test_validation_checkpointer():
     callback = ValidationCheckpointer()
-    trainer = pl.Trainer(logger=MockLogger())
+    trainer = Trainer(logger=MockLogger())
     pl_module = AlphaNet(**micro_alphanet_conf)
 
     import wandb

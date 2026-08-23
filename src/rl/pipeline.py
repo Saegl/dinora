@@ -6,17 +6,18 @@ import time
 from dataclasses import asdict, dataclass, field
 from datetime import timedelta
 
-import lightning.pytorch as pl
 import torch
 import wandb
-from lightning.pytorch.loggers import WandbLogger
 
 from dinora.models.alphanet import AlphaNet
 from rl.replay_buffer import ReplayBuffer
 from rl.selfplay import analyze_pgn, selfplay
+from train.callback import Callback
 from train.datamodules import CompactDataModule
 from train.fit import AlphaNetConfig
 from train.train_callbacks import CPLoss
+from train.trainer import Trainer
+from train.wandb_logger import WandbLogger
 
 WANDB_LOGS_DIR = pathlib.Path("logs/wandb_logs")
 
@@ -101,12 +102,12 @@ def fit(
     model: AlphaNet,
     datamodule: CompactDataModule,
     generation_output_dir: pathlib.Path,
-    callbacks: list[pl.Callback],
+    callbacks: list[Callback],
 ) -> None:
     print("STAGE: Fit")
     start_time = time.time()
     wandb_logger = WandbLogger(project="dinora-chess")
-    trainer = pl.Trainer(
+    trainer = Trainer(
         max_epochs=config.epochs_per_generation,
         logger=wandb_logger,
         enable_checkpointing=False,
@@ -116,7 +117,7 @@ def fit(
     model_file = generation_output_dir / "model.ckpt"
     torch.save(model, model_file)
 
-    model.to("cuda")  # pl.Trainer puts model back to CPU?
+    model.to("cuda")
     # There is no validation dataset in RL
     # trigger validation callbacks manually
     for callback in callbacks:
@@ -147,7 +148,7 @@ def start_rl(config: Config) -> None:
         learning_rate=config.learning_rate,
     ).to("cuda")
 
-    callbacks: list[pl.Callback] = []
+    callbacks: list[Callback] = []
     if config.enable_cploss:
         cploss = CPLoss(
             config.cploss_label,
@@ -157,7 +158,7 @@ def start_rl(config: Config) -> None:
         callbacks.append(cploss)
 
         wandb_logger = WandbLogger(project="dinora-chess")
-        log_trainer = pl.Trainer(
+        log_trainer = Trainer(
             logger=wandb_logger,
             enable_checkpointing=False,
         )

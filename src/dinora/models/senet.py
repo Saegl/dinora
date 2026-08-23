@@ -1,6 +1,5 @@
 from typing import Any
 
-import lightning.pytorch as pl
 import numpy as np
 import numpy.typing as npt
 import torch
@@ -84,9 +83,10 @@ class SeNet(AlphaNet):
     ):
         # Call __init__ on parents except AlphaNet
         # because we are substituting ResBlock with ResBlockSE
-        pl.LightningModule.__init__(self)
+        nn.Module.__init__(self)
         BaseModel.__init__(self)
 
+        self._logged_metrics: dict[str, Any] = {}
         self.value_loss_weight = value_loss_weight
         self.learning_rate = learning_rate
         if optimizer_params is None:
