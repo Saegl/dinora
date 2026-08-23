@@ -1,6 +1,6 @@
 import chess
 
-from dinora.models import model_selector
+from dinora.models.registry import ModelConfig, build_model
 from dinora.search.mcts_batch.mcts_batch import (
     MctsParams,
     Node,
@@ -9,7 +9,7 @@ from dinora.search.mcts_batch.mcts_batch import (
     process_batch,
 )
 
-evaluator = model_selector("handcrafted", None, None)
+evaluator = build_model(ModelConfig("handcrafted"))
 DEFAULT_PARAMS = MctsParams()
 
 

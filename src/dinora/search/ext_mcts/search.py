@@ -2,7 +2,7 @@ from collections.abc import Callable
 
 import chess
 
-from dinora.models import BaseModel, Priors
+from dinora.models.base import BaseModel, Priors
 from dinora.search.ext_mcts.node import Node
 from dinora.search.ext_mcts.params import MCTSparams
 from dinora.search.ext_mcts.reduction import reduction, terminal_val

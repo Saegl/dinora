@@ -42,7 +42,7 @@
     "elofish_time_limit": 0.5,
     "elofish_rating": 1400,
     "elofish_student_deviation": 350.0,
-    "elofish_student_command_prefix": ["python", "-m", "dinora", "--model", "alphanet"],
+    "elofish_student_command_prefix": ["python", "-m", "dinora", "--model", "torch"],
     "elofish_teacher_command": ["stockfish"],
     "elofish_upload_reports": true,
 

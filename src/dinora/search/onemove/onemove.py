@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import chess
 
-from dinora.models import BaseModel
+from dinora.models.base import BaseModel
 from dinora.search.base import BaseSearcher
 from dinora.search.stoppers import Stopper
 

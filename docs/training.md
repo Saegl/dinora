@@ -254,7 +254,7 @@ configs like this
                 "--searcher",
                 "ext_mcts",
                 "--model",
-                "alphanet",
+                "torch",
                 "--device",
                 "cuda",
                 "--weights",

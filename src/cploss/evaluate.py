@@ -12,8 +12,8 @@ import torch
 from dataset.encoders.compact_board_tensor import compact_state_to_board_tensor
 from dinora.encoders.policy import extract_logit
 from dinora.engine import Engine
-from dinora.models import model_selector
 from dinora.models.alphanet import AlphaNet
+from dinora.models.registry import ModelConfig, build_model
 from dinora.search.stoppers import MoveTime, NodesCount, Stopper
 
 device = "cuda"
@@ -201,7 +201,7 @@ def main() -> None:
     params: dict[str, str] = {}  # TODO: pass custom params from somewhere?
 
     print("Model loading")
-    model = model_selector("alphanet", model_path, "cuda")
+    model = build_model(ModelConfig("torch", model_path, "cuda"))
     print("Model loaded")
 
     assert isinstance(model, AlphaNet)

@@ -3,6 +3,7 @@ import math
 import chess
 
 from dinora.models.base import BaseModel, Evaluation, Priors
+from dinora.models.registry import ModelConfig
 
 
 def evaluate_board(board: chess.Board) -> float:
@@ -88,3 +89,7 @@ class DummyModel(BaseModel):
 
     def evaluate_batch(self, boards: list[chess.Board]) -> list[Evaluation]:
         return [self.evaluate(board) for board in boards]
+
+
+def load(config: ModelConfig) -> BaseModel:
+    return DummyModel()

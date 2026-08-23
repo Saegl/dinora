@@ -9,8 +9,8 @@ import numpy as np
 import optuna
 
 from cploss.evaluate import calc_engine_cploss, load_cploss, make_stopper_creator
-from dinora.models import model_selector
 from dinora.models.alphanet import AlphaNet
+from dinora.models.registry import ModelConfig, build_model
 
 
 class CPLossObjective:
@@ -18,7 +18,7 @@ class CPLossObjective:
         model_path = Path("models/alphanet_rerun-valid-state-4.ckpt")
         loaddir = Path("data/cploss/elite")
 
-        model = model_selector("alphanet", model_path, "cuda")
+        model = build_model(ModelConfig("torch", model_path, "cuda"))
         assert isinstance(model, AlphaNet)
 
         self.model = model

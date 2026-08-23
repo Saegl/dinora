@@ -514,11 +514,11 @@ def analyze_pgn(pgn_file: pathlib.Path) -> None:
 
 
 if __name__ == "__main__":
-    from dinora.models import model_selector
+    from dinora.models.registry import ModelConfig, build_model
 
     model_path = pathlib.Path("models/alphanet_mini.ckpt")
     # model_path = pathlib.Path("models/alphanet_classic.ckpt")
-    model = model_selector("alphanet", model_path, "cpu")
+    model = build_model(ModelConfig("torch", model_path, "cpu"))
     # pgn_file = pathlib.Path("example.pgn")
     assert isinstance(model, AlphaNet)
     replay_buffer_dir = pathlib.Path("selfplay_rb")

@@ -3,11 +3,11 @@ import pathlib
 import torch
 import torch.onnx
 
-from dinora.models import model_selector
+from dinora.models.registry import ModelConfig, build_model
 
 
 def export_onnx(model_name: str, weights: pathlib.Path) -> None:
-    model = model_selector(model_name, weights, "cpu")
+    model = build_model(ModelConfig(model_name, weights, "cpu"))
     assert isinstance(model, torch.nn.Module), "Can convert only `torch` models"
 
     x = torch.randn(1, 18, 8, 8, requires_grad=False)

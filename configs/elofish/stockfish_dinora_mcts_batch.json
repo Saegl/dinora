@@ -27,7 +27,7 @@
                 "--searcher",
                 "mcts_batch",
                 "--model",
-                "alphanet",
+                "torch",
                 "--device",
                 "cuda",
                 "--weights",

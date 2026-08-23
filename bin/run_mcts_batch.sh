@@ -8,4 +8,4 @@ if [[ -f /etc/NIXOS && -d /run/opengl-driver/lib && -n "$NIX_LD_LIBRARY_PATH" ]]
     export LD_LIBRARY_PATH=/run/opengl-driver/lib:$NIX_LD_LIBRARY_PATH
 fi
 
-.venv/bin/python -m dinora --searcher mcts_batch --model alphanet
+.venv/bin/python -m dinora --searcher mcts_batch --model torch

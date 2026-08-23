@@ -8,6 +8,7 @@ import typing
 from dataclasses import dataclass, field
 
 from dinora.engine import Engine
+from dinora.models.registry import MODELS
 from dinora.search.registry import SEARCHERS
 from dinora.threads import limit_threads
 from dinora.uci.uci import uci_start
@@ -37,7 +38,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--model",
-        help="Name of the model to use",
+        help=f"Name of the model to use ({', '.join(sorted(MODELS))})",
     )
     parser.add_argument(
         "--weights",

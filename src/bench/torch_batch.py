@@ -3,8 +3,8 @@ import time
 
 import torch
 
-from dinora.models import model_selector
 from dinora.models.alphanet import AlphaNet
+from dinora.models.registry import ModelConfig, build_model
 
 
 def benchmark_throughput(
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = model_selector("alphanet", args.weights_path, device.type)
+    model = build_model(ModelConfig("torch", args.weights_path, device.type))
     assert isinstance(model, AlphaNet)
 
     bench_torch(

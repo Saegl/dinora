@@ -1,6 +1,7 @@
 import chess
 
 from dinora.models.base import BaseModel, Evaluation, Priors
+from dinora.models.registry import ModelConfig
 
 
 def uniform_policy(board: chess.Board) -> Priors:
@@ -15,3 +16,7 @@ class EmptyModel(BaseModel):
 
     def evaluate_batch(self, boards: list[chess.Board]) -> list[Evaluation]:
         return [self.evaluate(board) for board in boards]
+
+
+def load(config: ModelConfig) -> BaseModel:
+    return EmptyModel()

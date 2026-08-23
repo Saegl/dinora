@@ -7,8 +7,8 @@ import onnxruntime as ort
 
 from dinora.encoders.board_tensor import boards_to_tensor
 from dinora.encoders.policy import legal_policy
-from dinora.models import search_weights
 from dinora.models.base import BaseModel, Evaluation
+from dinora.models.registry import ModelConfig, search_weights
 
 npf32 = npt.NDArray[np.float32]
 DEFAULT_WEIGHTS_FILENAME = "default.onnx"
@@ -62,3 +62,7 @@ class OnnxModel(BaseModel):
             (legal_policy(raw_policy[i], board), float(raw_value[i, 0]))
             for i, board in enumerate(boards)
         ]
+
+
+def load(config: ModelConfig) -> BaseModel:
+    return OnnxModel(config.weights, config.device, limit_threads=config.limit_threads)

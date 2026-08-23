@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--model",
-        default="alphanet",
+        default="torch",
         help="Name of the model to use",
     )
     parser.add_argument(
