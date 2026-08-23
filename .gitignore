@@ -1,22 +1,30 @@
-# Custom ignore lines
+excluded/
+
+# Output directories the code writes into
 models/*
 !models/.gitkeep
 reports/*
 !reports/.gitkeep
-wandb/*
-artifacts/*
-lightning_logs/*
 checkpoints/*
 !checkpoints/.gitkeep
 logs/wandb_logs/*
 !logs/wandb_logs/.gitkeep
-data/datasets/
 data/treeviz/*
-data/elo_estimator/
-data/rl_data/
 !data/treeviz/.gitkeep
 data/cploss/*
 !data/cploss/.gitkeep
+data/datasets/
+data/rl_data/
+wandb/*
+
+# Checkpoints dropped into the cwd by src/train/train_callbacks.py,
+# also written by the test suite
+/valid-state-*.ckpt
+/trainer.ckpt
+
+# Raw PGN corpora and the tool used to split them
+data/pgns/
+pgn-extract*/
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
@@ -170,8 +178,3 @@ dmypy.json
 cython_debug/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
-
-
-# Added by cargo
-
-/target

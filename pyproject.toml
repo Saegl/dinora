@@ -94,7 +94,7 @@ exclude = [
     'src/elofish/glicko2/glicko2.py',
     'docs',
     'tests',
-    'trash',
+    'excluded',
 ]
 
 [tool.pytest.ini_options]
