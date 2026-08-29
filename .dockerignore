@@ -1,0 +1,8 @@
+# Allowlist: the build context otherwise carries ~600MB of checkpoints,
+# datasets and the local .venv.
+*
+!pyproject.toml
+!README.md
+!src/dinora
+!models/default.onnx
+**/__pycache__
