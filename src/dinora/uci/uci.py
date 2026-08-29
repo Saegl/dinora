@@ -9,11 +9,22 @@ import chess
 
 import dinora
 from dinora.engine import Engine, ParamNotFound
-from dinora.options import uci_options
+from dinora.options import param, uci_options
 from dinora.search.stoppers import Stopper
 from dinora.uci.uci_go_parser import parse_go_params
 
-DEFAULT_MOVE_OVERHEAD_MS = 600
+
+@dataclass
+class EngineParams:
+    """Options of the engine itself, the searcher independent ones."""
+
+    move_overhead_ms: int = param(
+        default=600,
+        minimum=0,
+        maximum=10000,
+        doc="Milliseconds subtracted from the clock to absorb GUI and network lag. "
+        "Increase if the engine loses on time.",
+    )
 
 
 def send(s: str) -> None:
@@ -115,7 +126,7 @@ class UciCommunicator:
         self.board = chess.Board()
         self.running = True
 
-        self.option_move_overhead_ms = DEFAULT_MOVE_OVERHEAD_MS
+        self.engine_params = EngineParams()
 
     def start_communication(self) -> None:
         send(f"Dinora Chess Engine v{dinora.__version__}")
@@ -156,12 +167,9 @@ class UciCommunicator:
         send(f"id name Dinora v{dinora.__version__}")
         send("id author Saegl")
 
-        for option in uci_options(self.params):
+        for option in uci_options(self.engine_params) + uci_options(self.params):
             send(option.line())
 
-        send(
-            f"option name move_overhead_ms type spin default {DEFAULT_MOVE_OVERHEAD_MS} min 0 max 10000"
-        )
         send("uciok")
 
     def ucinewgame(self, _: list[str]) -> None:
@@ -172,7 +180,7 @@ class UciCommunicator:
         value = tokens[tokens.index("value") + 1]
 
         if name == "move_overhead_ms":
-            self.option_move_overhead_ms = int(value)
+            self.engine_params.move_overhead_ms = int(value)
 
         self.commands_queue.put(SetOption(name, value))
 
@@ -204,7 +212,7 @@ class UciCommunicator:
         send(f"info string parsed params {go_params}")
 
         self.active_stopper = go_params.get_search_stopper(
-            self.board, self.option_move_overhead_ms
+            self.board, self.engine_params.move_overhead_ms
         )
         send(f"info string chosen stopper {self.active_stopper}")
 

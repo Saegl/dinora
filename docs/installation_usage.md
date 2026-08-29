@@ -17,6 +17,15 @@ To check that everything works, in UCI repl you could type
 ```uci``` - Will show available options  
 ```go``` - Will start infinite search and print moves, cancel with `Ctrl-C`  
 
+## Engine options
+
+Options are searcher specific, `--help` documents the ones the engine
+accepts, with their defaults and ranges  
+```$ uv run python -m dinora --help```  
+```$ uv run python -m dinora --searcher ext_mcts --help```  
+
+In a GUI they are sent as `setoption name <name> value <value>`
+
 Additionally, you can check that cuda works
 ```
 $ uv run python

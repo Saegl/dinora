@@ -15,17 +15,68 @@ from dinora.search.stoppers import Stopper
 @dataclass
 class MctsParams:
     # exploration constant
-    cpuct: float = param(default=3.0, minimum=0.0, maximum=20.0)
-    fpu: float = param(default=-1.0, minimum=-10.0, maximum=10.0)
+    cpuct: float = param(
+        default=3.0,
+        minimum=0.0,
+        maximum=20.0,
+        doc="Exploration constant. Higher values spread the search over more moves, "
+        "lower values dig into the few moves the network already likes.",
+    )
+    fpu: float = param(
+        default=-1.0,
+        minimum=-10.0,
+        maximum=10.0,
+        doc="First Play Urgency, the value assumed for a move before it has been "
+        "searched. Higher values make the engine optimistic about untried moves, "
+        "which helps it look for an escape in a bad position.",
+    )
     # batch
-    batch_size: int = param(default=16, minimum=1, maximum=1024)
-    virtual_visits: int = param(default=1, minimum=1, maximum=1024)
-    max_collisions: int = param(default=1, minimum=1, maximum=1024)
+    batch_size: int = param(
+        default=16,
+        minimum=1,
+        maximum=1024,
+        doc="How many leaves are collected before one batched network evaluation. "
+        "Larger batches use the GPU better, but the whole batch is picked from a "
+        "tree that gets more and more out of date as it fills up.",
+    )
+    virtual_visits: int = param(
+        default=1,
+        minimum=1,
+        maximum=1024,
+        doc="Visits temporarily added to a leaf while it waits for evaluation, so "
+        "the rest of the batch is pushed towards other lines.",
+    )
+    max_collisions: int = param(
+        default=1,
+        minimum=1,
+        maximum=1024,
+        doc="How many times a batch may land on a leaf that is already waiting "
+        "before it gives up and sends the batch off early.",
+    )
     # random
-    opening_noise_moves: int = param(default=15, minimum=0, maximum=100)
-    dirichlet_alpha: float = param(default=0.3, minimum=0.01, maximum=10.0)
+    opening_noise_moves: int = param(
+        default=15,
+        minimum=0,
+        maximum=100,
+        doc="How many of the first moves get noise mixed into the root policy. "
+        "Has no effect if `noise_eps` is 0.",
+    )
+    dirichlet_alpha: float = param(
+        default=0.3,
+        minimum=0.01,
+        maximum=10.0,
+        doc="Shape of the Dirichlet noise. Lower values pile the noise onto a few "
+        "moves, higher values spread it evenly. Has no effect if `noise_eps` is 0.",
+    )
     # set noise_eps to 0.0 to disable random
-    noise_eps: float = param(default=0.0, minimum=0.0, maximum=1.0)
+    noise_eps: float = param(
+        default=0.0,
+        minimum=0.0,
+        maximum=1.0,
+        doc="How much random noise is blended into the network policy at the root. "
+        "Adds variety to the openings the engine plays, useful when you don't give "
+        "it an opening book. Has no effect if `opening_noise_moves` is 0.",
+    )
 
 
 class Node:

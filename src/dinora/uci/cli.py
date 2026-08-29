@@ -9,9 +9,10 @@ from dataclasses import dataclass, field
 
 from dinora.engine import Engine
 from dinora.models.registry import MODELS
-from dinora.search.registry import SEARCHERS
+from dinora.options import render_options, uci_options
+from dinora.search.registry import DEFAULT_SEARCHER, SEARCHERS, build_searcher
 from dinora.threads import limit_threads
-from dinora.uci.uci import uci_start
+from dinora.uci.uci import EngineParams, uci_start
 
 if typing.TYPE_CHECKING:
     Subparsers = argparse._SubParsersAction[argparse.ArgumentParser]
@@ -30,6 +31,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dinora",
         description="Chess engine",
+        # `--help` is handled in `main`, so that the searcher is known by then
+        add_help=False,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "-h",
+        "--help",
+        action="store_true",
+        help="Show this help, with the UCI options of the selected searcher",
     )
     parser.add_argument(
         "--searcher",
@@ -55,6 +65,32 @@ def build_parser() -> argparse.ArgumentParser:
         help="Limit ONNX/numpy to 1 thread",
     )
     return parser
+
+
+def print_help(parser: argparse.ArgumentParser, searcher_name: str) -> None:
+    """
+    Print `--help` plus the UCI options of `searcher_name`.
+
+    Building the searcher imports numpy & co, so this must stay out of the
+    parsing path, see `dinora.threads`.
+    """
+    others = [name for name in sorted(SEARCHERS) if name != searcher_name]
+
+    parser.epilog = "\n".join(
+        [
+            "Options are sent by the GUI as `setoption name <name> value <value>`.",
+            "",
+            "Engine options:",
+            render_options(uci_options(EngineParams())),
+            "",
+            f"UCI options of searcher `{searcher_name}`:",
+            render_options(uci_options(build_searcher(searcher_name).params)),
+            "",
+            f"Options differ per searcher. Others: {', '.join(others)}",
+            f"Run `{parser.prog} --searcher {others[0]} --help` to see theirs.",
+        ]
+    )
+    parser.print_help()
 
 
 def run_cli(args: Args, default_args: DefaultArgs) -> None:
@@ -92,4 +128,10 @@ def run_cli(args: Args, default_args: DefaultArgs) -> None:
 def main(default_args: DefaultArgs) -> None:
     parser = build_parser()
     args = parser.parse_args()
+
+    if args.help:
+        searcher_name = args.searcher or default_args.searcher or DEFAULT_SEARCHER
+        print_help(parser, searcher_name)
+        return
+
     run_cli(args, default_args)
