@@ -1,11 +1,13 @@
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 import chess
 
 from dinora.models.base import BaseModel, Priors
+from dinora.options import param
 from dinora.search.base import BaseSearcher
+from dinora.search.logger import send
 from dinora.search.noise import apply_noise
 from dinora.search.stoppers import Stopper
 
@@ -13,16 +15,17 @@ from dinora.search.stoppers import Stopper
 @dataclass
 class MctsParams:
     # exploration constant
-    cpuct: float = field(default=3.0)
-    fpu: float = field(default=-1.0)
+    cpuct: float = param(default=3.0, minimum=0.0, maximum=20.0)
+    fpu: float = param(default=-1.0, minimum=-10.0, maximum=10.0)
     # batch
-    batch_size: int = field(default=16)
-    virtual_visits: int = field(default=1)
-    max_collisions: int = field(default=1)
+    batch_size: int = param(default=16, minimum=1, maximum=1024)
+    virtual_visits: int = param(default=1, minimum=1, maximum=1024)
+    max_collisions: int = param(default=1, minimum=1, maximum=1024)
     # random
-    opening_noise_moves: int = field(default=15)
-    dirichlet_alpha: float = field(default=0.3)
-    noise_eps: float = field(default=0.0)  # set to 0.0 to disable random
+    opening_noise_moves: int = param(default=15, minimum=0, maximum=100)
+    dirichlet_alpha: float = param(default=0.3, minimum=0.01, maximum=10.0)
+    # set noise_eps to 0.0 to disable random
+    noise_eps: float = param(default=0.0, minimum=0.0, maximum=1.0)
 
 
 class Node:
@@ -215,5 +218,5 @@ class MctsBatch(BaseSearcher[MctsParams]):
 
             process_batch(batch_boards, batch_leaves, evaluator, self.params.fpu)
 
-        print(f"info nodes {root.visits}")
+        send(f"info nodes {root.visits}")
         return most_visited_move(root)

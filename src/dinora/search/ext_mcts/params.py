@@ -5,6 +5,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Literal
 
+from dinora.options import param
 from dinora.search.ext_mcts.node import Node
 
 
@@ -29,17 +30,18 @@ class MCTSparams:
     node_reduction: bool = field(default=False)
 
     # First Play Urgency - value of unvisited nodes
-    fpu: float = field(default=-1.0)
-    fpu_at_root: float = field(default=0.0)
+    fpu: float = param(default=-1.0, minimum=-10.0, maximum=10.0)
+    fpu_at_root: float = param(default=0.0, minimum=-10.0, maximum=10.0)
 
     # exploration parameter
     selection_policy_name: Literal["puct", "softmax"] = field(default="puct")
-    cpuct: float = field(default=3.0)
-    t: float = field(default=1.0)
+    cpuct: float = param(default=3.0, minimum=0.0, maximum=20.0)
+    t: float = param(default=1.0, minimum=0.01, maximum=10.0)
 
     # random
-    dirichlet_alpha: float = field(default=0.3)
-    noise_eps: float = field(default=0.0)  # set to 0.0 to disable random
+    dirichlet_alpha: float = param(default=0.3, minimum=0.01, maximum=10.0)
+    # set noise_eps to 0.0 to disable random
+    noise_eps: float = param(default=0.0, minimum=0.0, maximum=1.0)
 
     send_func: Callable[[str], None] = print
 

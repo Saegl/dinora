@@ -2,13 +2,14 @@ import contextlib
 import queue
 import sys
 import threading
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from typing import Any
 
 import chess
 
 import dinora
 from dinora.engine import Engine, ParamNotFound
+from dinora.options import uci_options
 from dinora.search.stoppers import Stopper
 from dinora.uci.uci_go_parser import parse_go_params
 
@@ -155,17 +156,8 @@ class UciCommunicator:
         send(f"id name Dinora v{dinora.__version__}")
         send("id author Saegl")
 
-        for field in fields(self.params):
-            if field.type is int:
-                uci_type_name = "spin"
-            elif field.type is float or field.type is str:
-                uci_type_name = "string"
-            else:
-                continue
-
-            send(
-                f"option name {field.name} type {uci_type_name} default {field.default}"
-            )
+        for option in uci_options(self.params):
+            send(option.line())
 
         send(
             f"option name move_overhead_ms type spin default {DEFAULT_MOVE_OVERHEAD_MS} min 0 max 10000"
