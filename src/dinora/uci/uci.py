@@ -1,6 +1,5 @@
 import contextlib
 import queue
-import sys
 import threading
 from dataclasses import dataclass
 from typing import Any
@@ -11,15 +10,10 @@ import dinora
 from dinora.engine import Engine, ParamNotFound
 from dinora.options import uci_options
 from dinora.search.stoppers import Stopper
+from dinora.uci.output import send
 from dinora.uci.uci_go_parser import parse_go_params
 
 DEFAULT_MOVE_OVERHEAD_MS = 600
-
-
-def send(s: str) -> None:
-    sys.stdout.write(s)
-    sys.stdout.write("\n")
-    sys.stdout.flush()
 
 
 class UciCommand:
@@ -88,8 +82,8 @@ class UciEngine:
 
                 case Go(board, stopper):
                     move = self.engine.get_best_move(board, stopper)
-                    send(f"bestmove {move}")
                     stopper.early_stop.set()
+                    send(f"bestmove {move}")
                 case SetOption(name, value):
                     with contextlib.suppress(ParamNotFound):
                         self.engine.set_config_param(name, value)
