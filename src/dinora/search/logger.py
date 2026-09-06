@@ -1,11 +1,6 @@
-import sys
 import time
 
-
-def send(s: str) -> None:
-    sys.stdout.write(s)
-    sys.stdout.write("\n")
-    sys.stdout.flush()
+from dinora.uci.output import send
 
 
 class UCILogger:

@@ -7,9 +7,9 @@ import chess
 from dinora.models.base import BaseModel, Priors
 from dinora.options import param
 from dinora.search.base import BaseSearcher
-from dinora.search.logger import send
 from dinora.search.noise import apply_noise
 from dinora.search.stoppers import Stopper
+from dinora.uci.output import send
 
 
 @dataclass
