@@ -44,21 +44,33 @@ class SetOption(UciCommand):
 
 
 @dataclass
-class IsReady(UciCommand):
-    pass
-
-
-@dataclass
 class Quit(UciCommand):
     pass
 
 
+_load_lock = threading.Lock()
+
+
+def load_model(engine: Engine) -> None:
+    """
+    Load the network, once, reporting progress over UCI.
+
+    Called from both threads: the reader thread on `isready`, the engine thread
+    on `go` in case the GUI skipped `isready`.
+    """
+    with _load_lock:
+        if engine.loaded():
+            return
+
+        send(f"info string searcher <{engine.searcher.name()}>")
+        send("info string model is loading")
+        engine.load_model()
+        send(f"info string model loaded type <{engine.model.name()}>")
+
+
 def uci_start(engine: Engine) -> None:
     commands_queue: queue.Queue[UciCommand] = queue.Queue()
-    uciloop = UciCommunicator(
-        commands_queue,
-        engine.searcher.params,
-    )
+    uciloop = UciCommunicator(commands_queue, engine)
     uciengine = UciEngine(commands_queue, engine)
 
     controller_thread = threading.Thread(target=uciengine.loop)
@@ -77,21 +89,8 @@ class UciEngine:
         while running:
             command = self.commands_queue.get()
             match command:
-                case IsReady():
-                    model_was_loaded = self.engine.loaded()
-
-                    if not model_was_loaded:
-                        send(f"info string searcher <{self.engine.searcher.name()}>")
-                        send("info string model is loading")
-
-                    self.engine.load_model()
-
-                    if not model_was_loaded:
-                        send(
-                            f"info string model loaded type <{self.engine.model.name()}>"
-                        )
-
                 case Go(board, stopper):
+                    load_model(self.engine)
                     move = self.engine.get_best_move(board, stopper)
                     stopper.early_stop.set()
                     send(f"bestmove {move}")
@@ -108,14 +107,16 @@ class UciEngine:
 
 class UciCommunicator:
     commands_queue: queue.Queue[UciCommand]
+    engine: Engine
     params: Any
     active_stopper: Stopper | None
     board: chess.Board
     running: bool
 
-    def __init__(self, commands_queue: queue.Queue[UciCommand], params: Any):
+    def __init__(self, commands_queue: queue.Queue[UciCommand], engine: Engine):
         self.commands_queue = commands_queue
-        self.params = params
+        self.engine = engine
+        self.params = engine.searcher.params
         self.active_stopper = None
         self.board = chess.Board()
         self.running = True
@@ -179,7 +180,13 @@ class UciCommunicator:
         self.commands_queue.put(SetOption(name, value))
 
     def isready(self, _: list[str]) -> None:
-        self.commands_queue.put(IsReady())
+        """
+        `readyok`, but only once the engine is done initializing.
+
+        The load runs on this thread, off the command queue, so an `isready`
+        during a search is answered at once instead of waiting for `bestmove`.
+        """
+        load_model(self.engine)
         send("readyok")
 
     def position(self, tokens: list[str]) -> None:
@@ -199,8 +206,6 @@ class UciCommunicator:
     def go(self, tokens: list[str]) -> None:
         if self.active_stopper and not self.active_stopper.early_stop.is_set():
             raise Exception("Can't run second `go`")
-
-        self.commands_queue.put(IsReady())
 
         go_params = parse_go_params(tokens)
         send(f"info string parsed params {go_params}")
