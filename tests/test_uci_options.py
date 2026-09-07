@@ -6,12 +6,12 @@ The `uci` handshake has to advertise well formed options, `spin` without
 import pytest
 
 from dinora.options import uci_options
-from dinora.search.registry import SEARCHERS, build_searcher
+from dinora.search.registered import get_searcher, registered_searchers
 
 
-@pytest.mark.parametrize("searcher_name", sorted(SEARCHERS))
+@pytest.mark.parametrize("searcher_name", sorted(registered_searchers))
 def test_advertised_options_are_well_formed(searcher_name: str) -> None:
-    searcher = build_searcher(searcher_name)
+    searcher = get_searcher(searcher_name)
 
     for option in uci_options(searcher.params):
         tokens = option.line().split()
@@ -26,9 +26,9 @@ def test_advertised_options_are_well_formed(searcher_name: str) -> None:
         assert low <= int(option.default) <= high, option.line()
 
 
-@pytest.mark.parametrize("searcher_name", sorted(SEARCHERS))
+@pytest.mark.parametrize("searcher_name", sorted(registered_searchers))
 def test_int_params_are_spin_and_float_params_are_string(searcher_name: str) -> None:
-    searcher = build_searcher(searcher_name)
+    searcher = get_searcher(searcher_name)
 
     for option in uci_options(searcher.params):
         expected = "spin" if option.value_type is int else "string"
