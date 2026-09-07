@@ -58,5 +58,5 @@ COPY models/default.onnx ./models/default.onnx
 # --limit-threads: onnxruntime and numpy otherwise size their thread pools from
 # the *host's* core count (/proc/cpuinfo isn't namespaced) and thrash on the one
 # core the container is pinned to.
-ENTRYPOINT [".venv/bin/python", "-m", "dinora", \
+ENTRYPOINT [".venv/bin/python", "-m", "dinora", "--searcher", "mcts", \
             "--model", "onnx", "--device", "cpu", "--limit-threads"]
